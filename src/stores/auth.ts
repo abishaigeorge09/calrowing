@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Profile } from '@/types/database'
 import { DEMO_ACCOUNTS, MOCK_TEAM } from '@/lib/mock-data'
-import { supabase } from '@/lib/supabase'
+import { IS_SUPABASE, supabase } from '@/lib/db'
 
 interface AuthState {
   user: Profile | null
@@ -13,24 +13,18 @@ interface AuthState {
   updateProfile: (updates: Partial<Profile>) => void
 }
 
-const SUPABASE_AVAILABLE = !!(
-  import.meta.env.VITE_SUPABASE_URL &&
-  import.meta.env.VITE_SUPABASE_ANON_KEY &&
-  !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-)
-
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
       user: null,
       isLoading: false,
-      isDemoMode: !SUPABASE_AVAILABLE,
+      isDemoMode: !IS_SUPABASE,
 
       signIn: async (email, password) => {
         set({ isLoading: true })
 
         // Demo mode: check local accounts
-        if (!SUPABASE_AVAILABLE) {
+        if (!IS_SUPABASE) {
           const account = DEMO_ACCOUNTS[email.toLowerCase()]
           if (account && account.password === password) {
             set({ user: account.profile, isLoading: false })
@@ -58,7 +52,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       signOut: async () => {
-        if (SUPABASE_AVAILABLE) await supabase.auth.signOut()
+        if (IS_SUPABASE) await supabase.auth.signOut()
         set({ user: null })
       },
 

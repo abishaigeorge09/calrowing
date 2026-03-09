@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth'
+import { IS_SUPABASE, supabase } from '@/lib/db'
 import { MOCK_TEAM } from '@/lib/mock-data'
 import type { Profile } from '@/types/database'
 
@@ -16,7 +17,10 @@ export default function RegisterAthletePage() {
   const [step, setStep] = useState<Step>('invite')
   const [inviteCode, setInviteCode] = useState('')
   const [inviteError, setInviteError] = useState('')
+  const [resolvedTeamId, setResolvedTeamId] = useState('')
+  const [resolvedTeamName, setResolvedTeamName] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const [form, setForm] = useState({
     name: '', email: '', password: '',
@@ -26,31 +30,117 @@ export default function RegisterAthletePage() {
     injuries: '',
   })
 
-  const handleInviteCheck = (e: React.FormEvent) => {
+  const handleInviteCheck = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (inviteCode.toUpperCase() === MOCK_TEAM.invite_code || inviteCode.length >= 6) {
-      setInviteError('')
-      setStep('account')
-    } else {
-      setInviteError('Invalid invite code. Try CAL-ROW-2026 for the demo.')
+    setInviteError('')
+
+    if (!IS_SUPABASE) {
+      // Demo mode: accept CAL-ROW-2026 or any 6+ char code
+      if (inviteCode.toUpperCase() === MOCK_TEAM.invite_code || inviteCode.length >= 6) {
+        setResolvedTeamId(MOCK_TEAM.id)
+        setResolvedTeamName(MOCK_TEAM.name)
+        setStep('account')
+      } else {
+        setInviteError('Invalid invite code. Try CAL-ROW-2026 for the demo.')
+      }
+      return
     }
+
+    // Real Supabase: look up invite code
+    const { data: team, error: teamError } = await supabase
+      .from('teams')
+      .select('id, name')
+      .eq('invite_code', inviteCode.toUpperCase())
+      .single()
+
+    if (teamError || !team) {
+      setInviteError('Invalid invite code. Ask your coach for the correct code.')
+      return
+    }
+
+    setResolvedTeamId(team.id)
+    setResolvedTeamName(team.name)
+    setStep('account')
   }
 
   const handleFinish = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    const profile: Profile = {
-      id: `athlete-${Date.now()}`,
-      email: form.email,
-      name: form.name,
-      role: 'athlete',
-      team_id: MOCK_TEAM.id,
-      avatar_url: null,
-      created_at: new Date().toISOString(),
+    setError('')
+
+    if (!IS_SUPABASE) {
+      // Demo mode: create local mock profile
+      const profile: Profile = {
+        id: `athlete-${Date.now()}`,
+        email: form.email,
+        name: form.name,
+        role: 'athlete',
+        team_id: resolvedTeamId || MOCK_TEAM.id,
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+      }
+      useAuthStore.setState({ user: profile })
+      setLoading(false)
+      navigate('/athlete')
+      return
     }
-    useAuthStore.setState({ user: profile })
-    setLoading(false)
-    navigate('/athlete')
+
+    try {
+      // 1. Create auth user (trigger auto-creates profile row)
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { role: 'athlete', name: form.name },
+        },
+      })
+      if (signUpError) throw new Error(signUpError.message)
+      if (!authData.user) throw new Error('Sign up failed — please try again.')
+
+      const uid = authData.user.id
+
+      // 2. Update profile with team_id (trigger created row, just needs team)
+      await supabase
+        .from('profiles')
+        .update({ team_id: resolvedTeamId })
+        .eq('id', uid)
+
+      // 3. Insert athlete row (id = user id — no separate user_id column)
+      await supabase.from('athletes').insert({
+        id: uid,
+        year: form.year || null,
+        boat_class: form.boat_class || null,
+        seat_position: form.seat_position || null,
+        height_cm: form.height ? parseInt(form.height) : null,
+        weight_kg: form.weight ? parseFloat(form.weight) : null,
+        sleep_goal: parseInt(form.sleep_goal) || 8,
+        injuries_text: form.injuries || null,
+      })
+
+      // 4. Insert academic schedule
+      await supabase.from('academic_schedules').insert({
+        athlete_id: uid,
+        classes_per_day: parseInt(form.classes_per_day) || 3,
+        hard_days: form.hard_days,
+        exam_weeks: form.exam_weeks
+          ? [{ week: form.exam_weeks, subject: 'Exam' }]
+          : [],
+      })
+
+      // 5. Fetch profile and set in auth store
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', uid)
+        .single()
+      if (profile) useAuthStore.setState({ user: profile as Profile })
+
+      navigate('/athlete')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -109,7 +199,9 @@ export default function RegisterAthletePage() {
         {step === 'account' && (
           <>
             <h1 className="text-2xl font-bold text-slate-900 mb-1">Create Your Account</h1>
-            <p className="text-slate-500 text-sm mb-2">Joining: <strong className="text-[#1e3a5f]">{MOCK_TEAM.name}</strong></p>
+            <p className="text-slate-500 text-sm mb-2">
+              Joining: <strong className="text-[#1e3a5f]">{resolvedTeamName || MOCK_TEAM.name}</strong>
+            </p>
             <form onSubmit={(e) => { e.preventDefault(); setStep('profile') }} className="space-y-4 mt-4">
               <div className="space-y-1.5">
                 <Label>Full Name</Label>
@@ -250,12 +342,17 @@ export default function RegisterAthletePage() {
                 <Input placeholder="e.g. March 15-19 (Midterms)" value={form.exam_weeks}
                   onChange={(e) => setForm({ ...form, exam_weeks: e.target.value })} />
               </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => setStep('profile')}>Back</Button>
                 <Button type="submit" size="lg" className="flex-1" disabled={loading}>
-                  {loading ? 'Joining…' : <>
-                    <Check className="h-4 w-4" /> Join Team
-                  </>}
+                  {loading ? 'Joining…' : <><Check className="h-4 w-4" /> Join Team</>}
                 </Button>
               </div>
             </form>

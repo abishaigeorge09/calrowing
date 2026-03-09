@@ -3,19 +3,22 @@ import { CheckCircle2, X, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TapRating, Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
+import { useSubmitWellnessLog } from '@/hooks/mutations'
 import type { Session } from '@/types/database'
 
 interface Props {
   session: Session
   onClose: () => void
   onDone: () => void
+  coachId?: string
 }
 
 const BODY_PARTS = ['Head', 'Neck', 'Shoulder (L)', 'Shoulder (R)', 'Upper Back', 'Lower Back', 'Core', 'Hip', 'Quad', 'Hamstring', 'Knee', 'Calf']
 
-export default function PostSessionForm({ session, onClose, onDone }: Props) {
+export default function PostSessionForm({ session, onClose, onDone, coachId }: Props) {
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
+  const submitLog = useSubmitWellnessLog()
   const [form, setForm] = useState({
     completion: 'full' as 'full' | 'partial' | 'dnf',
     dnf_reason: '',
@@ -46,12 +49,37 @@ export default function PostSessionForm({ session, onClose, onDone }: Props) {
     { title: 'Done!', emoji: '✅' },
   ]
 
-  const next = () => {
-    if (step === steps.length - 2) {
-      setSubmitted(true)
-    }
-    setStep(s => Math.min(s + 1, steps.length - 1))
+  const handleSubmit = async () => {
+    await submitLog.mutateAsync({
+      logType: 'post',
+      sessionId: session.id,
+      coachId,
+      data: {
+        completion: form.completion,
+        dnf_reason: form.dnf_reason || undefined,
+        rpe: form.rpe,
+        legs_fatigue: form.legs_fatigue,
+        back_core_fatigue: form.back_core_fatigue,
+        breathing_difficulty: form.breathing_difficulty,
+        has_pain: form.has_pain,
+        pain_body_part: form.has_pain ? form.pain_body_part : undefined,
+        pain_level: form.has_pain ? form.pain_level : undefined,
+        hit_target_splits: form.hit_target_splits,
+        felt_good: form.felt_good || undefined,
+        felt_off: form.felt_off || undefined,
+        recovery_status: form.recovery_status,
+        ready_tomorrow: form.ready_tomorrow,
+        studying_tonight: form.studying_tonight,
+        study_hours: form.studying_tonight ? parseInt(form.study_hours) : undefined,
+        academic_stress: form.academic_stress,
+        note_to_coach: form.note || undefined,
+      },
+    })
+    setSubmitted(true)
+    setStep(steps.length - 1)
   }
+
+  const next = () => setStep(s => Math.min(s + 1, steps.length - 1))
   const back = () => setStep(s => Math.max(s - 1, 0))
 
   const rpeColors = [

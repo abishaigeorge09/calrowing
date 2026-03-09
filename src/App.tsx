@@ -20,7 +20,20 @@ import AthleteCalendarPage from '@/features/athlete/AthleteCalendarPage'
 import AthleteProfilePage from '@/features/athlete/AthleteProfilePage'
 import MessagesPage from '@/features/messaging/MessagesPage'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      gcTime: 5 * 60_000,
+      retry: (failureCount, error: unknown) => {
+        const status = (error as { status?: number })?.status
+        if (status && status >= 400 && status < 500) return false
+        return failureCount < 2
+      },
+      refetchOnWindowFocus: true,
+    },
+  },
+})
 
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'coach' | 'athlete' }) {
   const { user } = useAuthStore()

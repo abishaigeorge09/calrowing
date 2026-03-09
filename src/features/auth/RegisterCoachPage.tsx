@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth'
+import { IS_SUPABASE, supabase } from '@/lib/db'
 import { generateInviteCode } from '@/lib/utils'
 import type { Profile } from '@/types/database'
 
@@ -14,10 +15,10 @@ type ProgressStep = 'account' | 'team'
 
 export default function RegisterCoachPage() {
   const navigate = useNavigate()
-  const { updateProfile } = useAuthStore()
   const [step, setStep] = useState<Step>('account')
   const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
   const [inviteCode, setInviteCode] = useState('')
 
   const [form, setForm] = useState({
@@ -33,23 +34,76 @@ export default function RegisterCoachPage() {
   const handleTeamSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    // In demo mode, create a fake profile and go to done
+    setError('')
+
     const code = generateInviteCode(form.teamName)
     setInviteCode(code)
-    const mockProfile: Profile = {
-      id: `coach-${Date.now()}`,
-      email: form.email,
-      name: form.name,
-      role: 'coach',
-      team_id: `team-${Date.now()}`,
-      avatar_url: null,
-      created_at: new Date().toISOString(),
+
+    if (!IS_SUPABASE) {
+      // Demo mode: create a local mock profile
+      const mockProfile: Profile = {
+        id: `coach-${Date.now()}`,
+        email: form.email,
+        name: form.name,
+        role: 'coach',
+        team_id: `team-${Date.now()}`,
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+      }
+      useAuthStore.setState({ user: mockProfile })
+      setLoading(false)
+      setStep('done')
+      return
     }
-    updateProfile(mockProfile)
-    // Also set the user directly
-    useAuthStore.setState({ user: mockProfile })
-    setLoading(false)
-    setStep('done')
+
+    try {
+      // 1. Create auth user (trigger inserts profile row automatically)
+      const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { role: 'coach', name: form.name },
+        },
+      })
+      if (signUpError) throw new Error(signUpError.message)
+      if (!authData.user) throw new Error('Sign up failed — please try again.')
+
+      // 2. Create the team
+      const { data: team, error: teamError } = await supabase
+        .from('teams')
+        .insert({
+          name: form.teamName,
+          invite_code: code,
+          sport: 'Rowing',
+          division: form.division || null,
+          season_start: form.seasonStart || null,
+          season_end: form.seasonEnd || null,
+          coach_id: authData.user.id,
+        })
+        .select()
+        .single()
+      if (teamError) throw new Error(teamError.message)
+
+      // 3. Update profile with team_id (trigger created the row, just needs team)
+      await supabase
+        .from('profiles')
+        .update({ team_id: team.id })
+        .eq('id', authData.user.id)
+
+      // 4. Fetch the full profile and put it in the auth store
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single()
+      if (profile) useAuthStore.setState({ user: profile as Profile })
+
+      setStep('done')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   const copyCode = () => {
@@ -167,6 +221,13 @@ export default function RegisterCoachPage() {
                     onChange={(e) => setForm({ ...form, seasonEnd: e.target.value })} required />
                 </div>
               </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
+                  {error}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => setStep('account')}>
                   Back

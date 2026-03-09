@@ -3,16 +3,22 @@ import { CheckCircle2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TapRating, Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
+import { useSubmitWellnessLog } from '@/hooks/mutations'
+import type { WellnessLog, Session } from '@/types/database'
 
 interface Props {
   onClose: () => void
   onDone: () => void
+  coachId?: string
+  recentLogs?: WellnessLog[]
+  tomorrowSession?: Session | null
 }
 
 const BODY_PARTS = ['Head', 'Neck', 'Shoulder (L)', 'Shoulder (R)', 'Upper Back', 'Lower Back', 'Core', 'Hip', 'Quad (L)', 'Quad (R)', 'Hamstring', 'Knee', 'Calf', 'Foot']
 
-export default function MorningCheckinForm({ onClose, onDone }: Props) {
+export default function MorningCheckinForm({ onClose, onDone, coachId, recentLogs = [], tomorrowSession = null }: Props) {
   const [step, setStep] = useState(0)
+  const submitLog = useSubmitWellnessLog()
   const [form, setForm] = useState({
     sleep_hours: 7,
     sleep_quality: 3,
@@ -35,6 +41,30 @@ export default function MorningCheckinForm({ onClose, onDone }: Props) {
     { title: 'Academic Load', emoji: '📚' },
     { title: 'Done!', emoji: '✅' },
   ]
+
+  const handleSubmit = async () => {
+    await submitLog.mutateAsync({
+      logType: 'morning',
+      coachId,
+      recentLogs,
+      tomorrowSession,
+      data: {
+        sleep_hours: form.sleep_hours,
+        sleep_quality: form.sleep_quality,
+        energy: form.energy,
+        has_soreness: form.has_soreness,
+        soreness_body_part: form.has_soreness ? form.soreness_body_part : undefined,
+        soreness_level: form.has_soreness ? form.soreness_level : undefined,
+        stress: form.stress,
+        motivation: form.motivation,
+        classes_today: form.classes_today,
+        assignments_due: form.assignments_due,
+        exam_this_week: form.exam_this_week,
+        note_to_coach: form.note || undefined,
+      },
+    })
+    setStep(4)
+  }
 
   const next = () => setStep(s => Math.min(s + 1, steps.length - 1))
   const back = () => setStep(s => Math.max(s - 1, 0))
@@ -239,7 +269,9 @@ export default function MorningCheckinForm({ onClose, onDone }: Props) {
             <Button size="lg" className="flex-1" onClick={next}>Continue</Button>
           )}
           {step === 3 && (
-            <Button size="lg" className="flex-1" onClick={next}>Submit Check-in</Button>
+            <Button size="lg" className="flex-1" onClick={handleSubmit} disabled={submitLog.isPending}>
+              {submitLog.isPending ? 'Saving…' : 'Submit Check-in'}
+            </Button>
           )}
           {step === 4 && (
             <Button size="lg" className="flex-1" onClick={onDone}>

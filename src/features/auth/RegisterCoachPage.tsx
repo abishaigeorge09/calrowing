@@ -68,6 +68,20 @@ export default function RegisterCoachPage() {
       if (signUpError) throw new Error(signUpError.message)
       if (!authData.user) throw new Error('Sign up failed — please try again.')
 
+      // Ensure we have an active session before writing to DB.
+      // When Supabase email confirmation is enabled, signUp returns no session.
+      // Sign in immediately to get one (works when confirmation is disabled, which
+      // is recommended for this app — disable in Supabase Auth settings).
+      if (!authData.session) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        })
+        if (signInError) {
+          throw new Error('Account created! Please confirm your email, then sign in to complete team setup.')
+        }
+      }
+
       // 2. Create the team
       const { data: team, error: teamError } = await supabase
         .from('teams')
@@ -211,14 +225,14 @@ export default function RegisterCoachPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Season Start</Label>
+                  <Label>Season Start <span className="text-slate-400 font-normal">(optional)</span></Label>
                   <Input type="date" value={form.seasonStart}
-                    onChange={(e) => setForm({ ...form, seasonStart: e.target.value })} required />
+                    onChange={(e) => setForm({ ...form, seasonStart: e.target.value })} />
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Season End</Label>
+                  <Label>Season End <span className="text-slate-400 font-normal">(optional)</span></Label>
                   <Input type="date" value={form.seasonEnd}
-                    onChange={(e) => setForm({ ...form, seasonEnd: e.target.value })} required />
+                    onChange={(e) => setForm({ ...form, seasonEnd: e.target.value })} />
                 </div>
               </div>
 

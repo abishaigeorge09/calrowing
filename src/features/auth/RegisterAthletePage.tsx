@@ -97,6 +97,17 @@ export default function RegisterAthletePage() {
       if (signUpError) throw new Error(signUpError.message)
       if (!authData.user) throw new Error('Sign up failed — please try again.')
 
+      // Ensure active session before writing to DB (email confirmation may be enabled)
+      if (!authData.session) {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        })
+        if (signInError) {
+          throw new Error('Account created! Please confirm your email, then sign in to complete your profile.')
+        }
+      }
+
       const uid = authData.user.id
 
       // 2. Update profile with team_id (trigger created row, just needs team)

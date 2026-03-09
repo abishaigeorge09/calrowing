@@ -200,7 +200,9 @@ export default function RegisterAthletePage() {
                   required
                 />
                 {inviteError && <p className="text-red-600 text-sm">{inviteError}</p>}
-                <p className="text-slate-400 text-xs">Demo: use <strong>CAL-ROW-2026</strong></p>
+                {!IS_SUPABASE && (
+                  <p className="text-slate-400 text-xs">Demo: use <strong>CAL-ROW-2026</strong></p>
+                )}
               </div>
               <Button type="submit" size="lg" className="w-full">Verify Code</Button>
             </form>

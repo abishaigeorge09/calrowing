@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Search, ChevronRight, CheckCircle2, Copy } from 'lucide-react'
+import { Search, ChevronRight, CheckCircle2, Copy, UserPlus } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -62,6 +62,17 @@ export default function RosterPage() {
         <Input placeholder="Search athletes…" value={search} onChange={e => setSearch(e.target.value)}
           className="pl-10" />
       </div>
+
+      {/* Empty state */}
+      {athletes.length === 0 && (
+        <div className="py-12 text-center space-y-3">
+          <UserPlus className="h-12 w-12 mx-auto text-slate-300" />
+          <p className="font-semibold text-slate-700">No athletes on this team yet</p>
+          <p className="text-sm text-slate-500 max-w-xs mx-auto">
+            Athletes can join by entering the invite code above in the RowIQ app.
+          </p>
+        </div>
+      )}
 
       {/* Roster by boat */}
       {Object.entries(byBoat).map(([boat, boatAthletes]) => (

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle2, Moon, Zap, Activity,
-  Brain, Plus, ChevronRight, BookOpen,
+  Brain, Plus, ChevronRight, BookOpen, Users, Copy,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,6 +21,7 @@ export default function CoachDashboard() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
   const [showCreate, setShowCreate] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const today = new Date().toISOString().split('T')[0]
 
@@ -55,6 +56,13 @@ export default function CoachDashboard() {
 
   // Athlete check-in status
   const checkedInIds = todayLogs.map(l => l.athlete_id)
+
+  const copyInviteCode = () => {
+    if (!team?.invite_code) return
+    navigator.clipboard.writeText(team.invite_code)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   return (
     <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
@@ -171,31 +179,38 @@ export default function CoachDashboard() {
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">Team Wellness</CardTitle>
-            <span className="text-sm text-slate-500">{checkedInCount}/{totalAthletes} checked in</span>
+            {totalAthletes > 0 && (
+              <span className="text-sm text-slate-500">{checkedInCount}/{totalAthletes} checked in</span>
+            )}
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="w-full bg-slate-100 rounded-full h-2">
-            <div
-              className="bg-[#1e3a5f] h-2 rounded-full transition-all"
-              style={{ width: `${(checkedInCount / totalAthletes) * 100}%` }}
-            />
-          </div>
-
-          <div className="grid grid-cols-4 gap-2">
-            {[
-              { label: 'Sleep', value: avgSleep, icon: Moon, color: 'text-blue-600', bg: 'bg-blue-50' },
-              { label: 'Energy', value: avgEnergy, icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-              { label: 'Stress', value: avgStress, icon: Brain, color: 'text-purple-600', bg: 'bg-purple-50' },
-              { label: 'Motivation', value: avgMotivation, icon: Activity, color: 'text-green-600', bg: 'bg-green-50' },
-            ].map(({ label, value, icon: Icon, color, bg }) => (
-              <div key={label} className={cn('rounded-xl p-3 text-center', bg)}>
-                <Icon className={cn('h-4 w-4 mx-auto mb-1', color)} />
-                <p className={cn('text-lg font-black', color)}>{value}</p>
-                <p className="text-xs text-slate-500">{label}</p>
+          {totalAthletes === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-2">No check-ins yet — invite athletes to get started</p>
+          ) : (
+            <>
+              <div className="w-full bg-slate-100 rounded-full h-2">
+                <div
+                  className="bg-[#1e3a5f] h-2 rounded-full transition-all"
+                  style={{ width: `${(checkedInCount / totalAthletes) * 100}%` }}
+                />
               </div>
-            ))}
-          </div>
+              <div className="grid grid-cols-4 gap-2">
+                {[
+                  { label: 'Sleep', value: avgSleep, icon: Moon, color: 'text-blue-600', bg: 'bg-blue-50' },
+                  { label: 'Energy', value: avgEnergy, icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+                  { label: 'Stress', value: avgStress, icon: Brain, color: 'text-purple-600', bg: 'bg-purple-50' },
+                  { label: 'Motivation', value: avgMotivation, icon: Activity, color: 'text-green-600', bg: 'bg-green-50' },
+                ].map(({ label, value, icon: Icon, color, bg }) => (
+                  <div key={label} className={cn('rounded-xl p-3 text-center', bg)}>
+                    <Icon className={cn('h-4 w-4 mx-auto mb-1', color)} />
+                    <p className={cn('text-lg font-black', color)}>{value}</p>
+                    <p className="text-xs text-slate-500">{label}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -205,48 +220,70 @@ export default function CoachDashboard() {
           <CardTitle className="text-base">Athlete Check-ins</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {athletes.map((athlete) => {
-            const checkedIn = checkedInIds.includes(athlete.id)
-            const log = todayLogs.find(l => l.athlete_id === athlete.id)
-            const data = log?.data as MorningLogData | undefined
-            const hasAlert = unreviewedAlerts.some(a => a.athlete_id === athlete.id)
-
-            return (
-              <div
-                key={athlete.id}
-                className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
-                onClick={() => navigate(`/coach/athlete/${athlete.id}`)}
-              >
-                <div className="w-9 h-9 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-sm font-bold text-[#1e3a5f] flex-shrink-0">
-                  {athlete.name.split(' ').map(n => n[0]).join('')}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-900 text-sm">{athlete.name}</p>
-                  {data && (
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-slate-500 flex items-center gap-1">
-                        <Moon className="h-3 w-3" /> {Number(data.sleep_hours).toFixed(1)}h
-                      </span>
-                      <span className="text-xs text-slate-500 flex items-center gap-1">
-                        <Zap className="h-3 w-3" /> {data.energy}/5
-                      </span>
-                      {data.has_soreness && (
-                        <span className="text-xs text-orange-600 font-medium">Soreness</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {hasAlert && <div className="w-2 h-2 bg-red-500 rounded-full" />}
-                  {checkedIn
-                    ? <CheckCircle2 className="h-5 w-5 text-green-500" />
-                    : <div className="w-5 h-5 rounded-full border-2 border-slate-300" />
-                  }
-                  <ChevronRight className="h-4 w-4 text-slate-300" />
-                </div>
+          {athletes.length === 0 ? (
+            <div className="py-8 text-center space-y-4">
+              <Users className="h-10 w-10 mx-auto text-slate-300" />
+              <div>
+                <p className="font-semibold text-slate-700">No athletes yet</p>
+                <p className="text-sm text-slate-500 mt-1">Share your team invite code to get started</p>
               </div>
-            )
-          })}
+              {team?.invite_code && (
+                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 inline-block">
+                  <p className="text-xs text-slate-500 mb-0.5">Invite Code</p>
+                  <p className="text-xl font-black text-[#1e3a5f] tracking-wider">{team.invite_code}</p>
+                </div>
+              )}
+              <div>
+                <Button variant="outline" size="sm" onClick={copyInviteCode} className="gap-1.5">
+                  <Copy className="h-3.5 w-3.5" />
+                  {copied ? 'Copied!' : 'Copy Code'}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            athletes.map((athlete) => {
+              const checkedIn = checkedInIds.includes(athlete.id)
+              const log = todayLogs.find(l => l.athlete_id === athlete.id)
+              const data = log?.data as MorningLogData | undefined
+              const hasAlert = unreviewedAlerts.some(a => a.athlete_id === athlete.id)
+
+              return (
+                <div
+                  key={athlete.id}
+                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
+                  onClick={() => navigate(`/coach/athlete/${athlete.id}`)}
+                >
+                  <div className="w-9 h-9 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-sm font-bold text-[#1e3a5f] flex-shrink-0">
+                    {athlete.name.split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm">{athlete.name}</p>
+                    {data && (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-slate-500 flex items-center gap-1">
+                          <Moon className="h-3 w-3" /> {Number(data.sleep_hours).toFixed(1)}h
+                        </span>
+                        <span className="text-xs text-slate-500 flex items-center gap-1">
+                          <Zap className="h-3 w-3" /> {data.energy}/5
+                        </span>
+                        {data.has_soreness && (
+                          <span className="text-xs text-orange-600 font-medium">Soreness</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {hasAlert && <div className="w-2 h-2 bg-red-500 rounded-full" />}
+                    {checkedIn
+                      ? <CheckCircle2 className="h-5 w-5 text-green-500" />
+                      : <div className="w-5 h-5 rounded-full border-2 border-slate-300" />
+                    }
+                    <ChevronRight className="h-4 w-4 text-slate-300" />
+                  </div>
+                </div>
+              )
+            })
+          )}
         </CardContent>
       </Card>
 

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/stores/auth'
+import { IS_SUPABASE } from '@/lib/db'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -53,7 +54,8 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h1>
         <p className="text-slate-500 text-sm mb-6">Sign in to your account</p>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
+        {!IS_SUPABASE && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
             <p className="text-blue-800 text-sm font-semibold mb-2">Demo Accounts — Quick Fill</p>
             <div className="flex gap-2 flex-wrap">
               <button
@@ -86,6 +88,7 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">

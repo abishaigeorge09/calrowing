@@ -8,7 +8,7 @@ import { useAuthStore } from '@/stores/auth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { signIn, isDemoMode } = useAuthStore()
+  const { signIn } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -53,9 +53,8 @@ export default function LoginPage() {
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h1>
         <p className="text-slate-500 text-sm mb-6">Sign in to your account</p>
 
-        {isDemoMode && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
-            <p className="text-blue-800 text-sm font-semibold mb-2">Demo Mode — Quick Fill</p>
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
+            <p className="text-blue-800 text-sm font-semibold mb-2">Demo Accounts — Quick Fill</p>
             <div className="flex gap-2 flex-wrap">
               <button
                 type="button"
@@ -87,7 +86,6 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">

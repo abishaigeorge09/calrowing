@@ -24,7 +24,7 @@ declare
   riley_id    uuid := 'abeab2f7-41e9-4843-8afe-24965eefab66';
   jamie_id    uuid := '3f0ecfaf-367f-4f52-b324-92d480eb75a6';
 
-  team_id     uuid;
+  v_team_id   uuid;
   today       date := current_date;
   log_date    date;
   i           int;
@@ -47,24 +47,24 @@ values (
   coach_id
 )
 on conflict (invite_code) do update set coach_id = excluded.coach_id
-returning id into team_id;
+returning id into v_team_id;
 
-if team_id is null then
-  select id into team_id from teams where invite_code = 'CAL-ROW-2026';
+if v_team_id is null then
+  select id into v_team_id from teams where invite_code = 'CAL-ROW-2026';
 end if;
 
 -- ============================================================
 -- PROFILES (trigger created them; update names, roles, team)
 -- ============================================================
-update profiles set role = 'coach',   name = 'Mike Teti',     team_id = team_id where id = coach_id;
-update profiles set role = 'athlete', name = 'Alex Chen',     team_id = team_id where id = alex_id;
-update profiles set role = 'athlete', name = 'Jordan Rivera', team_id = team_id where id = jordan_id;
-update profiles set role = 'athlete', name = 'Sam Park',      team_id = team_id where id = sam_id;
-update profiles set role = 'athlete', name = 'Taylor Kim',    team_id = team_id where id = taylor_id;
-update profiles set role = 'athlete', name = 'Morgan Walsh',  team_id = team_id where id = morgan_id;
-update profiles set role = 'athlete', name = 'Casey Liu',     team_id = team_id where id = casey_id;
-update profiles set role = 'athlete', name = 'Riley Torres',  team_id = team_id where id = riley_id;
-update profiles set role = 'athlete', name = 'Jamie Scott',   team_id = team_id where id = jamie_id;
+update profiles set role = 'coach',   name = 'Mike Teti',     team_id = v_team_id where id = coach_id;
+update profiles set role = 'athlete', name = 'Alex Chen',     team_id = v_team_id where id = alex_id;
+update profiles set role = 'athlete', name = 'Jordan Rivera', team_id = v_team_id where id = jordan_id;
+update profiles set role = 'athlete', name = 'Sam Park',      team_id = v_team_id where id = sam_id;
+update profiles set role = 'athlete', name = 'Taylor Kim',    team_id = v_team_id where id = taylor_id;
+update profiles set role = 'athlete', name = 'Morgan Walsh',  team_id = v_team_id where id = morgan_id;
+update profiles set role = 'athlete', name = 'Casey Liu',     team_id = v_team_id where id = casey_id;
+update profiles set role = 'athlete', name = 'Riley Torres',  team_id = v_team_id where id = riley_id;
+update profiles set role = 'athlete', name = 'Jamie Scott',   team_id = v_team_id where id = jamie_id;
 
 -- ============================================================
 -- ATHLETES
@@ -97,22 +97,22 @@ on conflict do nothing;
 insert into sessions (team_id, date, type, duration, intensity, warmup, main_set, cooldown,
                       target_split, stroke_rate, hr_zone, assigned_to, coach_notes, is_notes_public, created_by)
 values
-  (team_id, today-7, 'Erg',           90,  'High',      '10 min easy',          '4x2000m @ 2:02/500m, r20',                       '10 min easy',          '2:02/500m', 'r20', 'HR4', 'all', 'Key fitness test',                          true,  coach_id),
-  (team_id, today-6, 'Water',         120, 'Moderate',  '15 min easy',          '3x5km steady state @ 18spm, focus on ratio',      '10 min easy',          '2:08/500m', 'r18', 'HR3', 'all', null,                                        false, coach_id),
-  (team_id, today-5, 'Weights',       75,  'High',      null,                   'Deadlift 4x5, Back squat 4x5, Power clean 4x3',   null,                   null,        null,  null,  'all', null,                                        false, coach_id),
-  (team_id, today-4, 'Rest',          0,   'Low',       null,                   'Full rest day',                                   null,                   null,        null,  null,  'all', 'Get extra sleep tonight',                   true,  coach_id),
-  (team_id, today-3, 'Erg',           60,  'Moderate',  '10 min easy',          '3x20min @ 2:08/500m, r18, HR zone 3',             '10 min easy',          '2:08/500m', 'r18', 'HR3', 'all', null,                                        false, coach_id),
-  (team_id, today-2, 'Water',         110, 'High',      '20 min easy',          '2x6km race pace, 10 min rest',                    '15 min easy',          '1:58/500m', 'r32', 'HR5', 'all', null,                                        false, coach_id),
-  (team_id, today-1, 'Erg',           90,  'High',      '10 min easy',          '4x2000m @ 2:02/500m, r20',                       '10 min easy',          '2:02/500m', 'r20', 'HR4', 'all', null,                                        false, coach_id),
-  (team_id, today,   'Erg',           90,  'High',      '10 min at low rate, focus on catch timing',
+  (v_team_id, today-7, 'Erg',           90,  'High',      '10 min easy',          '4x2000m @ 2:02/500m, r20',                       '10 min easy',          '2:02/500m', 'r20', 'HR4', 'all', 'Key fitness test',                          true,  coach_id),
+  (v_team_id, today-6, 'Water',         120, 'Moderate',  '15 min easy',          '3x5km steady state @ 18spm, focus on ratio',      '10 min easy',          '2:08/500m', 'r18', 'HR3', 'all', null,                                        false, coach_id),
+  (v_team_id, today-5, 'Weights',       75,  'High',      null,                   'Deadlift 4x5, Back squat 4x5, Power clean 4x3',   null,                   null,        null,  null,  'all', null,                                        false, coach_id),
+  (v_team_id, today-4, 'Rest',          0,   'Low',       null,                   'Full rest day',                                   null,                   null,        null,  null,  'all', 'Get extra sleep tonight',                   true,  coach_id),
+  (v_team_id, today-3, 'Erg',           60,  'Moderate',  '10 min easy',          '3x20min @ 2:08/500m, r18, HR zone 3',             '10 min easy',          '2:08/500m', 'r18', 'HR3', 'all', null,                                        false, coach_id),
+  (v_team_id, today-2, 'Water',         110, 'High',      '20 min easy',          '2x6km race pace, 10 min rest',                    '15 min easy',          '1:58/500m', 'r32', 'HR5', 'all', null,                                        false, coach_id),
+  (v_team_id, today-1, 'Erg',           90,  'High',      '10 min easy',          '4x2000m @ 2:02/500m, r20',                       '10 min easy',          '2:02/500m', 'r20', 'HR4', 'all', null,                                        false, coach_id),
+  (v_team_id, today,   'Erg',           90,  'High',      '10 min at low rate, focus on catch timing',
                                                          '4x2000m @ 2:02/500m, r20, 5 min rest between pieces',
                                                          '10 min easy rowing, stretching',                        '2:02/500m', 'r20', 'HR4', 'all', 'This is a key fitness test. Trust your training.', true,  coach_id),
-  (team_id, today+1, 'Water',         120, 'Moderate',  '15 min easy',          '3x5km steady state @ 18spm',                      '10 min easy',          '2:08/500m', 'r18', 'HR3', 'all', null,                                        false, coach_id),
-  (team_id, today+2, 'Weights',       75,  'High',      null,                   'Deadlift 4x5, Back squat 4x5, Power clean 4x3',   null,                   null,        null,  null,  'all', null,                                        false, coach_id),
-  (team_id, today+3, 'Rest',          0,   'Low',       null,                   'Full rest day — focus on recovery and sleep',      null,                   null,        null,  null,  'all', null,                                        false, coach_id),
-  (team_id, today+4, 'Erg',           75,  'Race Pace', '15 min easy',          '3x1000m @ race pace, r34, full rest',             '10 min easy',          '1:56/500m', 'r34', 'HR5', 'all', null,                                        false, coach_id),
-  (team_id, today+5, 'Water',         90,  'Moderate',  '15 min easy',          '4x4km @ 2:06/500m, r20',                         '10 min easy',          '2:06/500m', 'r20', 'HR3', 'all', null,                                        false, coach_id),
-  (team_id, today+6, 'Cross Training',60,  'Low',       null,                   'Yoga + stretching + core',                        null,                   null,        null,  null,  'all', null,                                        false, coach_id)
+  (v_team_id, today+1, 'Water',         120, 'Moderate',  '15 min easy',          '3x5km steady state @ 18spm',                      '10 min easy',          '2:08/500m', 'r18', 'HR3', 'all', null,                                        false, coach_id),
+  (v_team_id, today+2, 'Weights',       75,  'High',      null,                   'Deadlift 4x5, Back squat 4x5, Power clean 4x3',   null,                   null,        null,  null,  'all', null,                                        false, coach_id),
+  (v_team_id, today+3, 'Rest',          0,   'Low',       null,                   'Full rest day — focus on recovery and sleep',      null,                   null,        null,  null,  'all', null,                                        false, coach_id),
+  (v_team_id, today+4, 'Erg',           75,  'Race Pace', '15 min easy',          '3x1000m @ race pace, r34, full rest',             '10 min easy',          '1:56/500m', 'r34', 'HR5', 'all', null,                                        false, coach_id),
+  (v_team_id, today+5, 'Water',         90,  'Moderate',  '15 min easy',          '4x4km @ 2:06/500m, r20',                         '10 min easy',          '2:06/500m', 'r20', 'HR3', 'all', null,                                        false, coach_id),
+  (v_team_id, today+6, 'Cross Training',60,  'Low',       null,                   'Yoga + stretching + core',                        null,                   null,        null,  null,  'all', null,                                        false, coach_id)
 on conflict do nothing;
 
 -- ============================================================

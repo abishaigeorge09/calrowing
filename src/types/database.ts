@@ -29,15 +29,14 @@ export interface Team {
 
 export interface Athlete {
   id: string
-  user_id: string
-  team_id: string
-  year: string
-  boat_class: string
-  seat_position: string
+  year: string | null
+  boat_class: string | null
+  seat_position: string | null
   height_cm: number | null
   weight_kg: number | null
   sleep_goal: number
   injuries_text: string | null
+  created_at: string
 }
 
 export interface AcademicSchedule {
@@ -162,18 +161,23 @@ export interface Injury {
 }
 
 // Supabase Database type for typed client
+// Must include Views/Functions/Enums/CompositeTypes to satisfy Supabase's GenericSchema constraint
 export interface Database {
   public: {
     Tables: {
-      profiles: { Row: Profile; Insert: Omit<Profile, 'created_at'>; Update: Partial<Profile> }
-      teams: { Row: Team; Insert: Omit<Team, 'id' | 'created_at'>; Update: Partial<Team> }
-      athletes: { Row: Athlete; Insert: Omit<Athlete, 'id'>; Update: Partial<Athlete> }
-      academic_schedules: { Row: AcademicSchedule; Insert: Omit<AcademicSchedule, 'id'>; Update: Partial<AcademicSchedule> }
-      sessions: { Row: Session; Insert: Omit<Session, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Session> }
-      wellness_logs: { Row: WellnessLog; Insert: Omit<WellnessLog, 'id' | 'created_at'>; Update: Partial<WellnessLog> }
-      messages: { Row: Message; Insert: Omit<Message, 'id' | 'created_at'>; Update: Partial<Message> }
-      alerts: { Row: Alert; Insert: Omit<Alert, 'id' | 'created_at'>; Update: Partial<Alert> }
-      injuries: { Row: Injury; Insert: Omit<Injury, 'id' | 'created_at'>; Update: Partial<Injury> }
+      profiles: { Row: Profile; Insert: Omit<Profile, 'created_at'>; Update: Partial<Profile>; Relationships: [] }
+      teams: { Row: Team; Insert: Omit<Team, 'id' | 'created_at'>; Update: Partial<Team>; Relationships: [] }
+      athletes: { Row: Athlete; Insert: Omit<Athlete, 'id' | 'created_at'>; Update: Partial<Athlete>; Relationships: [] }
+      academic_schedules: { Row: AcademicSchedule; Insert: Omit<AcademicSchedule, 'id'>; Update: Partial<AcademicSchedule>; Relationships: [] }
+      sessions: { Row: Session; Insert: Omit<Session, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Session>; Relationships: [] }
+      wellness_logs: { Row: WellnessLog; Insert: Omit<WellnessLog, 'id' | 'created_at'>; Update: Partial<WellnessLog>; Relationships: [] }
+      messages: { Row: Message; Insert: Omit<Message, 'id' | 'created_at' | 'sender' | 'receiver'>; Update: Partial<Message>; Relationships: [] }
+      alerts: { Row: Alert; Insert: Omit<Alert, 'id' | 'created_at' | 'athlete'>; Update: Partial<Alert>; Relationships: [] }
+      injuries: { Row: Injury; Insert: Omit<Injury, 'id' | 'created_at'>; Update: Partial<Injury>; Relationships: [] }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
   }
 }

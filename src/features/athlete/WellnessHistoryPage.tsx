@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth'
-import { MOCK_WELLNESS_LOGS, MOCK_SESSIONS } from '@/lib/mock-data'
+import { useWellnessLogs } from '@/hooks/useWellnessLogs'
+import { useSessions } from '@/hooks/useSessions'
 import type { MorningLogData, PostSessionLogData } from '@/types/database'
 import { formatDate } from '@/lib/utils'
 
@@ -13,21 +14,24 @@ export default function WellnessHistoryPage() {
   const { user } = useAuthStore()
   const [range, setRange] = useState<7 | 14 | 30>(14)
 
-  const morningLogs = MOCK_WELLNESS_LOGS
-    .filter(l => l.athlete_id === user?.id && l.log_type === 'morning')
+  const { data: allLogs = [] } = useWellnessLogs(user?.id, { days: 30 })
+  const { data: sessions = [] } = useSessions(user?.team_id, {})
+
+  const morningLogs = allLogs
+    .filter(l => l.log_type === 'morning')
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
     .slice(-range)
 
-  const postLogs = MOCK_WELLNESS_LOGS
-    .filter(l => l.athlete_id === user?.id && l.log_type === 'post')
+  const postLogs = allLogs
+    .filter(l => l.log_type === 'post')
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
 
   const chartData = morningLogs.map(l => {
     const d = l.data as MorningLogData
     const dateStr = l.created_at.split('T')[0]
-    const session = MOCK_SESSIONS.find(s => s.date === dateStr)
-    const postLog = MOCK_WELLNESS_LOGS.find(pl =>
-      pl.athlete_id === user?.id && pl.log_type === 'post' && pl.created_at.startsWith(dateStr)
+    const session = sessions.find(s => s.date === dateStr)
+    const postLog = allLogs.find(pl =>
+      pl.log_type === 'post' && pl.created_at.startsWith(dateStr)
     )
     const pd = postLog?.data as PostSessionLogData | undefined
 
@@ -148,7 +152,7 @@ export default function WellnessHistoryPage() {
           {postLogs.slice(0, 7).map(log => {
             const d = log.data as PostSessionLogData
             const dateStr = log.created_at.split('T')[0]
-            const session = MOCK_SESSIONS.find(s => s.date === dateStr)
+            const session = sessions.find(s => s.date === dateStr)
             return (
               <div key={log.id} className="flex items-center gap-3 py-2">
                 <div className={`w-2 h-10 rounded-full flex-shrink-0 ${

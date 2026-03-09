@@ -2,25 +2,31 @@ import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MOCK_SESSIONS } from '@/lib/mock-data'
+import { useAuthStore } from '@/stores/auth'
+import { useSessions } from '@/hooks/useSessions'
 import { sessionTypeColor, cn } from '@/lib/utils'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 export default function AthleteCalendarPage() {
+  const { user } = useAuthStore()
   const today = new Date()
   const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
   const [selected, setSelected] = useState<number | null>(today.getDate())
 
   const year = current.getFullYear()
   const month = current.getMonth()
+  const from = `${year}-${String(month + 1).padStart(2, '0')}-01`
+  const to = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
+  const { data: sessions = [] } = useSessions(user?.team_id, { from, to })
+
   const getSession = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return MOCK_SESSIONS.find(s => s.date === dateStr)
+    return sessions.find(s => s.date === dateStr)
   }
 
   const selectedSession = selected ? getSession(selected) : null

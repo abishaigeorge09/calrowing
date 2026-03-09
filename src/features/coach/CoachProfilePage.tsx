@@ -4,12 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth'
 import { useNavigate } from 'react-router-dom'
-import { MOCK_TEAM, MOCK_ATHLETES } from '@/lib/mock-data'
 import { getInitials } from '@/lib/utils'
+import { useTeam } from '@/hooks/useTeam'
+import { useTeamAthletes } from '@/hooks/useTeamAthletes'
 
 export default function CoachProfilePage() {
   const { user, signOut } = useAuthStore()
   const navigate = useNavigate()
+  const { data: team } = useTeam(user?.team_id)
+  const { data: athletes = [] } = useTeamAthletes(user?.team_id)
 
   const handleSignOut = async () => {
     await signOut()
@@ -45,16 +48,16 @@ export default function CoachProfilePage() {
           <CardTitle className="text-base">Team</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <p className="font-semibold text-slate-900">{MOCK_TEAM.name}</p>
-          <p className="text-sm text-slate-500">{MOCK_TEAM.division} · {MOCK_TEAM.sport}</p>
+          <p className="font-semibold text-slate-900">{team?.name}</p>
+          <p className="text-sm text-slate-500">{team?.division} · {team?.sport}</p>
           <div className="flex items-center gap-4 pt-1">
             <div>
               <p className="text-xs text-slate-400">Athletes</p>
-              <p className="font-bold text-slate-900">{MOCK_ATHLETES.length}</p>
+              <p className="font-bold text-slate-900">{athletes.length}</p>
             </div>
             <div>
               <p className="text-xs text-slate-400">Invite Code</p>
-              <p className="font-bold text-[#1e3a5f] tracking-widest">{MOCK_TEAM.invite_code}</p>
+              <p className="font-bold text-[#1e3a5f] tracking-widest">{team?.invite_code}</p>
             </div>
           </div>
         </CardContent>
@@ -69,16 +72,16 @@ export default function CoachProfilePage() {
           <div>
             <p className="text-xs text-slate-400">Start</p>
             <p className="font-semibold text-slate-900">
-              {MOCK_TEAM.season_start
-                ? new Date(MOCK_TEAM.season_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              {team?.season_start
+                ? new Date(team?.season_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                 : '—'}
             </p>
           </div>
           <div>
             <p className="text-xs text-slate-400">End</p>
             <p className="font-semibold text-slate-900">
-              {MOCK_TEAM.season_end
-                ? new Date(MOCK_TEAM.season_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+              {team?.season_end
+                ? new Date(team?.season_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                 : '—'}
             </p>
           </div>

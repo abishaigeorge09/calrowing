@@ -5,7 +5,8 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { cn } from '@/lib/utils'
-import { MOCK_ALERTS, MOCK_MESSAGES } from '@/lib/mock-data'
+import { useUnreadAlertCount } from '@/hooks/useAlerts'
+import { useUnreadMessageCount } from '@/hooks/useMessages'
 
 export default function AppShell() {
   const { user } = useAuthStore()
@@ -29,8 +30,8 @@ export default function AppShell() {
 
   const nav = isCoach ? coachNav : athleteNav
 
-  const unreadAlerts = MOCK_ALERTS.filter(a => !a.reviewed_at).length
-  const unreadMessages = MOCK_MESSAGES.filter(m => !m.read_at && m.receiver_id === user?.id).length
+  const unreadAlerts = useUnreadAlertCount(isCoach ? user?.id : null)
+  const unreadMessages = useUnreadMessageCount(user?.id)
 
   return (
     <div className="flex flex-col min-h-dvh bg-slate-50">

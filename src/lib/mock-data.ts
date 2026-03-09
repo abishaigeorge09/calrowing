@@ -33,15 +33,16 @@ export const MOCK_ATHLETES: Profile[] = [
   { id: 'athlete-8', email: 'jamie@rowiq.demo',   name: 'Jamie Scott',   role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-18T00:00:00Z' },
 ]
 
+const MOCK_CREATED = '2026-01-01T00:00:00.000Z'
 export const MOCK_ATHLETE_PROFILES: Record<string, Athlete> = {
-  'athlete-1': { id: 'athlete-1', user_id: 'athlete-1', team_id: 'team-cal-2026', year: 'Junior', boat_class: 'Varsity 8', seat_position: 'Stroke', height_cm: 193, weight_kg: 86, sleep_goal: 8, injuries_text: null },
-  'athlete-2': { id: 'athlete-2', user_id: 'athlete-2', team_id: 'team-cal-2026', year: 'Senior', boat_class: 'Varsity 8', seat_position: '2-seat', height_cm: 188, weight_kg: 84, sleep_goal: 8, injuries_text: null },
-  'athlete-3': { id: 'athlete-3', user_id: 'athlete-3', team_id: 'team-cal-2026', year: 'Sophomore', boat_class: 'Varsity 8', seat_position: '3-seat', height_cm: 190, weight_kg: 87, sleep_goal: 7, injuries_text: 'Lower back soreness (chronic)' },
-  'athlete-4': { id: 'athlete-4', user_id: 'athlete-4', team_id: 'team-cal-2026', year: 'Junior', boat_class: 'JV 8', seat_position: 'Stroke', height_cm: 185, weight_kg: 80, sleep_goal: 8, injuries_text: null },
-  'athlete-5': { id: 'athlete-5', user_id: 'athlete-5', team_id: 'team-cal-2026', year: 'Freshman', boat_class: 'JV 8', seat_position: '2-seat', height_cm: 187, weight_kg: 82, sleep_goal: 8, injuries_text: null },
-  'athlete-6': { id: 'athlete-6', user_id: 'athlete-6', team_id: 'team-cal-2026', year: 'Senior', boat_class: 'Varsity 8', seat_position: 'Cox', height_cm: 168, weight_kg: 55, sleep_goal: 7, injuries_text: null },
-  'athlete-7': { id: 'athlete-7', user_id: 'athlete-7', team_id: 'team-cal-2026', year: 'Junior', boat_class: 'Varsity 8', seat_position: '4-seat', height_cm: 191, weight_kg: 88, sleep_goal: 8, injuries_text: null },
-  'athlete-8': { id: 'athlete-8', user_id: 'athlete-8', team_id: 'team-cal-2026', year: 'Sophomore', boat_class: 'JV 8', seat_position: '3-seat', height_cm: 186, weight_kg: 81, sleep_goal: 8, injuries_text: null },
+  'athlete-1': { id: 'athlete-1', year: 'Junior',    boat_class: 'Varsity 8', seat_position: 'Stroke', height_cm: 193, weight_kg: 86,   sleep_goal: 8, injuries_text: null,                          created_at: MOCK_CREATED },
+  'athlete-2': { id: 'athlete-2', year: 'Senior',    boat_class: 'Varsity 8', seat_position: '2-seat', height_cm: 188, weight_kg: 84,   sleep_goal: 8, injuries_text: null,                          created_at: MOCK_CREATED },
+  'athlete-3': { id: 'athlete-3', year: 'Sophomore', boat_class: 'Varsity 8', seat_position: '3-seat', height_cm: 190, weight_kg: 87,   sleep_goal: 7, injuries_text: 'Lower back soreness (chronic)', created_at: MOCK_CREATED },
+  'athlete-4': { id: 'athlete-4', year: 'Junior',    boat_class: 'JV 8',      seat_position: 'Stroke', height_cm: 185, weight_kg: 80,   sleep_goal: 8, injuries_text: null,                          created_at: MOCK_CREATED },
+  'athlete-5': { id: 'athlete-5', year: 'Freshman',  boat_class: 'JV 8',      seat_position: '2-seat', height_cm: 187, weight_kg: 82,   sleep_goal: 8, injuries_text: null,                          created_at: MOCK_CREATED },
+  'athlete-6': { id: 'athlete-6', year: 'Senior',    boat_class: 'Varsity 8', seat_position: 'Cox',    height_cm: 168, weight_kg: 55,   sleep_goal: 7, injuries_text: null,                          created_at: MOCK_CREATED },
+  'athlete-7': { id: 'athlete-7', year: 'Junior',    boat_class: 'Varsity 8', seat_position: '4-seat', height_cm: 191, weight_kg: 88,   sleep_goal: 8, injuries_text: null,                          created_at: MOCK_CREATED },
+  'athlete-8': { id: 'athlete-8', year: 'Sophomore', boat_class: 'JV 8',      seat_position: '3-seat', height_cm: 186, weight_kg: 81,   sleep_goal: 8, injuries_text: null,                          created_at: MOCK_CREATED },
 }
 
 const today = new Date()

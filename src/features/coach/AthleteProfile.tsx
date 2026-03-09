@@ -1,30 +1,38 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ChevronLeft, Moon, Zap, Brain, Activity, MessageSquare, Check } from 'lucide-react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
+import { ChevronLeft, Moon, Zap, Brain, Activity, MessageSquare } from 'lucide-react'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import {
-  MOCK_ATHLETES, MOCK_WELLNESS_LOGS, MOCK_ATHLETE_PROFILES, MOCK_ALERTS, MOCK_SESSIONS,
-} from '@/lib/mock-data'
+import { useAuthStore } from '@/stores/auth'
+import { useTeamAthletes } from '@/hooks/useTeamAthletes'
+import { useWellnessLogs } from '@/hooks/useWellnessLogs'
+import { useAlerts } from '@/hooks/useAlerts'
 import type { MorningLogData, PostSessionLogData } from '@/types/database'
 import { formatDate, cn } from '@/lib/utils'
 
 export default function AthleteProfile() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const profile = MOCK_ATHLETES.find(a => a.id === id)
-  const athlete = MOCK_ATHLETE_PROFILES[id ?? '']
-  const alerts = MOCK_ALERTS.filter(a => a.athlete_id === id && !a.reviewed_at)
+  const { user } = useAuthStore()
+
+  const { data: teamAthletes = [] } = useTeamAthletes(user?.team_id)
+  const { data: allAlerts = [] } = useAlerts(user?.id)
+  const { data: athleteLogs = [] } = useWellnessLogs(id, { days: 14 })
+
+  const athleteWithProfile = teamAthletes.find(a => a.id === id)
+  const profile = athleteWithProfile
+  const athlete = athleteWithProfile?.athleteProfile
+  const alerts = allAlerts.filter(a => a.athlete_id === id)
 
   if (!profile) return (
     <div className="p-6 text-center text-slate-500">Athlete not found</div>
   )
 
   // Last 14 days of morning logs
-  const morningLogs = MOCK_WELLNESS_LOGS
-    .filter(l => l.athlete_id === id && l.log_type === 'morning')
+  const morningLogs = athleteLogs
+    .filter(l => l.log_type === 'morning')
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
     .slice(-14)
 
@@ -39,8 +47,8 @@ export default function AthleteProfile() {
   })
 
   // Post logs
-  const postLogs = MOCK_WELLNESS_LOGS
-    .filter(l => l.athlete_id === id && l.log_type === 'post')
+  const postLogs = athleteLogs
+    .filter(l => l.log_type === 'post')
     .sort((a, b) => b.created_at.localeCompare(a.created_at))
     .slice(0, 10)
 

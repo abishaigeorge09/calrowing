@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { MOCK_SESSIONS, MOCK_WELLNESS_LOGS, MOCK_ATHLETES } from '@/lib/mock-data'
+import { useAuthStore } from '@/stores/auth'
+import { useSessions } from '@/hooks/useSessions'
+import { useTeamWellnessLogs } from '@/hooks/useWellnessLogs'
 import { sessionTypeColor, cn } from '@/lib/utils'
 import type { MorningLogData } from '@/types/database'
 
@@ -12,29 +14,33 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 
 export default function CalendarPage() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
   const today = new Date()
   const [current, setCurrent] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
 
   const year = current.getFullYear()
   const month = current.getMonth()
+  const from = `${year}-${String(month + 1).padStart(2, '0')}-01`
+  const to = `${year}-${String(month + 1).padStart(2, '0')}-${new Date(year, month + 1, 0).getDate()}`
+
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-  // Academic load: days where 2+ athletes have exams
+  const { data: sessions = [] } = useSessions(user?.team_id, { from, to })
+  const { data: teamLogs = [] } = useTeamWellnessLogs(user?.team_id, { days: 30 })
+
+  // Academic load: days where athletes have exams
   const examDays = new Set<string>()
-  MOCK_WELLNESS_LOGS
+  teamLogs
     .filter(l => l.log_type === 'morning' && (l.data as MorningLogData).exam_this_week)
-    .forEach(l => {
-      const dateStr = l.created_at.split('T')[0]
-      examDays.add(dateStr)
-    })
+    .forEach(l => { examDays.add(l.created_at.split('T')[0]) })
 
   const prevMonth = () => setCurrent(new Date(year, month - 1, 1))
   const nextMonth = () => setCurrent(new Date(year, month + 1, 1))
 
   const getSessionForDay = (day: number) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    return MOCK_SESSIONS.find(s => s.date === dateStr)
+    return sessions.find(s => s.date === dateStr)
   }
 
   const hasExams = (day: number) => {
@@ -46,8 +52,9 @@ export default function CalendarPage() {
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day
   }
 
-  const upcomingSessions = MOCK_SESSIONS
-    .filter(s => s.date >= today.toISOString().split('T')[0])
+  const todayStr = today.toISOString().split('T')[0]
+  const upcomingSessions = sessions
+    .filter(s => s.date >= todayStr)
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5)
 

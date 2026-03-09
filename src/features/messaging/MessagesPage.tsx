@@ -1,46 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Send, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { MOCK_MESSAGES, MOCK_ATHLETES, MOCK_COACH } from '@/lib/mock-data'
+import { MOCK_COACH } from '@/lib/mock-data'
 import { useAuthStore } from '@/stores/auth'
+import { useTeamAthletes } from '@/hooks/useTeamAthletes'
+import { useMessages } from '@/hooks/useMessages'
+import { useSendMessage } from '@/hooks/mutations'
 import { getInitials, cn } from '@/lib/utils'
-import type { Message } from '@/types/database'
 
 export default function MessagesPage() {
   const { user } = useAuthStore()
   const [searchParams] = useSearchParams()
   const defaultTo = searchParams.get('to')
 
-  // Determine conversation partners
   const isCoach = user?.role === 'coach'
-  const partners = isCoach ? MOCK_ATHLETES : [MOCK_COACH]
+  const { data: athletes = [] } = useTeamAthletes(user?.team_id)
+
+  // For athletes, the coach is the conversation partner
+  const partners = isCoach
+    ? athletes
+    : [MOCK_COACH]
+
   const [selectedId, setSelectedId] = useState<string>(
-    defaultTo ?? (isCoach ? MOCK_ATHLETES[0]?.id : MOCK_COACH.id)
+    defaultTo ?? (isCoach ? (athletes[0]?.id ?? '') : MOCK_COACH.id)
   )
-  const [messages, setMessages] = useState<Message[]>(MOCK_MESSAGES)
+
+  // Update selectedId when athletes load (for coach)
+  useEffect(() => {
+    if (isCoach && !selectedId && athletes.length > 0) {
+      setSelectedId(athletes[0].id)
+    }
+  }, [isCoach, athletes, selectedId])
+
+  const { data: conversation = [] } = useMessages(user?.id, selectedId || null)
+  const sendMessage = useSendMessage()
+
   const [text, setText] = useState('')
   const [isUrgent, setIsUrgent] = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
 
-  const conversation = messages.filter(m =>
-    (m.sender_id === user?.id && m.receiver_id === selectedId) ||
-    (m.sender_id === selectedId && m.receiver_id === user?.id)
-  ).sort((a, b) => a.created_at.localeCompare(b.created_at))
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [conversation])
 
-  const sendMessage = () => {
-    if (!text.trim() || !user) return
-    const msg: Message = {
-      id: `msg-${Date.now()}`,
-      sender_id: user.id,
-      receiver_id: selectedId,
+  const handleSend = async () => {
+    if (!text.trim() || !selectedId) return
+    await sendMessage.mutateAsync({
+      receiverId: selectedId,
       content: text.trim(),
-      is_urgent: isUrgent,
-      read_at: null,
-      created_at: new Date().toISOString(),
-    }
-    setMessages(prev => [...prev, msg])
+      isUrgent,
+    })
     setText('')
     setIsUrgent(false)
   }
@@ -55,42 +66,24 @@ export default function MessagesPage() {
           <p className="font-bold text-slate-900 text-sm hidden sm:block">Messages</p>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {partners.map(partner => {
-            const lastMsg = messages.filter(m =>
-              (m.sender_id === partner.id || m.receiver_id === partner.id)
-            ).sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
-            const unread = messages.filter(m =>
-              m.sender_id === partner.id && m.receiver_id === user?.id && !m.read_at
-            ).length
-
-            return (
-              <button
-                key={partner.id}
-                onClick={() => setSelectedId(partner.id)}
-                className={cn(
-                  'w-full flex items-center gap-2.5 p-3 hover:bg-slate-50 transition-colors text-left',
-                  selectedId === partner.id && 'bg-blue-50'
-                )}
-              >
-                <div className="w-9 h-9 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-sm font-bold text-[#1e3a5f] flex-shrink-0">
-                  {getInitials(partner.name)}
-                </div>
-                <div className="flex-1 min-w-0 hidden sm:block">
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-slate-900 text-sm truncate">{partner.name}</p>
-                    {unread > 0 && (
-                      <span className="bg-[#1e3a5f] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">
-                        {unread}
-                      </span>
-                    )}
-                  </div>
-                  {lastMsg && (
-                    <p className="text-xs text-slate-400 truncate">{lastMsg.content}</p>
-                  )}
-                </div>
-              </button>
-            )
-          })}
+          {partners.map(partner => (
+            <button
+              key={partner.id}
+              onClick={() => setSelectedId(partner.id)}
+              className={cn(
+                'w-full flex items-center gap-2.5 p-3 hover:bg-slate-50 transition-colors text-left',
+                selectedId === partner.id && 'bg-blue-50'
+              )}
+            >
+              <div className="w-9 h-9 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-sm font-bold text-[#1e3a5f] flex-shrink-0">
+                {getInitials(partner.name)}
+              </div>
+              <div className="flex-1 min-w-0 hidden sm:block">
+                <p className="font-semibold text-slate-900 text-sm truncate">{partner.name}</p>
+                <p className="text-xs text-slate-400">{partner.role === 'coach' ? 'Coach' : 'Athlete'}</p>
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -135,6 +128,7 @@ export default function MessagesPage() {
               </div>
             )
           })}
+          <div ref={bottomRef} />
         </div>
 
         {/* Input */}
@@ -152,9 +146,9 @@ export default function MessagesPage() {
               placeholder="Type a message…"
               value={text}
               onChange={e => setText(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
             />
-            <Button size="icon" onClick={sendMessage} disabled={!text.trim()}>
+            <Button size="icon" onClick={handleSend} disabled={!text.trim() || sendMessage.isPending}>
               <Send className="h-4 w-4" />
             </Button>
           </div>

@@ -2,16 +2,17 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle2, Moon, Zap, Activity,
-  Brain, Users, Plus, ChevronRight, BookOpen,
+  Brain, Plus, ChevronRight, BookOpen,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  MOCK_ATHLETES, MOCK_SESSIONS, MOCK_WELLNESS_LOGS,
-  MOCK_ALERTS, MOCK_TEAM,
-} from '@/lib/mock-data'
 import { useAuthStore } from '@/stores/auth'
+import { useTeam } from '@/hooks/useTeam'
+import { useTeamAthletes } from '@/hooks/useTeamAthletes'
+import { useSessions } from '@/hooks/useSessions'
+import { useTeamWellnessLogs } from '@/hooks/useWellnessLogs'
+import { useAlerts } from '@/hooks/useAlerts'
 import { formatDate, sessionTypeColor, intensityColor, cn } from '@/lib/utils'
 import type { MorningLogData } from '@/types/database'
 import CreateSessionDialog from './CreateSessionDialog'
@@ -22,14 +23,21 @@ export default function CoachDashboard() {
   const [showCreate, setShowCreate] = useState(false)
 
   const today = new Date().toISOString().split('T')[0]
-  const todaySession = MOCK_SESSIONS.find(s => s.date === today)
+
+  const { data: team } = useTeam(user?.team_id)
+  const { data: athletes = [] } = useTeamAthletes(user?.team_id)
+  const { data: sessions = [] } = useSessions(user?.team_id, { from: today, to: today })
+  const { data: teamLogs = [] } = useTeamWellnessLogs(user?.team_id, { days: 1 })
+  const { data: unreviewedAlerts = [] } = useAlerts(user?.id)
+
+  const todaySession = sessions.find(s => s.date === today) ?? null
 
   // Today's morning check-ins
-  const todayLogs = MOCK_WELLNESS_LOGS.filter(
+  const todayLogs = teamLogs.filter(
     l => l.log_type === 'morning' && l.created_at.startsWith(today)
   )
   const checkedInCount = todayLogs.length
-  const totalAthletes = MOCK_ATHLETES.length
+  const totalAthletes = athletes.length
 
   // Compute wellness averages from today's logs
   const avgSleep = todayLogs.length > 0
@@ -45,8 +53,6 @@ export default function CoachDashboard() {
     ? (todayLogs.reduce((s, l) => s + (l.data as MorningLogData).motivation, 0) / todayLogs.length).toFixed(1)
     : '—'
 
-  const unreviewedAlerts = MOCK_ALERTS.filter(a => !a.reviewed_at)
-
   // Athlete check-in status
   const checkedInIds = todayLogs.map(l => l.athlete_id)
 
@@ -58,7 +64,7 @@ export default function CoachDashboard() {
           <h1 className="text-xl font-bold text-slate-900">
             Good morning, {user?.name?.split(' ')[0]} 👋
           </h1>
-          <p className="text-sm text-slate-500">{formatDate(today)} · {MOCK_TEAM.name}</p>
+          <p className="text-sm text-slate-500">{formatDate(today)} · {team?.name}</p>
         </div>
         <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
           <Plus className="h-4 w-4" />
@@ -199,7 +205,7 @@ export default function CoachDashboard() {
           <CardTitle className="text-base">Athlete Check-ins</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {MOCK_ATHLETES.map((athlete) => {
+          {athletes.map((athlete) => {
             const checkedIn = checkedInIds.includes(athlete.id)
             const log = todayLogs.find(l => l.athlete_id === athlete.id)
             const data = log?.data as MorningLogData | undefined

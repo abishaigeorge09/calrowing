@@ -5,13 +5,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth'
 import { useNavigate } from 'react-router-dom'
-import { MOCK_ATHLETE_PROFILES, MOCK_TEAM } from '@/lib/mock-data'
 import { getInitials } from '@/lib/utils'
+import { useTeam } from '@/hooks/useTeam'
+import { useTeamAthletes } from '@/hooks/useTeamAthletes'
 
 export default function AthleteProfilePage() {
   const { user, signOut } = useAuthStore()
   const navigate = useNavigate()
-  const athlete = MOCK_ATHLETE_PROFILES[user?.id ?? '']
+  const { data: team } = useTeam(user?.team_id)
+  const { data: allAthletes = [] } = useTeamAthletes(user?.team_id)
+  const athleteData = allAthletes.find(a => a.id === user?.id)
+  const athlete = athleteData?.athleteProfile
 
   const handleSignOut = async () => {
     await signOut()
@@ -47,8 +51,8 @@ export default function AthleteProfilePage() {
       <Card>
         <CardHeader className="pb-2"><CardTitle className="text-base">Team</CardTitle></CardHeader>
         <CardContent>
-          <p className="font-semibold text-slate-900">{MOCK_TEAM.name}</p>
-          <p className="text-sm text-slate-500">{MOCK_TEAM.division} · {MOCK_TEAM.sport}</p>
+          <p className="font-semibold text-slate-900">{team?.name}</p>
+          <p className="text-sm text-slate-500">{team?.division} · {team?.sport}</p>
         </CardContent>
       </Card>
 

@@ -18,7 +18,17 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(gh auth status)",
       "Bash(git init)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "Bash(git branch -m main)",
+      "Bash(git commit:*)",
+      "Bash(git remote add origin https://github.com/abishaigeorge09/calrowing.git)",
+      "Bash(git push -u origin main)",
+      "Bash(git add supabase/seed.sql)",
+      "Bash(git push origin main)",
+      "Bash(git add src/features/auth/LoginPage.tsx)",
+      "Bash(git add src/App.tsx src/features/athlete/MorningCheckinForm.tsx src/features/athlete/PostSessionForm.tsx src/features/auth/RegisterAthletePage.tsx src/features/auth/RegisterCoachPage.tsx src/stores/auth.ts src/hooks/ src/lib/db.ts DESIGN.md)",
+      "Bash(npx tsc --noEmit)",
+      "Bash(git add -A)"
     ]
   }
 }

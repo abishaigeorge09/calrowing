@@ -8,7 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth'
-import { MOCK_SESSIONS, MOCK_WELLNESS_LOGS, MOCK_MESSAGES } from '@/lib/mock-data'
+import { useTodaySession } from '@/hooks/useSessions'
+import { useWellnessLogs } from '@/hooks/useWellnessLogs'
+import { useAllConversations } from '@/hooks/useMessages'
 import { sessionTypeColor, intensityColor, cn } from '@/lib/utils'
 import type { MorningLogData, PostSessionLogData } from '@/types/database'
 import MorningCheckinForm from './MorningCheckinForm'
@@ -26,44 +28,44 @@ export default function TodayScreen() {
   const [eveningDone, setEveningDone] = useState(false)
 
   const today = new Date().toISOString().split('T')[0]
-  const todaySession = MOCK_SESSIONS.find(s => s.date === today)
+
+  const { session: todaySession } = useTodaySession(user?.team_id)
+  const { data: myLogs = [] } = useWellnessLogs(user?.id, { days: 30 })
+  const { data: allMessages = [] } = useAllConversations(user?.id)
 
   // Check if athlete has submitted morning check-in today
-  const existingMorning = MOCK_WELLNESS_LOGS.find(
-    l => l.athlete_id === user?.id && l.log_type === 'morning' && l.created_at.startsWith(today)
+  const existingMorning = myLogs.find(
+    l => l.log_type === 'morning' && l.created_at.startsWith(today)
   )
   const hasMorningCheckin = morningDone || !!existingMorning
   const morningData = existingMorning?.data as MorningLogData | undefined
 
   // Check if post-session done
-  const existingPost = MOCK_WELLNESS_LOGS.find(
-    l => l.athlete_id === user?.id && l.log_type === 'post' && l.created_at.startsWith(today)
+  const existingPost = myLogs.find(
+    l => l.log_type === 'post' && l.created_at.startsWith(today)
   )
   const hasPostCheckin = postDone || !!existingPost
 
   // Unread messages
-  const unreadMessages = MOCK_MESSAGES.filter(
+  const unreadMessages = allMessages.filter(
     m => m.receiver_id === user?.id && !m.read_at
   )
 
   // Streak: count consecutive days with morning check-in
-  const logs = MOCK_WELLNESS_LOGS
-    .filter(l => l.athlete_id === user?.id && l.log_type === 'morning')
+  const morningLogDates = myLogs
+    .filter(l => l.log_type === 'morning')
     .map(l => l.created_at.split('T')[0])
     .sort((a, b) => b.localeCompare(a))
 
   let streak = hasMorningCheckin ? 1 : 0
-  if (logs.length > 0) {
-    const todayIdx = logs.indexOf(today)
-    if (todayIdx >= 0) {
-      streak = 1
-      const dt = new Date(today)
-      for (let i = 1; i < 30; i++) {
-        dt.setDate(dt.getDate() - 1)
-        const ds = dt.toISOString().split('T')[0]
-        if (logs.includes(ds)) streak++
-        else break
-      }
+  if (morningLogDates.includes(today)) {
+    streak = 1
+    const dt = new Date(today)
+    for (let i = 1; i < 30; i++) {
+      dt.setDate(dt.getDate() - 1)
+      const ds = dt.toISOString().split('T')[0]
+      if (morningLogDates.includes(ds)) streak++
+      else break
     }
   }
 

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create vite@latest . -- --template react-ts --yes)",
+      "Bash(npm create vite@latest . -- --template react-ts)",
+      "Bash(npm create vite@latest rowiq-app -- --template react-ts)",
+      "Bash(npm install)",
+      "Bash(npm install tailwindcss @tailwindcss/vite lucide-react react-router-dom @tanstack/react-query zustand @supabase/supabase-js recharts date-fns class-variance-authority clsx tailwind-merge)",
+      "Bash(npm install -D vite-plugin-pwa workbox-window @types/node)",
+      "Bash(npm install @radix-ui/react-dialog @radix-ui/react-slot @radix-ui/react-label @radix-ui/react-separator @radix-ui/react-avatar @radix-ui/react-badge @radix-ui/react-select @radix-ui/react-tabs @radix-ui/react-progress @radix-ui/react-switch @radix-ui/react-tooltip @radix-ui/react-dropdown-menu @radix-ui/react-alert-dialog)",
+      "Bash(npm install @radix-ui/react-dialog @radix-ui/react-slot @radix-ui/react-label @radix-ui/react-separator @radix-ui/react-avatar @radix-ui/react-select @radix-ui/react-tabs @radix-ui/react-progress @radix-ui/react-switch @radix-ui/react-tooltip @radix-ui/react-dropdown-menu @radix-ui/react-alert-dialog)",
+      "Bash(pip3 install cairosvg)",
+      "Bash(python3 -c \" import cairosvg cairosvg.svg2png\\(url=''/tmp/icon.svg'', write_to=''/Users/abishaigeorgegosula/rowIQ/public/icons/icon-192.png'', output_width=192, output_height=192\\) cairosvg.svg2png\\(url=''/tmp/icon.svg'', write_to=''/Users/abishaigeorgegosula/rowIQ/public/icons/icon-512.png'', output_width=512, output_height=512\\) print\\(''Icons generated!''\\) \")",
+      "Bash(python3 -:*)",
+      "Bash(# Use node to generate a simple placeholder PNG for PWA icons node -e \"\" const { createCanvas } = require\\(''canvas''\\); \"\" || node -e \"\" // Generate a simple 1x1 PNG as placeholder - will use SVG icon reference instead const fs = require\\(''fs''\\); // Copy the SVG as the icon references - update vite config to use SVG icons console.log\\(''Will use SVG icons''\\); \"\" # Let''s just use a simpler approach - create placeholder PNGs with a script npm install --save-dev sharp 2>&1)",
+      "Bash(node -e \":*)",
+      "Bash(npm run build)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(gh auth status)",
+      "Bash(git init)",
+      "Bash(git add .)"
+    ]
+  }
+}

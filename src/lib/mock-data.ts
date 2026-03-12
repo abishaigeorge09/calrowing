@@ -53,82 +53,87 @@ const d = (offset: number) => {
   return localDateStr(dt)
 }
 
+// Tracks demo-mode deleted session IDs so useSessions can filter them out
+export const deletedSessionIds = new Set<string>()
+
 export const MOCK_SESSIONS: Session[] = [
   {
     id: 'session-today', team_id: 'team-cal-2026', date: d(0), type: 'Erg',
-    duration: 90, intensity: 'High',
+    duration: 90, intensity: 'High', start_time: '09:00', end_time: '10:30',
     warmup: '10 min at low rate, focus on catch timing',
     main_set: '4x2000m @ 2:02/500m, r20, 5 min rest between pieces',
     cooldown: '10 min easy rowing, stretching',
     target_split: '2:02/500m', stroke_rate: 20, hr_zone: 'Zone 4-5',
     assigned_to: 'whole_team', coach_notes: 'This is a key fitness test. Trust your training.',
-    is_notes_public: true, created_by: 'coach-1',
+    is_notes_public: true, created_by: 'coach-1', media_urls: [],
     created_at: new Date(today.getTime() - 86400000).toISOString(),
     updated_at: new Date(today.getTime() - 86400000).toISOString(),
   },
   {
     id: 'session-tomorrow', team_id: 'team-cal-2026', date: d(1), type: 'Water',
-    duration: 120, intensity: 'Moderate',
+    duration: 120, intensity: 'Moderate', start_time: '07:00', end_time: '09:00',
     warmup: '15 min paddling, focus on blade work',
     main_set: '3x5km steady state @ 18spm, focus on ratio and run',
     cooldown: '10 min paddling, boat wash-down',
     target_split: '2:10/500m', stroke_rate: 18, hr_zone: 'Zone 2-3',
     assigned_to: 'whole_team', coach_notes: 'Technique focus — ratio over power today.',
-    is_notes_public: true, created_by: 'coach-1',
+    is_notes_public: true, created_by: 'coach-1', media_urls: [
+      { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: 'Ratio drill example', type: 'video' }
+    ],
     created_at: new Date(today.getTime() - 86400000).toISOString(),
     updated_at: new Date(today.getTime() - 86400000).toISOString(),
   },
   {
     id: 'session-2', team_id: 'team-cal-2026', date: d(2), type: 'Weights',
-    duration: 75, intensity: 'High',
+    duration: 75, intensity: 'High', start_time: '06:30', end_time: '07:45',
     warmup: 'Dynamic stretching, light activation sets',
     main_set: 'Deadlift 4x5, Back squat 4x5, Power clean 4x3, Single-leg RDL 3x8',
     cooldown: 'Foam roll, static stretch',
     target_split: null, stroke_rate: null, hr_zone: null,
     assigned_to: 'whole_team', coach_notes: null, is_notes_public: false,
-    created_by: 'coach-1',
+    created_by: 'coach-1', media_urls: [],
     created_at: new Date(today.getTime() - 86400000).toISOString(),
     updated_at: new Date(today.getTime() - 86400000).toISOString(),
   },
   {
     id: 'session-3', team_id: 'team-cal-2026', date: d(3), type: 'Rest',
-    duration: 0, intensity: 'Low',
+    duration: 0, intensity: 'Low', start_time: undefined, end_time: undefined,
     warmup: '', main_set: 'Full rest day — focus on recovery and sleep',
     cooldown: '', target_split: null, stroke_rate: null, hr_zone: null,
     assigned_to: 'whole_team', coach_notes: 'Rest day. Eat well, hydrate, sleep 8+ hours.',
-    is_notes_public: true, created_by: 'coach-1',
+    is_notes_public: true, created_by: 'coach-1', media_urls: [],
     created_at: new Date(today.getTime() - 86400000).toISOString(),
     updated_at: new Date(today.getTime() - 86400000).toISOString(),
   },
   {
     id: 'session-past-1', team_id: 'team-cal-2026', date: d(-1), type: 'Erg',
-    duration: 60, intensity: 'Moderate',
+    duration: 60, intensity: 'Moderate', start_time: '09:00', end_time: '10:00',
     warmup: '10 min easy',
     main_set: '3x20min @ 2:08/500m, r18, HR zone 3',
     cooldown: '5 min easy',
     target_split: '2:08/500m', stroke_rate: 18, hr_zone: 'Zone 3',
     assigned_to: 'whole_team', coach_notes: null, is_notes_public: false,
-    created_by: 'coach-1',
+    created_by: 'coach-1', media_urls: [],
     created_at: new Date(today.getTime() - 2 * 86400000).toISOString(),
     updated_at: new Date(today.getTime() - 2 * 86400000).toISOString(),
   },
   {
     id: 'session-past-2', team_id: 'team-cal-2026', date: d(-2), type: 'Water',
-    duration: 90, intensity: 'Low',
+    duration: 90, intensity: 'Low', start_time: '07:00', end_time: '08:30',
     warmup: '15 min paddling', main_set: '10km steady state, r18, ratio focus', cooldown: '10 min easy',
     target_split: '2:15/500m', stroke_rate: 18, hr_zone: 'Zone 2',
     assigned_to: 'whole_team', coach_notes: null, is_notes_public: false,
-    created_by: 'coach-1',
+    created_by: 'coach-1', media_urls: [],
     created_at: new Date(today.getTime() - 3 * 86400000).toISOString(),
     updated_at: new Date(today.getTime() - 3 * 86400000).toISOString(),
   },
   {
     id: 'session-past-3', team_id: 'team-cal-2026', date: d(-3), type: 'Weights',
-    duration: 75, intensity: 'High',
+    duration: 75, intensity: 'High', start_time: '06:30', end_time: '07:45',
     warmup: 'Dynamic warm-up', main_set: 'Back squat 4x5@85%, RDL 4x6, Pull-ups 4x8', cooldown: 'Stretch',
     target_split: null, stroke_rate: null, hr_zone: null,
     assigned_to: 'whole_team', coach_notes: null, is_notes_public: false,
-    created_by: 'coach-1',
+    created_by: 'coach-1', media_urls: [],
     created_at: new Date(today.getTime() - 4 * 86400000).toISOString(),
     updated_at: new Date(today.getTime() - 4 * 86400000).toISOString(),
   },
@@ -287,6 +292,65 @@ export const MOCK_MESSAGES: Message[] = [
     sender: MOCK_ATHLETES[2], receiver: MOCK_COACH,
   },
 ]
+
+// Mutable personal events store (demo mode)
+export const MOCK_PERSONAL_EVENTS: Array<{
+  id: string; athlete_id: string; date: string;
+  title: string; start_time: string; end_time: string; color: string; created_at: string;
+}> = []
+
+// Built-in survey templates
+export const SURVEY_TEMPLATES = [
+  {
+    id: 'tpl-race-week', title: 'Race Week Readiness', description: 'Assess athlete readiness before a race or regatta', is_template: true,
+    questions: [
+      { id: 'q1', type: 'scale_1_10', text: 'How confident are you feeling about the upcoming race? (1=not at all, 10=very)' },
+      { id: 'q2', type: 'scale_1_5', text: 'Rate your energy levels this week (1=exhausted, 5=peak)' },
+      { id: 'q3', type: 'yes_no', text: 'Any new physical concerns or pains?' },
+      { id: 'q4', type: 'scale_1_5', text: 'How well are you sleeping? (1=poorly, 5=great)' },
+      { id: 'q5', type: 'text', text: 'Any mental or emotional factors you want me to know about?' },
+    ]
+  },
+  {
+    id: 'tpl-monthly', title: 'Monthly Reflection', description: 'End-of-month review on progress, challenges, and goals', is_template: true,
+    questions: [
+      { id: 'q1', type: 'scale_1_10', text: 'How satisfied are you with your training progress this month?' },
+      { id: 'q2', type: 'multiple_choice', text: 'What was your biggest challenge?', options: ['Fatigue', 'Academic workload', 'Technique', 'Motivation', 'Injury/pain'] },
+      { id: 'q3', type: 'scale_1_5', text: 'How supported do you feel by the coaching staff?' },
+      { id: 'q4', type: 'text', text: 'What goal do you want to focus on next month?' },
+      { id: 'q5', type: 'yes_no', text: 'Would you like a 1-on-1 check-in meeting?' },
+      { id: 'q6', type: 'text', text: 'Anything else you want to share?' },
+    ]
+  },
+  {
+    id: 'tpl-injury', title: 'Injury Check-In', description: 'Follow up on existing pain or injury status', is_template: true,
+    questions: [
+      { id: 'q1', type: 'scale_1_10', text: 'Current pain level (0=none, 10=severe)' },
+      { id: 'q2', type: 'multiple_choice', text: 'Location of discomfort', options: ['Lower back', 'Upper back', 'Shoulder', 'Knee', 'Hip', 'Wrist/forearm', 'Ribs', 'Other'] },
+      { id: 'q3', type: 'multiple_choice', text: 'Is the pain getting better, worse, or same?', options: ['Better', 'Same', 'Worse'] },
+      { id: 'q4', type: 'text', text: 'Describe what makes it better or worse during training' },
+    ]
+  },
+]
+
+// Mutable surveys store (demo mode — coach creates surveys here)
+export const MOCK_SURVEYS: Array<{
+  id: string; team_id: string; coach_id: string; title: string; description: string;
+  questions: Array<{ id: string; type: string; text: string; options?: string[] }>;
+  is_template: boolean; created_at: string;
+}> = []
+
+// Mutable survey assignments store (demo mode)
+export const MOCK_SURVEY_ASSIGNMENTS: Array<{
+  id: string; survey_id: string; athlete_id: string | null; team_id: string;
+  assigned_at: string; due_at: string | null; completed_at: string | null;
+}> = []
+
+// Mutable survey responses store (demo mode)
+export const MOCK_SURVEY_RESPONSES: Array<{
+  id: string; survey_id: string; assignment_id: string; athlete_id: string;
+  answers: Record<string, string | number>; created_at: string;
+}> = []
 
 // Demo accounts map
 export const DEMO_ACCOUNTS: Record<string, { profile: Profile; password: string }> = {

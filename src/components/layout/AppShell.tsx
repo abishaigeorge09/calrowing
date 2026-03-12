@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Outlet, NavLink, Link } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Calendar, MessageSquare,
-  Hexagon, Home, History, User, Bell,
+  Hexagon, Home, History, User, Bell, ClipboardList,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { cn } from '@/lib/utils'
@@ -17,11 +17,11 @@ export default function AppShell() {
   const [showNotifications, setShowNotifications] = useState(false)
 
   const coachNav = [
-    { to: '/coach',          label: 'Dashboard', icon: LayoutDashboard, exact: true },
-    { to: '/coach/roster',   label: 'Roster',    icon: Users },
-    { to: '/coach/calendar', label: 'Calendar',  icon: Calendar },
-    { to: '/coach/messages', label: 'Messages',  icon: MessageSquare },
-    { to: '/coach/profile',  label: 'Profile',   icon: User },
+    { to: '/coach',           label: 'Dashboard', icon: LayoutDashboard, exact: true },
+    { to: '/coach/roster',    label: 'Roster',    icon: Users },
+    { to: '/coach/calendar',  label: 'Calendar',  icon: Calendar },
+    { to: '/coach/surveys',   label: 'Surveys',   icon: ClipboardList },
+    { to: '/coach/messages',  label: 'Messages',  icon: MessageSquare },
   ]
 
   const athleteNav = [
@@ -117,7 +117,14 @@ export default function AppShell() {
                   {isActive && (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-[2px] bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)] rounded-b-full"></div>
                   )}
-                  <Icon className={cn('h-5 w-5 transition-transform duration-300', isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : '')} strokeWidth={isActive ? 2 : 1.5} />
+                  <span className="relative">
+                    <Icon className={cn('h-5 w-5 transition-transform duration-300', isActive ? 'scale-110 drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : '')} strokeWidth={isActive ? 2 : 1.5} />
+                    {label === 'Messages' && unreadMessages > 0 && (
+                      <span className="absolute -top-1 -right-1.5 bg-red-500 text-white text-[8px] font-black rounded-full min-w-[14px] h-3.5 flex items-center justify-center px-0.5 leading-none">
+                        {unreadMessages > 9 ? '9+' : unreadMessages}
+                      </span>
+                    )}
+                  </span>
                   <span className={isActive ? 'opacity-100' : 'opacity-70'}>{label}</span>
                 </>
               )}

@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useRegisterPush } from '@/hooks/useRegisterPush'
 import {
   Flame, Moon, Zap, Brain, Activity, MessageSquare,
-  CheckCircle2, ChevronRight, AlertTriangle, BookOpen, Hexagon
+  CheckCircle2, ChevronRight, AlertTriangle, BookOpen, Hexagon, ClipboardList
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { useTodaySession } from '@/hooks/useSessions'
 import { useWellnessLogs } from '@/hooks/useWellnessLogs'
 import { useAllConversations } from '@/hooks/useMessages'
 import { useTeam } from '@/hooks/useTeam'
+import { useSurveyAssignments } from '@/hooks/useSurveys'
 import { sessionTypeColor, intensityColor, localDateStr, cn } from '@/lib/utils'
 import type { MorningLogData } from '@/types/database'
 import MorningCheckinForm from './MorningCheckinForm'
@@ -31,6 +32,8 @@ export default function TodayScreen() {
 
   const { data: team } = useTeam(user?.team_id)
   const coachId = team?.coach_id
+
+  const { data: surveyAssignments = [] } = useSurveyAssignments(user?.id)
 
   const { session: todaySession } = useTodaySession(user?.team_id)
   const { data: myLogs = [] } = useWellnessLogs(user?.id, { days: 30 })
@@ -242,6 +245,32 @@ export default function TodayScreen() {
                   {unreadMessages.length} Comms Detected
                 </p>
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest line-clamp-1">{unreadMessages[0]?.content}</p>
+              </div>
+            </div>
+            <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-white transition-colors" />
+          </div>
+        )}
+
+        {/* Pending Surveys */}
+        {surveyAssignments.length > 0 && (
+          <div
+            className="bg-purple-950/40 border border-purple-500/40 rounded-3xl p-5 cursor-pointer hover:bg-purple-900/40 transition-colors shadow-inner flex items-center justify-between group"
+            onClick={() => navigate(`/athlete/survey/${surveyAssignments[0].id}`)}
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-purple-500/20 border border-purple-500/40 rounded-full p-3 shadow-[0_0_10px_rgba(168,85,247,0.3)] group-hover:shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-shadow">
+                <ClipboardList className="h-5 w-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="font-black text-white text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+                  Survey Pending
+                </p>
+                <p className="text-[10px] text-purple-300/70 font-bold uppercase tracking-widest line-clamp-1">
+                  {surveyAssignments[0].survey?.title ?? 'Coach Survey'}
+                  {surveyAssignments[0].due_at && (
+                    <> · Due {new Date(surveyAssignments[0].due_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</>
+                  )}
+                </p>
               </div>
             </div>
             <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-white transition-colors" />

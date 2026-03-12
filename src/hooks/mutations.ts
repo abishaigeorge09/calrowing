@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { IS_SUPABASE, supabase } from '@/lib/db'
 import { useAuthStore } from '@/stores/auth'
+import {
+  deletedSessionIds, MOCK_PERSONAL_EVENTS, MOCK_SURVEYS,
+  MOCK_SURVEY_ASSIGNMENTS, MOCK_SURVEY_RESPONSES,
+} from '@/lib/mock-data'
 import { generateMorningAlerts, generatePainAlert } from '@/hooks/useAlertGeneration'
 import type {
   MorningLogData,
@@ -161,6 +165,8 @@ export function useCreateSession() {
       date: string
       type: Session['type']
       duration: number
+      start_time?: string
+      end_time?: string
       intensity: Session['intensity']
       warmup?: string
       main_set: string
@@ -171,6 +177,7 @@ export function useCreateSession() {
       assigned_to: string
       coach_notes?: string
       is_notes_public: boolean
+      media_urls?: Array<{ url: string; title?: string; type: 'image' | 'video' | 'link' }>
     }) => {
       if (!IS_SUPABASE || !user) {
         await new Promise(r => setTimeout(r, 500))
@@ -185,6 +192,7 @@ export function useCreateSession() {
 
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['sessions', vars.team_id] })
+      queryClient.invalidateQueries({ queryKey: ['sessions'] })
     },
   })
 }
@@ -366,7 +374,8 @@ export function useDeleteSession() {
   return useMutation({
     mutationFn: async (sessionId: string) => {
       if (!IS_SUPABASE || !user) {
-        await new Promise(r => setTimeout(r, 400))
+        deletedSessionIds.add(sessionId)
+        await new Promise(r => setTimeout(r, 300))
         return
       }
       const { error } = await supabase
@@ -377,6 +386,209 @@ export function useDeleteSession() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sessions'] })
+    },
+  })
+}
+
+// ─── useMarkMessagesRead ───────────────────────────────────────────────────────
+export function useMarkMessagesRead() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (senderId: string) => {
+      if (!IS_SUPABASE || !user) return
+      await supabase.from('messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('receiver_id', user.id)
+        .eq('sender_id', senderId)
+        .is('read_at', null)
+    },
+    onSuccess: () => {
+      if (!user) return
+      queryClient.invalidateQueries({ queryKey: ['messages'] })
+      queryClient.invalidateQueries({ queryKey: ['unread_count', user.id] })
+    },
+  })
+}
+
+// ─── useCreatePersonalEvent ────────────────────────────────────────────────────
+export function useCreatePersonalEvent() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (payload: {
+      date: string; title: string; start_time: string; end_time: string; color: string
+    }) => {
+      if (!IS_SUPABASE || !user) {
+        const event = {
+          id: `pe-${Date.now()}`,
+          athlete_id: user?.id ?? 'athlete-1',
+          ...payload,
+          created_at: new Date().toISOString(),
+        }
+        MOCK_PERSONAL_EVENTS.push(event)
+        await new Promise(r => setTimeout(r, 300))
+        return
+      }
+      const { error } = await supabase.from('personal_events').insert({
+        athlete_id: user.id,
+        ...payload,
+      })
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['personal_events'] })
+    },
+  })
+}
+
+// ─── useDeletePersonalEvent ────────────────────────────────────────────────────
+export function useDeletePersonalEvent() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!IS_SUPABASE || !user) {
+        const idx = MOCK_PERSONAL_EVENTS.findIndex(e => e.id === eventId)
+        if (idx >= 0) MOCK_PERSONAL_EVENTS.splice(idx, 1)
+        await new Promise(r => setTimeout(r, 200))
+        return
+      }
+      const { error } = await supabase
+        .from('personal_events').delete().eq('id', eventId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['personal_events'] })
+    },
+  })
+}
+
+// ─── useCreateSurvey ──────────────────────────────────────────────────────────
+export function useCreateSurvey() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (payload: {
+      team_id: string
+      title: string
+      description?: string
+      questions: Array<{ id: string; type: string; text: string; options?: string[] }>
+      assign_to: 'team' | string[]  // 'team' or array of athlete_ids
+      due_at?: string | null
+    }) => {
+      if (!IS_SUPABASE || !user) {
+        const surveyId = `survey-${Date.now()}`
+        MOCK_SURVEYS.push({
+          id: surveyId,
+          team_id: payload.team_id,
+          coach_id: user?.id ?? 'coach-1',
+          title: payload.title,
+          description: payload.description ?? '',
+          questions: payload.questions,
+          is_template: false,
+          created_at: new Date().toISOString(),
+        })
+        // Create assignments
+        const athleteIds = payload.assign_to === 'team'
+          ? ['athlete-1','athlete-2','athlete-3','athlete-4','athlete-5','athlete-6','athlete-7','athlete-8']
+          : payload.assign_to
+        for (const athleteId of athleteIds) {
+          MOCK_SURVEY_ASSIGNMENTS.push({
+            id: `sa-${Date.now()}-${athleteId}`,
+            survey_id: surveyId,
+            athlete_id: athleteId,
+            team_id: payload.team_id,
+            assigned_at: new Date().toISOString(),
+            due_at: payload.due_at ?? null,
+            completed_at: null,
+          })
+        }
+        await new Promise(r => setTimeout(r, 500))
+        return
+      }
+      const { data: survey, error: sErr } = await supabase.from('surveys').insert({
+        team_id: payload.team_id,
+        coach_id: user.id,
+        title: payload.title,
+        description: payload.description ?? null,
+        questions: payload.questions,
+        is_template: false,
+      }).select().single()
+      if (sErr) throw new Error(sErr.message)
+
+      const athleteIds = payload.assign_to === 'team'
+        ? null  // handled by server/trigger
+        : payload.assign_to
+
+      if (athleteIds) {
+        for (const athleteId of athleteIds) {
+          await supabase.from('survey_assignments').insert({
+            survey_id: survey.id,
+            athlete_id: athleteId,
+            team_id: payload.team_id,
+            due_at: payload.due_at ?? null,
+          })
+        }
+      } else {
+        await supabase.from('survey_assignments').insert({
+          survey_id: survey.id,
+          athlete_id: null,
+          team_id: payload.team_id,
+          due_at: payload.due_at ?? null,
+        })
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] })
+      queryClient.invalidateQueries({ queryKey: ['survey_assignments'] })
+    },
+  })
+}
+
+// ─── useSubmitSurveyResponse ───────────────────────────────────────────────────
+export function useSubmitSurveyResponse() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (payload: {
+      survey_id: string
+      assignment_id: string
+      answers: Record<string, string | number>
+    }) => {
+      if (!IS_SUPABASE || !user) {
+        MOCK_SURVEY_RESPONSES.push({
+          id: `sr-${Date.now()}`,
+          survey_id: payload.survey_id,
+          assignment_id: payload.assignment_id,
+          athlete_id: user?.id ?? 'athlete-1',
+          answers: payload.answers,
+          created_at: new Date().toISOString(),
+        })
+        const idx = MOCK_SURVEY_ASSIGNMENTS.findIndex(a => a.id === payload.assignment_id)
+        if (idx >= 0) MOCK_SURVEY_ASSIGNMENTS[idx].completed_at = new Date().toISOString()
+        await new Promise(r => setTimeout(r, 500))
+        return
+      }
+      const { error: rErr } = await supabase.from('survey_responses').insert({
+        survey_id: payload.survey_id,
+        assignment_id: payload.assignment_id,
+        athlete_id: user.id,
+        answers: payload.answers,
+      })
+      if (rErr) throw new Error(rErr.message)
+      await supabase.from('survey_assignments')
+        .update({ completed_at: new Date().toISOString() })
+        .eq('id', payload.assignment_id)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['survey_assignments'] })
+      queryClient.invalidateQueries({ queryKey: ['survey_responses'] })
     },
   })
 }

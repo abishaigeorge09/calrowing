@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, Hexagon, X } from 'lucide-react'
+import { Check, Hexagon, Plus, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,40 +8,73 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuthStore } from '@/stores/auth'
 import { useCreateSession } from '@/hooks/mutations'
 import { localDateStr, cn } from '@/lib/utils'
-import type { SessionType, Intensity } from '@/types/database'
+import type { SessionType, Intensity, MediaItem } from '@/types/database'
 
 interface Props { open: boolean; onClose: () => void }
+
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(':').map(Number)
+  return h * 60 + m
+}
+
+function detectMediaType(url: string): 'image' | 'video' | 'link' {
+  if (/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(url)) return 'image'
+  if (/youtube\.com|youtu\.be|vimeo\.com/i.test(url)) return 'video'
+  return 'link'
+}
+
+const defaultForm = {
+  date: localDateStr(),
+  type: 'Erg' as SessionType,
+  start_time: '09:00',
+  end_time: '10:30',
+  intensity: 'Moderate' as Intensity,
+  warmup: '',
+  main_set: '',
+  cooldown: '',
+  target_split: '',
+  stroke_rate: '',
+  hr_zone: '',
+  assigned_to: 'whole_team',
+  coach_notes: '',
+  is_notes_public: true,
+}
 
 export default function CreateSessionDialog({ open, onClose }: Props) {
   const { user } = useAuthStore()
   const createSession = useCreateSession()
   const [saved, setSaved] = useState(false)
-  const [form, setForm] = useState({
-    date: localDateStr(),
-    type: 'Erg' as SessionType,
-    duration: '90',
-    intensity: 'Moderate' as Intensity,
-    warmup: '',
-    main_set: '',
-    cooldown: '',
-    target_split: '',
-    stroke_rate: '',
-    hr_zone: '',
-    assigned_to: 'whole_team',
-    coach_notes: '',
-    is_notes_public: true,
-  })
+  const [form, setForm] = useState(defaultForm)
+  const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkTitle, setLinkTitle] = useState('')
+
+  const addLink = () => {
+    if (!linkUrl.trim()) return
+    setMediaItems(prev => [...prev, {
+      url: linkUrl.trim(),
+      title: linkTitle.trim() || undefined,
+      type: detectMediaType(linkUrl.trim()),
+    }])
+    setLinkUrl('')
+    setLinkTitle('')
+  }
+
+  const removeMedia = (i: number) => setMediaItems(prev => prev.filter((_, idx) => idx !== i))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user?.team_id) return
 
+    const duration = timeToMinutes(form.end_time) - timeToMinutes(form.start_time)
     try {
       await createSession.mutateAsync({
         team_id: user.team_id,
         date: form.date,
         type: form.type,
-        duration: parseInt(form.duration) || 90,
+        duration: Math.max(duration, 0),
+        start_time: form.start_time,
+        end_time: form.end_time,
         intensity: form.intensity,
         warmup: form.warmup || undefined,
         main_set: form.main_set,
@@ -52,26 +85,14 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
         assigned_to: form.assigned_to,
         coach_notes: form.coach_notes || undefined,
         is_notes_public: form.is_notes_public,
+        media_urls: mediaItems,
       })
 
       setSaved(true)
       setTimeout(() => {
         setSaved(false)
-        setForm({
-          date: localDateStr(),
-          type: 'Erg',
-          duration: '90',
-          intensity: 'Moderate',
-          warmup: '',
-          main_set: '',
-          cooldown: '',
-          target_split: '',
-          stroke_rate: '',
-          hr_zone: '',
-          assigned_to: 'whole_team',
-          coach_notes: '',
-          is_notes_public: true,
-        })
+        setForm(defaultForm)
+        setMediaItems([])
         onClose()
       }, 1200)
     } catch (err) {
@@ -84,8 +105,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl bg-black/90 backdrop-blur-3xl border border-white/10 text-white rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:rounded-[2rem]">
-        {/* Background effects */}
+      <DialogContent className="max-w-xl bg-black/90 backdrop-blur-3xl border border-white/10 text-white rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:rounded-[2rem] max-h-[90vh] overflow-y-auto">
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
 
@@ -96,14 +116,14 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-5 relative z-10 pt-2">
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 flex flex-col">
               <Label className={darkLabelClasses}>Date Parameter</Label>
               <Input type="date" value={form.date} className={darkInputClasses} style={{ colorScheme: 'dark' }}
                 onChange={(e) => setForm({ ...form, date: e.target.value })} required />
             </div>
-            
+
             <div className="space-y-1.5 flex flex-col">
               <Label className={darkLabelClasses}>Protocol Type</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as SessionType })}>
@@ -117,24 +137,35 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
             </div>
           </div>
 
+          {/* Start / End Time */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 flex flex-col">
-              <Label className={darkLabelClasses}>Duration (Min)</Label>
-              <Input type="number" placeholder="90" value={form.duration} className={darkInputClasses}
-                onChange={(e) => setForm({ ...form, duration: e.target.value })} />
+              <Label className={darkLabelClasses}>Start Time</Label>
+              <Input type="time" value={form.start_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
+                onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
             </div>
-            
             <div className="space-y-1.5 flex flex-col">
-              <Label className={darkLabelClasses}>Intensity Level</Label>
-              <Select value={form.intensity} onValueChange={(v) => setForm({ ...form, intensity: v as Intensity })}>
-                <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
-                  {(['Low', 'Moderate', 'High', 'Race Pace'] as Intensity[]).map(i => (
-                    <SelectItem key={i} value={i} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{i}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className={darkLabelClasses}>End Time</Label>
+              <Input type="time" value={form.end_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
+                onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
             </div>
+          </div>
+          {form.start_time && form.end_time && (
+            <p className="text-[10px] text-gray-500 -mt-3 px-1">
+              Duration: {Math.max(timeToMinutes(form.end_time) - timeToMinutes(form.start_time), 0)} min
+            </p>
+          )}
+
+          <div className="space-y-1.5 flex flex-col">
+            <Label className={darkLabelClasses}>Intensity Level</Label>
+            <Select value={form.intensity} onValueChange={(v) => setForm({ ...form, intensity: v as Intensity })}>
+              <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
+                {(['Low', 'Moderate', 'High', 'Race Pace'] as Intensity[]).map(i => (
+                  <SelectItem key={i} value={i} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{i}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-1.5">
@@ -160,7 +191,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
               onChange={(e) => setForm({ ...form, cooldown: e.target.value })} />
           </div>
 
-           <div className="grid grid-cols-3 gap-3 pt-2 pb-2 border-y border-white/5">
+          <div className="grid grid-cols-3 gap-3 pt-2 pb-2 border-y border-white/5">
             <div className="space-y-1.5 flex flex-col">
               <Label className={cn(darkLabelClasses, 'truncate')} title="Target Split">Split</Label>
               <Input placeholder="2:02" value={form.target_split} className={darkInputClasses}
@@ -203,16 +234,45 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
             </div>
           </div>
 
+          {/* Media / Resource Links */}
+          <div className="space-y-2 pt-1 pb-2 border-t border-white/5">
+            <Label className={darkLabelClasses}>Resource Links (Optional)</Label>
+            <div className="flex gap-2">
+              <Input placeholder="Paste URL (YouTube, image, article...)" value={linkUrl} className={cn(darkInputClasses, 'flex-1 text-xs')}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLink())} />
+              <Input placeholder="Title" value={linkTitle} className={cn(darkInputClasses, 'w-28 text-xs')}
+                onChange={(e) => setLinkTitle(e.target.value)} />
+              <Button type="button" onClick={addLink}
+                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-11 px-3 border border-white/10">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {mediaItems.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-1">
+                {mediaItems.map((m, i) => (
+                  <div key={i} className="flex items-center gap-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-xs">
+                    <span>{m.type === 'video' ? '▶' : m.type === 'image' ? '🖼' : '🔗'}</span>
+                    <span className="max-w-[120px] truncate text-gray-300">{m.title || m.url}</span>
+                    <button type="button" onClick={() => removeMedia(i)} className="text-gray-500 hover:text-white ml-1">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <DialogFooter className="pt-4 border-t border-white/5 flex gap-3 sm:justify-between w-full">
             <DialogClose asChild>
-              <Button type="button" variant="outline" 
+              <Button type="button" variant="outline"
                 className="bg-transparent border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-1/3"
                 disabled={createSession.isPending}>
                 Abort
               </Button>
             </DialogClose>
-            <Button type="submit" 
-              className={cn('uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-2/3 transition-all', 
+            <Button type="submit"
+              className={cn('uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-2/3 transition-all',
                 saved ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)]')}
               disabled={createSession.isPending || saved}>
               {saved

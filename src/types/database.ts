@@ -53,12 +53,69 @@ export interface ExamWeek {
   difficulty: number
 }
 
+export interface MediaItem {
+  url: string
+  title?: string
+  type: 'image' | 'video' | 'link'
+}
+
+export interface PersonalEvent {
+  id: string
+  athlete_id: string
+  date: string        // 'YYYY-MM-DD'
+  title: string
+  start_time: string  // 'HH:MM'
+  end_time: string    // 'HH:MM'
+  color: string
+  created_at: string
+}
+
+export interface SurveyQuestion {
+  id: string
+  type: 'text' | 'scale_1_5' | 'scale_1_10' | 'multiple_choice' | 'yes_no'
+  text: string
+  options?: string[]
+}
+
+export interface Survey {
+  id: string
+  team_id: string
+  coach_id: string
+  title: string
+  description?: string
+  questions: SurveyQuestion[]
+  is_template: boolean
+  created_at: string
+}
+
+export interface SurveyAssignment {
+  id: string
+  survey_id: string
+  athlete_id: string | null
+  team_id: string
+  assigned_at: string
+  due_at: string | null
+  completed_at: string | null
+  survey?: Survey
+}
+
+export interface SurveyResponse {
+  id: string
+  survey_id: string
+  assignment_id: string
+  athlete_id: string
+  answers: Record<string, string | number>
+  created_at: string
+}
+
 export interface Session {
   id: string
   team_id: string
   date: string
   type: SessionType
   duration: number
+  start_time?: string | null  // 'HH:MM' e.g. '09:00'
+  end_time?: string | null    // 'HH:MM' e.g. '10:30'
   intensity: Intensity
   warmup: string
   main_set: string
@@ -69,6 +126,7 @@ export interface Session {
   assigned_to: 'whole_team' | string
   coach_notes: string | null
   is_notes_public: boolean
+  media_urls?: MediaItem[]
   created_by: string
   created_at: string
   updated_at: string

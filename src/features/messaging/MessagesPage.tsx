@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTeamAthletes } from '@/hooks/useTeamAthletes'
 import { useTeamCoach } from '@/hooks/useTeamCoach'
 import { useMessages } from '@/hooks/useMessages'
-import { useSendMessage } from '@/hooks/mutations'
+import { useSendMessage, useMarkMessagesRead } from '@/hooks/mutations'
 import { getInitials, cn } from '@/lib/utils'
 
 export default function MessagesPage() {
@@ -33,6 +33,12 @@ export default function MessagesPage() {
 
   const { data: conversation = [] } = useMessages(user?.id, selectedId || null)
   const sendMessage = useSendMessage()
+  const markRead = useMarkMessagesRead()
+
+  // Mark messages as read when conversation is selected
+  useEffect(() => {
+    if (selectedId) markRead.mutate(selectedId)
+  }, [selectedId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [text, setText] = useState('')
   const [isUrgent, setIsUrgent] = useState(false)

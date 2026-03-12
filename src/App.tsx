@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
-import { ChevronLeft, Trash2, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, Trash2, CheckCircle2, XCircle, Clock, AlertTriangle, Link, Play } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { IS_SUPABASE, supabase } from '@/lib/db'
 import { MOCK_SESSIONS } from '@/lib/mock-data'
@@ -27,6 +27,8 @@ import InjuryFlagPage from '@/features/athlete/InjuryFlagPage'
 import AthleteCalendarPage from '@/features/athlete/AthleteCalendarPage'
 import AthleteProfilePage from '@/features/athlete/AthleteProfilePage'
 import MessagesPage from '@/features/messaging/MessagesPage'
+import SurveysPage from '@/features/coach/SurveysPage'
+import SurveyResponsePage from '@/features/athlete/SurveyResponsePage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -78,6 +80,13 @@ function ForgotPasswordPage() {
       </div>
     </div>
   )
+}
+
+function formatTime(t: string): string {
+  const [h, m] = t.split(':').map(Number)
+  const period = h >= 12 ? 'PM' : 'AM'
+  const displayH = h % 12 || 12
+  return `${displayH}:${m.toString().padStart(2, '0')} ${period}`
 }
 
 function SessionDetailPage() {
@@ -173,7 +182,9 @@ function SessionDetailPage() {
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           {([
-            ['Duration', `${session.duration}min`],
+            session.start_time && session.end_time
+              ? ['Time', `${formatTime(session.start_time)} – ${formatTime(session.end_time)}`]
+              : ['Duration', `${session.duration}min`],
             ['Intensity', session.intensity],
             ['Target Split', session.target_split ?? '—'],
             ['Stroke Rate', session.stroke_rate ? `r${session.stroke_rate}` : '—'],
@@ -208,6 +219,48 @@ function SessionDetailPage() {
               Coach Note {!session.is_notes_public && <span className="text-amber-600">(private)</span>}
             </p>
             <p className="text-sm italic text-slate-700">"{session.coach_notes}"</p>
+          </div>
+        )}
+
+        {/* Media attachments */}
+        {session.media_urls && session.media_urls.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Resources</p>
+            <div className="space-y-2">
+              {session.media_urls.map((media, i) => {
+                const ytMatch = media.url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/)
+                return (
+                  <a
+                    key={i}
+                    href={media.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:border-slate-200 transition-colors group"
+                  >
+                    {media.type === 'image' ? (
+                      <img src={media.url} alt={media.title ?? 'Image'} className="h-12 w-16 object-cover rounded-lg flex-shrink-0" onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
+                    ) : media.type === 'video' && ytMatch ? (
+                      <div className="relative flex-shrink-0">
+                        <img src={`https://img.youtube.com/vi/${ytMatch[1]}/default.jpg`} alt="video" className="h-12 w-16 object-cover rounded-lg" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Play className="h-5 w-5 text-white drop-shadow" />
+                        </div>
+                      </div>
+                    ) : (
+                      <Link className="h-5 w-5 text-slate-400 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-slate-900 truncate group-hover:text-[#1e3a5f]">
+                        {media.title || media.url}
+                      </p>
+                      {media.title && (
+                        <p className="text-xs text-slate-400 truncate">{media.url}</p>
+                      )}
+                    </div>
+                  </a>
+                )
+              })}
+            </div>
           </div>
         )}
       </div>
@@ -307,6 +360,7 @@ export default function App() {
             <Route path="messages" element={<MessagesPage />} />
             <Route path="athlete/:id" element={<AthleteProfile />} />
             <Route path="session/:id" element={<SessionDetailPage />} />
+            <Route path="surveys" element={<SurveysPage />} />
             <Route path="profile" element={<CoachProfilePage />} />
           </Route>
           <Route path="/athlete" element={<ProtectedRoute requiredRole="athlete"><AppShell /></ProtectedRoute>}>
@@ -317,6 +371,7 @@ export default function App() {
             <Route path="profile" element={<AthleteProfilePage />} />
             <Route path="injury" element={<InjuryFlagPage />} />
             <Route path="academic" element={<AcademicSchedulePage />} />
+            <Route path="survey/:assignmentId" element={<SurveyResponsePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -15,7 +15,7 @@ export function useSessions(
   return useQuery({
     queryKey: ['sessions', teamId, opts],
     enabled: !!teamId,
-    placeholderData: MOCK_SESSIONS as Session[],
+    placeholderData: IS_SUPABASE ? undefined : MOCK_SESSIONS as Session[],
     queryFn: async (): Promise<Session[]> => {
       if (!IS_SUPABASE || !teamId) {
         let filtered = MOCK_SESSIONS as Session[]

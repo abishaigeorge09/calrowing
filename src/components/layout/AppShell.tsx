@@ -1,16 +1,20 @@
+import { useState } from 'react'
 import { Outlet, NavLink, Link } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Calendar, MessageSquare,
-  Waves, Home, History, User,
+  Waves, Home, History, User, Bell,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { cn } from '@/lib/utils'
 import { useUnreadAlertCount } from '@/hooks/useAlerts'
 import { useUnreadMessageCount } from '@/hooks/useMessages'
+import { useUnreadNotificationCount } from '@/hooks/useNotifications'
+import NotificationsPanel from '@/features/athlete/NotificationsPanel'
 
 export default function AppShell() {
   const { user } = useAuthStore()
   const isCoach = user?.role === 'coach'
+  const [showNotifications, setShowNotifications] = useState(false)
 
   const coachNav = [
     { to: '/coach',          label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -30,8 +34,9 @@ export default function AppShell() {
 
   const nav = isCoach ? coachNav : athleteNav
 
-  const unreadAlerts = useUnreadAlertCount(isCoach ? user?.id : null)
-  const unreadMessages = useUnreadMessageCount(user?.id)
+  const unreadAlerts        = useUnreadAlertCount(isCoach ? user?.id : null)
+  const unreadMessages      = useUnreadMessageCount(user?.id)
+  const unreadNotifications = useUnreadNotificationCount()
 
   return (
     <div className="flex flex-col min-h-dvh bg-slate-50">
@@ -56,6 +61,23 @@ export default function AppShell() {
               {unreadMessages}
             </Link>
           )}
+
+          {/* Notification bell — athletes only */}
+          {!isCoach && (
+            <button
+              onClick={() => setShowNotifications(true)}
+              className="relative hover:opacity-80 transition-opacity"
+              aria-label="Open notifications"
+            >
+              <Bell className="h-5 w-5 text-white/90" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 leading-none">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                </span>
+              )}
+            </button>
+          )}
+
           <Link
             to={isCoach ? '/coach/profile' : '/athlete/profile'}
             className="bg-white/20 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold hover:bg-white/30 transition-colors"
@@ -95,6 +117,14 @@ export default function AppShell() {
           ))}
         </div>
       </nav>
+
+      {/* Notifications panel (athlete only) */}
+      {!isCoach && (
+        <NotificationsPanel
+          open={showNotifications}
+          onClose={() => setShowNotifications(false)}
+        />
+      )}
     </div>
   )
 }

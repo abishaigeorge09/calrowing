@@ -74,7 +74,7 @@ export function useAllConversations(userId: string | null | undefined) {
   return useQuery({
     queryKey: ['allConversations', userId],
     enabled: !!userId,
-    placeholderData: MOCK_MESSAGES as Message[],
+    placeholderData: IS_SUPABASE ? undefined : MOCK_MESSAGES as Message[],
     queryFn: async (): Promise<Message[]> => {
       if (!IS_SUPABASE || !userId) return MOCK_MESSAGES as Message[]
 

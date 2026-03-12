@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useRegisterPush } from '@/hooks/useRegisterPush'
 import {
   Flame, Moon, Zap, Brain, Activity, MessageSquare,
   CheckCircle2, ChevronRight, AlertTriangle, BookOpen,
@@ -20,6 +21,7 @@ import EveningCheckinForm from './EveningCheckinForm'
 export default function TodayScreen() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
+  useRegisterPush() // Register for Web Push notifications silently on first load
   const [showMorning, setShowMorning] = useState(false)
   const [showPost, setShowPost] = useState(false)
   const [showEvening, setShowEvening] = useState(false)

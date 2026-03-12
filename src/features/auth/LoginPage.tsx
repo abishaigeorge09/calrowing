@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/stores/auth'
-import { IS_SUPABASE } from '@/lib/db'
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -30,9 +29,9 @@ export default function LoginPage() {
     }
   }
 
-  const fillDemo = (demoEmail: string, demoPass: string) => {
+  const fillDemo = (demoEmail: string) => {
     setEmail(demoEmail)
-    setPassword(demoPass)
+    setPassword('Demo1234!')
     setError('')
   }
 
@@ -52,43 +51,38 @@ export default function LoginPage() {
       {/* Card */}
       <div className="flex-1 bg-white rounded-t-3xl px-6 pt-8 pb-8">
         <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h1>
-        <p className="text-slate-500 text-sm mb-6">Sign in to your account</p>
+        <p className="text-slate-500 text-sm mb-5">Sign in to your account</p>
 
-        {!IS_SUPABASE && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-5">
-            <p className="text-blue-800 text-sm font-semibold mb-2">Demo Accounts — Quick Fill</p>
-            <div className="flex gap-2 flex-wrap">
-              <button
-                type="button"
-                onClick={() => fillDemo('coach@rowiq.demo', 'Demo1234!')}
-                className="text-xs bg-[#1e3a5f] text-white px-3 py-1.5 rounded-lg font-medium"
-              >
-                Coach
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemo('alex@rowiq.demo', 'Demo1234!')}
-                className="text-xs bg-slate-600 text-white px-3 py-1.5 rounded-lg font-medium"
-              >
-                Alex (Athlete)
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemo('jordan@rowiq.demo', 'Demo1234!')}
-                className="text-xs bg-slate-600 text-white px-3 py-1.5 rounded-lg font-medium"
-              >
-                Jordan (Alert)
-              </button>
-              <button
-                type="button"
-                onClick={() => fillDemo('sam@rowiq.demo', 'Demo1234!')}
-                className="text-xs bg-slate-600 text-white px-3 py-1.5 rounded-lg font-medium"
-              >
-                Sam (Exam)
-              </button>
-            </div>
+        {/* Demo Section — always visible so anyone can explore the app */}
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-base">🚣</span>
+            <p className="text-blue-800 text-sm font-bold">Try RowIQ — No signup needed</p>
           </div>
-        )}
+          <p className="text-blue-600 text-xs mb-3">Explore as a coach or athlete with live data and real chat.</p>
+          <div className="grid grid-cols-2 gap-2 mb-2">
+            <button
+              type="button"
+              onClick={() => fillDemo('coach@rowiq.demo')}
+              className="bg-[#1e3a5f] text-white rounded-lg py-2 px-3 text-xs font-semibold hover:bg-[#2d5a8e] transition-colors"
+            >
+              👨‍💼 Coach View
+            </button>
+            <button
+              type="button"
+              onClick={() => fillDemo('alex@rowiq.demo')}
+              className="bg-white border border-blue-200 text-[#1e3a5f] rounded-lg py-2 px-3 text-xs font-semibold hover:bg-blue-50 transition-colors"
+            >
+              🚣 Athlete View
+            </button>
+          </div>
+          <div className="flex gap-3 flex-wrap">
+            <button type="button" onClick={() => fillDemo('jordan@rowiq.demo')} className="text-[10px] text-blue-500 hover:text-blue-700 underline">Jordan (alert)</button>
+            <button type="button" onClick={() => fillDemo('sam@rowiq.demo')}    className="text-[10px] text-blue-500 hover:text-blue-700 underline">Sam (exam)</button>
+            <button type="button" onClick={() => fillDemo('taylor@rowiq.demo')} className="text-[10px] text-blue-500 hover:text-blue-700 underline">Taylor</button>
+          </div>
+          <p className="text-blue-400 text-[10px] mt-2">Password: Demo1234! (auto-filled)</p>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">

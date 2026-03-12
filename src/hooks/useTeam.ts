@@ -7,7 +7,7 @@ export function useTeam(teamId: string | null | undefined) {
   return useQuery({
     queryKey: ['team', teamId],
     enabled: !!teamId,
-    placeholderData: MOCK_TEAM as Team,
+    placeholderData: IS_SUPABASE ? undefined : MOCK_TEAM as Team,
     queryFn: async (): Promise<Team> => {
       if (!IS_SUPABASE || !teamId) return MOCK_TEAM as Team
       const { data, error } = await supabase.from('teams').select('*').eq('id', teamId).single()

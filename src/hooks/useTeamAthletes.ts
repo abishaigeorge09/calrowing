@@ -16,7 +16,7 @@ export function useTeamAthletes(teamId: string | null | undefined) {
   return useQuery({
     queryKey: ['athletes', teamId],
     enabled: !!teamId,
-    placeholderData: buildMockAthletes,
+    placeholderData: IS_SUPABASE ? undefined : buildMockAthletes,
     queryFn: async (): Promise<AthleteWithProfile[]> => {
       if (!IS_SUPABASE || !teamId) return buildMockAthletes()
 

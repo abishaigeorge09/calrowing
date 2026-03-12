@@ -3,9 +3,9 @@ import { useSearchParams } from 'react-router-dom'
 import { Send, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MOCK_COACH } from '@/lib/mock-data'
 import { useAuthStore } from '@/stores/auth'
 import { useTeamAthletes } from '@/hooks/useTeamAthletes'
+import { useTeamCoach } from '@/hooks/useTeamCoach'
 import { useMessages } from '@/hooks/useMessages'
 import { useSendMessage } from '@/hooks/mutations'
 import { getInitials, cn } from '@/lib/utils'
@@ -17,22 +17,24 @@ export default function MessagesPage() {
 
   const isCoach = user?.role === 'coach'
   const { data: athletes = [] } = useTeamAthletes(user?.team_id)
+  const { data: coachProfile } = useTeamCoach(!isCoach ? user?.team_id : null)
 
-  // For athletes, the coach is the conversation partner
-  const partners = isCoach
-    ? athletes
-    : [MOCK_COACH]
+  // Coach sees athletes as partners; athlete sees their coach
+  const partners = isCoach ? athletes : (coachProfile ? [coachProfile] : [])
 
   const [selectedId, setSelectedId] = useState<string>(
-    defaultTo ?? (isCoach ? (athletes[0]?.id ?? '') : MOCK_COACH.id)
+    defaultTo ?? (isCoach ? (athletes[0]?.id ?? '') : (coachProfile?.id ?? ''))
   )
 
-  // Update selectedId when athletes load (for coach)
+  // Update selectedId when data loads
   useEffect(() => {
     if (isCoach && !selectedId && athletes.length > 0) {
       setSelectedId(athletes[0].id)
     }
-  }, [isCoach, athletes, selectedId])
+    if (!isCoach && !selectedId && coachProfile) {
+      setSelectedId(coachProfile.id)
+    }
+  }, [isCoach, athletes, coachProfile, selectedId])
 
   const { data: conversation = [] } = useMessages(user?.id, selectedId || null)
   const sendMessage = useSendMessage()
@@ -66,6 +68,9 @@ export default function MessagesPage() {
           <p className="font-bold text-slate-900 text-sm hidden sm:block">Messages</p>
         </div>
         <div className="flex-1 overflow-y-auto">
+          {partners.length === 0 && (
+            <p className="text-xs text-slate-400 p-3 text-center">Loading…</p>
+          )}
           {partners.map(partner => (
             <button
               key={partner.id}
@@ -95,7 +100,7 @@ export default function MessagesPage() {
             {selectedPartner ? getInitials(selectedPartner.name) : '?'}
           </div>
           <div>
-            <p className="font-semibold text-slate-900 text-sm">{selectedPartner?.name}</p>
+            <p className="font-semibold text-slate-900 text-sm">{selectedPartner?.name ?? '—'}</p>
             <p className="text-xs text-slate-400">{selectedPartner?.role === 'coach' ? 'Coach' : 'Athlete'}</p>
           </div>
         </div>

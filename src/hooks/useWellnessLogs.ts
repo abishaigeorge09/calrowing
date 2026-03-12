@@ -52,7 +52,7 @@ export function useTeamWellnessLogs(
   return useQuery({
     queryKey: ['teamWellnessLogs', teamId, opts],
     enabled: !!teamId,
-    placeholderData: MOCK_WELLNESS_LOGS as WellnessLog[],
+    placeholderData: IS_SUPABASE ? undefined : MOCK_WELLNESS_LOGS as WellnessLog[],
     queryFn: async (): Promise<WellnessLog[]> => {
       if (!IS_SUPABASE || !teamId) return MOCK_WELLNESS_LOGS as WellnessLog[]
 

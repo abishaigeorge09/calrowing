@@ -8,7 +8,7 @@ export function useAlerts(coachId: string | null | undefined) {
     queryKey: ['alerts', coachId, 'unreviewed'],
     enabled: !!coachId,
     refetchInterval: 30_000,
-    placeholderData: MOCK_ALERTS.filter(a => !a.reviewed_at) as Alert[],
+    placeholderData: IS_SUPABASE ? undefined : MOCK_ALERTS.filter(a => !a.reviewed_at) as Alert[],
     queryFn: async (): Promise<Alert[]> => {
       if (!IS_SUPABASE || !coachId) {
         return MOCK_ALERTS.filter(a => !a.reviewed_at) as Alert[]

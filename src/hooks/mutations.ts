@@ -357,3 +357,26 @@ export function useUpdateAthleteProfile() {
     },
   })
 }
+
+// ─── useUpdateCoachProfile ─────────────────────────────────────────────────────
+export function useUpdateCoachProfile() {
+  const { user, updateProfile } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (updates: { name?: string }) => {
+      if (!IS_SUPABASE || !user) {
+        if (updates.name) updateProfile({ name: updates.name })
+        await new Promise(r => setTimeout(r, 400))
+        return
+      }
+      if (updates.name && updates.name !== user.name) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ name: updates.name })
+          .eq('id', user.id)
+        if (error) throw new Error(error.message)
+        updateProfile({ name: updates.name })
+      }
+    },
+  })
+}

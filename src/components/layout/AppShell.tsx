@@ -62,21 +62,19 @@ export default function AppShell() {
             </Link>
           )}
 
-          {/* Notification bell — athletes only */}
-          {!isCoach && (
-            <button
-              onClick={() => setShowNotifications(true)}
-              className="relative hover:opacity-80 transition-opacity"
-              aria-label="Open notifications"
-            >
-              <Bell className="h-5 w-5 text-white/90" />
-              {unreadNotifications > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 leading-none">
-                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
-                </span>
-              )}
-            </button>
-          )}
+          {/* Notification bell — all users */}
+          <button
+            onClick={() => setShowNotifications(true)}
+            className="relative hover:opacity-80 transition-opacity"
+            aria-label="Open notifications"
+          >
+            <Bell className="h-5 w-5 text-white/90" />
+            {unreadNotifications > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black rounded-full min-w-[16px] h-4 flex items-center justify-center px-0.5 leading-none">
+                {unreadNotifications > 9 ? '9+' : unreadNotifications}
+              </span>
+            )}
+          </button>
 
           <Link
             to={isCoach ? '/coach/profile' : '/athlete/profile'}
@@ -118,13 +116,11 @@ export default function AppShell() {
         </div>
       </nav>
 
-      {/* Notifications panel (athlete only) */}
-      {!isCoach && (
-        <NotificationsPanel
-          open={showNotifications}
-          onClose={() => setShowNotifications(false)}
-        />
-      )}
+      {/* Notifications panel — all users */}
+      <NotificationsPanel
+        open={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </div>
   )
 }

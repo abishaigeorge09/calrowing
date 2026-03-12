@@ -180,8 +180,8 @@ export default function EarlyAccessPage() {
                   rows={4}
                   placeholder={
                     form.role === 'coach'
-                      ? 'e.g. Track athlete wellness, manage training loads, get early injury signals…'
-                      : 'e.g. Keep my coach updated on how I'm feeling, track my training history…'
+                      ? "e.g. Track athlete wellness, manage training loads, get early injury signals\u2026"
+                      : "e.g. Keep my coach updated on how I'm feeling, track my training history\u2026"
                   }
                   value={form.reason}
                   onChange={set('reason')}

@@ -13,6 +13,8 @@ import type { Session, PostSessionLogData } from '@/types/database'
 import LoginPage from '@/features/auth/LoginPage'
 import RegisterCoachPage from '@/features/auth/RegisterCoachPage'
 import RegisterAthletePage from '@/features/auth/RegisterAthletePage'
+import LandingPage from '@/features/landing/LandingPage'
+import EarlyAccessPage from '@/features/landing/EarlyAccessPage'
 import AppShell from '@/components/layout/AppShell'
 import CoachDashboard from '@/features/coach/CoachDashboard'
 import RosterPage from '@/features/coach/RosterPage'
@@ -288,6 +290,12 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={
+            user
+              ? <Navigate to={user.role === 'coach' ? '/coach' : '/athlete'} replace />
+              : <LandingPage />
+          } />
+          <Route path="/early-access" element={<EarlyAccessPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register/coach" element={<RegisterCoachPage />} />
           <Route path="/register/athlete" element={<RegisterAthletePage />} />
@@ -310,9 +318,6 @@ export default function App() {
             <Route path="injury" element={<InjuryFlagPage />} />
             <Route path="academic" element={<AcademicSchedulePage />} />
           </Route>
-          <Route path="/" element={
-            user ? <Navigate to={user.role === 'coach' ? '/coach' : '/athlete'} replace /> : <Navigate to="/login" replace />
-          } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

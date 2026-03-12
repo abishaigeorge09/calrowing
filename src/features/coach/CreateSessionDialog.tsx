@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth'
 import { useCreateSession } from '@/hooks/mutations'
+import { localDateStr } from '@/lib/utils'
 import type { SessionType, Intensity } from '@/types/database'
 
 interface Props { open: boolean; onClose: () => void }
@@ -16,7 +17,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
   const createSession = useCreateSession()
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({
-    date: new Date().toISOString().split('T')[0],
+    date: localDateStr(),
     type: 'Erg' as SessionType,
     duration: '90',
     intensity: 'Moderate' as Intensity,
@@ -58,7 +59,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
         setSaved(false)
         // Reset form for next use
         setForm({
-          date: new Date().toISOString().split('T')[0],
+          date: localDateStr(),
           type: 'Erg',
           duration: '90',
           intensity: 'Moderate',

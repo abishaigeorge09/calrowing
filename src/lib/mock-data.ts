@@ -1,4 +1,5 @@
 import type { Profile, Team, Athlete, Session, WellnessLog, Message, Alert } from '@/types/database'
+import { localDateStr } from '@/lib/utils'
 
 export const MOCK_TEAM: Team = {
   id: 'team-cal-2026',
@@ -49,7 +50,7 @@ const today = new Date()
 const d = (offset: number) => {
   const dt = new Date(today)
   dt.setDate(dt.getDate() + offset)
-  return dt.toISOString().split('T')[0]
+  return localDateStr(dt)
 }
 
 export const MOCK_SESSIONS: Session[] = [
@@ -141,7 +142,7 @@ athleteIds.forEach((athleteId, aIdx) => {
   for (let dayOffset = -13; dayOffset <= 0; dayOffset++) {
     const dt = new Date(today)
     dt.setDate(dt.getDate() + dayOffset)
-    const dateStr = dt.toISOString().split('T')[0]
+    const dateStr = localDateStr(dt)
 
     // Morning check-in
     const sleepHours = aIdx === 1 && dayOffset === 0 ? 5.5 :  // Jordan's red flag

@@ -13,7 +13,7 @@ import { useTodaySession } from '@/hooks/useSessions'
 import { useWellnessLogs } from '@/hooks/useWellnessLogs'
 import { useAllConversations } from '@/hooks/useMessages'
 import { useTeam } from '@/hooks/useTeam'
-import { sessionTypeColor, intensityColor, cn } from '@/lib/utils'
+import { sessionTypeColor, intensityColor, localDateStr, cn } from '@/lib/utils'
 import type { MorningLogData, PostSessionLogData } from '@/types/database'
 import MorningCheckinForm from './MorningCheckinForm'
 import PostSessionForm from './PostSessionForm'
@@ -30,7 +30,8 @@ export default function TodayScreen() {
   const [postDone, setPostDone] = useState(false)
   const [eveningDone, setEveningDone] = useState(false)
 
-  const today = new Date().toISOString().split('T')[0]
+  // Use LOCAL date (not UTC) so PST users see the correct date in evenings
+  const today = localDateStr()
 
   const { data: team } = useTeam(user?.team_id)
   const coachId = team?.coach_id
@@ -39,16 +40,17 @@ export default function TodayScreen() {
   const { data: myLogs = [] } = useWellnessLogs(user?.id, { days: 30 })
   const { data: allMessages = [] } = useAllConversations(user?.id)
 
-  // Check if athlete has submitted morning check-in today
+  // Check if athlete has submitted morning check-in today.
+  // Convert Supabase UTC timestamps to local dates for comparison.
   const existingMorning = myLogs.find(
-    l => l.log_type === 'morning' && l.created_at.startsWith(today)
+    l => l.log_type === 'morning' && localDateStr(new Date(l.created_at)) === today
   )
   const hasMorningCheckin = morningDone || !!existingMorning
   const morningData = existingMorning?.data as MorningLogData | undefined
 
   // Check if post-session done
   const existingPost = myLogs.find(
-    l => l.log_type === 'post' && l.created_at.startsWith(today)
+    l => l.log_type === 'post' && localDateStr(new Date(l.created_at)) === today
   )
   const hasPostCheckin = postDone || !!existingPost
 
@@ -57,19 +59,19 @@ export default function TodayScreen() {
     m => m.receiver_id === user?.id && !m.read_at
   )
 
-  // Streak: count consecutive days with morning check-in
+  // Streak: count consecutive days with morning check-in (all dates local)
   const morningLogDates = myLogs
     .filter(l => l.log_type === 'morning')
-    .map(l => l.created_at.split('T')[0])
+    .map(l => localDateStr(new Date(l.created_at)))
     .sort((a, b) => b.localeCompare(a))
 
   let streak = hasMorningCheckin ? 1 : 0
   if (morningLogDates.includes(today)) {
     streak = 1
-    const dt = new Date(today)
+    const dt = new Date()
     for (let i = 1; i < 30; i++) {
       dt.setDate(dt.getDate() - 1)
-      const ds = dt.toISOString().split('T')[0]
+      const ds = localDateStr(dt)
       if (morningLogDates.includes(ds)) streak++
       else break
     }

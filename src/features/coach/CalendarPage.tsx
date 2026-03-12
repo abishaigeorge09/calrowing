@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth'
 import { useSessions } from '@/hooks/useSessions'
 import { useTeamWellnessLogs } from '@/hooks/useWellnessLogs'
-import { sessionTypeColor, cn } from '@/lib/utils'
+import { sessionTypeColor, localDateStr, cn } from '@/lib/utils'
 import type { MorningLogData } from '@/types/database'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -52,7 +52,7 @@ export default function CalendarPage() {
     return today.getFullYear() === year && today.getMonth() === month && today.getDate() === day
   }
 
-  const todayStr = today.toISOString().split('T')[0]
+  const todayStr = localDateStr(today)
   const upcomingSessions = sessions
     .filter(s => s.date >= todayStr)
     .sort((a, b) => a.date.localeCompare(b.date))

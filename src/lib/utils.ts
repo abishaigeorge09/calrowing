@@ -38,6 +38,19 @@ export function getInitials(name: string) {
     .slice(0, 2)
 }
 
+/**
+ * Returns today's date (or the given Date) as a YYYY-MM-DD string in the
+ * user's LOCAL timezone, not UTC. Use this everywhere you need "today's date"
+ * so PST users don't see the wrong day in evenings when UTC has rolled over.
+ */
+export function localDateStr(date: Date = new Date()): string {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('-')
+}
+
 export function sessionTypeColor(type: string) {
   const map: Record<string, string> = {
     Erg: 'bg-blue-500',

@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
 import { IS_SUPABASE, supabase } from '@/lib/db'
 import { MOCK_SESSIONS } from '@/lib/mock-data'
+import { localDateStr } from '@/lib/utils'
 import type { Session } from '@/types/database'
 
 export interface SessionsOptions {
@@ -67,9 +68,9 @@ export function useSessions(
   })
 }
 
-/** Convenience hook — returns only today's session */
+/** Convenience hook — returns only today's session (uses local date, not UTC) */
 export function useTodaySession(teamId: string | null | undefined) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = localDateStr()
   const result = useSessions(teamId, { from: today, to: today })
   return {
     ...result,

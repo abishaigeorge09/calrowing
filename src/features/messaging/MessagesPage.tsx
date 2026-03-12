@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Send, AlertTriangle, Search } from 'lucide-react'
+import { Send, AlertTriangle, Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuthStore } from '@/stores/auth'
@@ -19,7 +19,6 @@ export default function MessagesPage() {
   const { data: athletes = [], isLoading: isLoadingAthletes } = useTeamAthletes(user?.team_id)
   const { data: coachProfile, isLoading: isLoadingCoach } = useTeamCoach(!isCoach ? user?.team_id : null)
 
-  // Coach sees athletes as partners; athlete sees their coach
   const partners = isCoach ? athletes : (coachProfile ? [coachProfile] : [])
   const isLoadingPartners = isCoach ? isLoadingAthletes : isLoadingCoach
 
@@ -27,14 +26,9 @@ export default function MessagesPage() {
     defaultTo ?? (isCoach ? (athletes[0]?.id ?? '') : (coachProfile?.id ?? ''))
   )
 
-  // Update selectedId when data loads
   useEffect(() => {
-    if (isCoach && !selectedId && athletes.length > 0) {
-      setSelectedId(athletes[0].id)
-    }
-    if (!isCoach && !selectedId && coachProfile) {
-      setSelectedId(coachProfile.id)
-    }
+    if (isCoach && !selectedId && athletes.length > 0) setSelectedId(athletes[0].id)
+    if (!isCoach && !selectedId && coachProfile) setSelectedId(coachProfile.id)
   }, [isCoach, athletes, coachProfile, selectedId])
 
   const { data: conversation = [] } = useMessages(user?.id, selectedId || null)
@@ -43,24 +37,25 @@ export default function MessagesPage() {
   const [text, setText] = useState('')
   const [isUrgent, setIsUrgent] = useState(false)
   const [search, setSearch] = useState('')
+  const [showSearch, setShowSearch] = useState(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [conversation])
 
+  useEffect(() => {
+    if (showSearch) searchRef.current?.focus()
+  }, [showSearch])
+
   const handleSend = async () => {
     if (!text.trim() || !selectedId) return
-    await sendMessage.mutateAsync({
-      receiverId: selectedId,
-      content: text.trim(),
-      isUrgent,
-    })
+    await sendMessage.mutateAsync({ receiverId: selectedId, content: text.trim(), isUrgent })
     setText('')
     setIsUrgent(false)
   }
 
-  // Filter partners by search query
   const filteredPartners = search.trim()
     ? partners.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
     : partners
@@ -69,38 +64,56 @@ export default function MessagesPage() {
 
   return (
     <div className="flex h-[calc(100dvh-130px)] max-w-2xl mx-auto">
-      {/* Sidebar: conversation list */}
+      {/* Sidebar */}
       <div className="w-20 sm:w-56 bg-white border-r border-slate-100 flex flex-col">
-        <div className="p-3 border-b border-slate-100">
+
+        {/* Header row */}
+        <div className="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between min-h-[42px]">
           <p className="font-bold text-slate-900 text-sm hidden sm:block">Messages</p>
+
+          {/* Search toggle — coaches only */}
+          {isCoach && partners.length > 0 && (
+            showSearch ? (
+              /* Expanded search input */
+              <div className="flex items-center gap-1 w-full sm:w-auto">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                  <input
+                    ref={searchRef}
+                    type="search"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search…"
+                    className="w-full pl-6 pr-2 py-1 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#1e3a5f]"
+                  />
+                </div>
+                <button
+                  onClick={() => { setSearch(''); setShowSearch(false) }}
+                  className="text-slate-400 hover:text-slate-600 flex-shrink-0"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              /* Collapsed — just icon */
+              <button
+                onClick={() => setShowSearch(true)}
+                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors ml-auto sm:ml-0"
+              >
+                <Search className="h-4 w-4" />
+              </button>
+            )
+          )}
         </div>
 
-        {/* Search bar — visible only on sm+ screens */}
-        {isCoach && partners.length > 1 && (
-          <div className="px-2 py-2 border-b border-slate-100 hidden sm:block">
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
-              <input
-                type="search"
-                placeholder="Search athletes…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="w-full pl-7 pr-2 py-1.5 text-xs rounded-lg border border-slate-200 bg-slate-50 focus:outline-none focus:border-[#1e3a5f] focus:bg-white transition-colors"
-              />
-            </div>
-          </div>
-        )}
-
+        {/* Partner list */}
         <div className="flex-1 overflow-y-auto">
-          {/* Loading state */}
           {isLoadingPartners && (
             <p className="text-xs text-slate-400 p-3 text-center">Loading…</p>
           )}
-          {/* Empty state (not loading) */}
           {!isLoadingPartners && partners.length === 0 && (
             <p className="text-xs text-slate-400 p-3 text-center">No conversations</p>
           )}
-          {/* No search results */}
           {!isLoadingPartners && partners.length > 0 && filteredPartners.length === 0 && (
             <p className="text-xs text-slate-400 p-3 text-center">No match</p>
           )}

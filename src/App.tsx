@@ -1,11 +1,15 @@
 import React, { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Trash2, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { IS_SUPABASE, supabase } from '@/lib/db'
 import { MOCK_SESSIONS } from '@/lib/mock-data'
-import type { Session } from '@/types/database'
+import { useTeamAthletes } from '@/hooks/useTeamAthletes'
+import { useTeamWellnessLogs } from '@/hooks/useWellnessLogs'
+import { useDeleteSession } from '@/hooks/mutations'
+import { localDateStr } from '@/lib/utils'
+import type { Session, PostSessionLogData } from '@/types/database'
 import LoginPage from '@/features/auth/LoginPage'
 import RegisterCoachPage from '@/features/auth/RegisterCoachPage'
 import RegisterAthletePage from '@/features/auth/RegisterAthletePage'
@@ -77,55 +81,93 @@ function ForgotPasswordPage() {
 function SessionDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const deleteSession = useDeleteSession()
 
-  // Fetch from Supabase in production; fall back to mock in demo mode
   const { data: session, isLoading } = useQuery({
     queryKey: ['session', id],
     queryFn: async (): Promise<Session | null> => {
-      if (!IS_SUPABASE) {
-        return (MOCK_SESSIONS.find(s => s.id === id) ?? null) as Session | null
-      }
-      const { data, error } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('id', id!)
-        .single()
+      if (!IS_SUPABASE) return (MOCK_SESSIONS.find(s => s.id === id) ?? null) as Session | null
+      const { data, error } = await supabase.from('sessions').select('*').eq('id', id!).single()
       if (error) return null
       return data as Session
     },
     enabled: !!id,
   })
 
-  if (isLoading) {
-    return (
-      <div className="px-4 py-5 max-w-lg mx-auto">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
-          <ChevronLeft className="h-5 w-5" /> Back
-        </button>
-        <div className="text-center text-slate-400 py-12">Loading session…</div>
-      </div>
-    )
+  // Athlete completion data (coach only)
+  const { data: athletes = [] } = useTeamAthletes(user?.team_id)
+  const { data: teamLogs = [] } = useTeamWellnessLogs(user?.team_id, { days: 60 })
+
+  const handleDelete = async () => {
+    if (!id) return
+    await deleteSession.mutateAsync(id)
+    navigate(-1)
   }
 
-  if (!session) {
-    return (
-      <div className="px-4 py-5 max-w-lg mx-auto">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
-          <ChevronLeft className="h-5 w-5" /> Back
-        </button>
-        <div className="text-center text-slate-500 py-12">Session not found</div>
-      </div>
-    )
-  }
+  if (isLoading) return (
+    <div className="px-4 py-5 max-w-2xl mx-auto">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 mb-4"><ChevronLeft className="h-5 w-5" /> Back</button>
+      <div className="text-center text-slate-400 py-12">Loading session…</div>
+    </div>
+  )
+
+  if (!session) return (
+    <div className="px-4 py-5 max-w-2xl mx-auto">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 mb-4"><ChevronLeft className="h-5 w-5" /> Back</button>
+      <div className="text-center text-slate-500 py-12">Session not found</div>
+    </div>
+  )
+
+  // Parse session date at local noon to avoid UTC-shift for date-only strings
+  const sessionDateLabel = new Date(session.date + 'T12:00:00').toLocaleDateString('en-US', {
+    weekday: 'long', month: 'short', day: 'numeric',
+  })
+
+  // Athlete post-session completion for this session's date
+  const postLogsForDate = teamLogs.filter(
+    l => l.log_type === 'post' && localDateStr(new Date(l.created_at)) === session.date
+  )
+  const isPast = session.date <= localDateStr()
 
   return (
-    <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
-      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-slate-900">
-        <ChevronLeft className="h-5 w-5" /> Back
-      </button>
-      <h1 className="text-xl font-bold">
-        {session.type} — {new Date(session.date).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-      </h1>
+    <div className="px-4 py-5 max-w-2xl mx-auto space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-slate-100">
+          <ChevronLeft className="h-5 w-5 text-slate-600" />
+        </button>
+        <div className="flex-1">
+          <h1 className="text-xl font-bold text-slate-900">{session.type} Session</h1>
+          <p className="text-sm text-slate-500">{sessionDateLabel}</p>
+        </div>
+        {/* Delete */}
+        {!confirmDelete ? (
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="p-2 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+            title="Cancel session"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        ) : (
+          <div className="flex items-center gap-2">
+            <button onClick={() => setConfirmDelete(false)} className="text-xs text-slate-500 px-2 py-1 rounded-lg hover:bg-slate-100">
+              Keep
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={deleteSession.isPending}
+              className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-600 disabled:opacity-60"
+            >
+              {deleteSession.isPending ? 'Deleting…' : 'Delete'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Session details */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 space-y-4">
         <div className="grid grid-cols-2 gap-3">
           {([
@@ -133,23 +175,94 @@ function SessionDetailPage() {
             ['Intensity', session.intensity],
             ['Target Split', session.target_split ?? '—'],
             ['Stroke Rate', session.stroke_rate ? `r${session.stroke_rate}` : '—'],
+            ['HR Zone', session.hr_zone ?? '—'],
+            ['Assigned To', session.assigned_to === 'whole_team' ? 'Whole Team' : session.assigned_to],
           ] as [string, string][]).map(([k, v]) => (
             <div key={k} className="bg-slate-50 rounded-xl p-3">
               <p className="text-xs text-slate-500">{k}</p>
-              <p className="font-bold text-slate-900">{v}</p>
+              <p className="font-bold text-slate-900 text-sm">{v}</p>
             </div>
           ))}
         </div>
-        {session.warmup && <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Warmup</p><p className="text-sm">{session.warmup}</p></div>}
-        <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Main Set</p><p className="text-sm font-medium">{session.main_set}</p></div>
-        {session.cooldown && <div><p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Cooldown</p><p className="text-sm">{session.cooldown}</p></div>}
-        {session.is_notes_public && session.coach_notes && (
-          <div className="bg-[#1e3a5f]/5 rounded-xl p-3">
-            <p className="text-xs font-semibold text-[#1e3a5f] mb-1">Coach Note</p>
-            <p className="text-sm italic">"{session.coach_notes}"</p>
+        {session.warmup && (
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Warmup</p>
+            <p className="text-sm text-slate-700">{session.warmup}</p>
+          </div>
+        )}
+        <div>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Main Set</p>
+          <p className="text-sm font-medium text-slate-900">{session.main_set}</p>
+        </div>
+        {session.cooldown && (
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Cooldown</p>
+            <p className="text-sm text-slate-700">{session.cooldown}</p>
+          </div>
+        )}
+        {session.coach_notes && (
+          <div className={session.is_notes_public ? 'bg-[#1e3a5f]/5 rounded-xl p-3' : 'bg-amber-50 rounded-xl p-3 border border-amber-200'}>
+            <p className="text-xs font-semibold text-[#1e3a5f] mb-1">
+              Coach Note {!session.is_notes_public && <span className="text-amber-600">(private)</span>}
+            </p>
+            <p className="text-sm italic text-slate-700">"{session.coach_notes}"</p>
           </div>
         )}
       </div>
+
+      {/* Athlete Completion Panel (only for past/today sessions) */}
+      {isPast && athletes.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+          <div className="flex items-center justify-between mb-3">
+            <p className="font-semibold text-slate-900 text-sm">Athlete Completion</p>
+            <span className="text-xs text-slate-500">
+              {postLogsForDate.length}/{athletes.length} submitted
+            </span>
+          </div>
+          <div className="space-y-2">
+            {athletes.map(athlete => {
+              const log = postLogsForDate.find(l => l.athlete_id === athlete.id)
+              const post = log?.data as PostSessionLogData | undefined
+              return (
+                <div
+                  key={athlete.id}
+                  className="flex items-center gap-3 py-2 border-b border-slate-50 last:border-0 cursor-pointer hover:bg-slate-50 rounded-lg px-1 -mx-1"
+                  onClick={() => navigate(`/coach/athlete/${athlete.id}`)}
+                >
+                  {/* Status icon */}
+                  {log ? (
+                    post?.completion === 'full'
+                      ? <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      : post?.completion === 'partial'
+                      ? <AlertTriangle className="h-4 w-4 text-orange-400 flex-shrink-0" />
+                      : <XCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
+                  ) : (
+                    <Clock className="h-4 w-4 text-slate-300 flex-shrink-0" />
+                  )}
+
+                  {/* Name */}
+                  <p className="flex-1 text-sm font-medium text-slate-900 truncate">{athlete.name}</p>
+
+                  {/* Stats if submitted */}
+                  {post && (
+                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                      <span className="bg-slate-100 rounded-md px-1.5 py-0.5 font-semibold">RPE {post.rpe}</span>
+                      {post.has_pain && <span className="text-red-500 font-semibold">⚠ Pain</span>}
+                      <span className={
+                        post.ready_tomorrow === 'yes' ? 'text-green-600' :
+                        post.ready_tomorrow === 'maybe' ? 'text-orange-500' : 'text-red-500'
+                      }>
+                        {post.ready_tomorrow === 'yes' ? '✓ Ready' : post.ready_tomorrow === 'maybe' ? '~ Maybe' : '✗ Not ready'}
+                      </span>
+                    </div>
+                  )}
+                  {!log && <span className="text-xs text-slate-300">Not submitted</span>}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -13,7 +13,7 @@ import { useTeamAthletes } from '@/hooks/useTeamAthletes'
 import { useSessions } from '@/hooks/useSessions'
 import { useTeamWellnessLogs } from '@/hooks/useWellnessLogs'
 import { useAlerts } from '@/hooks/useAlerts'
-import { formatDate, sessionTypeColor, intensityColor, cn } from '@/lib/utils'
+import { formatDate, localDateStr, sessionTypeColor, intensityColor, cn } from '@/lib/utils'
 import type { MorningLogData } from '@/types/database'
 import CreateSessionDialog from './CreateSessionDialog'
 
@@ -23,7 +23,7 @@ export default function CoachDashboard() {
   const [showCreate, setShowCreate] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const today = new Date().toISOString().split('T')[0]
+  const today = localDateStr()
 
   const { data: team } = useTeam(user?.team_id)
   const { data: athletes = [] } = useTeamAthletes(user?.team_id)
@@ -33,9 +33,9 @@ export default function CoachDashboard() {
 
   const todaySession = sessions.find(s => s.date === today) ?? null
 
-  // Today's morning check-ins
+  // Today's morning check-ins (compare using local dates, not UTC string prefix)
   const todayLogs = teamLogs.filter(
-    l => l.log_type === 'morning' && l.created_at.startsWith(today)
+    l => l.log_type === 'morning' && localDateStr(new Date(l.created_at)) === today
   )
   const checkedInCount = todayLogs.length
   const totalAthletes = athletes.length

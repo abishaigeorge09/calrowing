@@ -358,6 +358,29 @@ export function useUpdateAthleteProfile() {
   })
 }
 
+// ─── useDeleteSession ──────────────────────────────────────────────────────────
+export function useDeleteSession() {
+  const queryClient = useQueryClient()
+  const { user } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      if (!IS_SUPABASE || !user) {
+        await new Promise(r => setTimeout(r, 400))
+        return
+      }
+      const { error } = await supabase
+        .from('sessions')
+        .delete()
+        .eq('id', sessionId)
+      if (error) throw new Error(error.message)
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sessions'] })
+    },
+  })
+}
+
 // ─── useUpdateCoachProfile ─────────────────────────────────────────────────────
 export function useUpdateCoachProfile() {
   const { user, updateProfile } = useAuthStore()

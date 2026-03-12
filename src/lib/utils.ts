@@ -6,7 +6,13 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(date: string | Date) {
-  return new Date(date).toLocaleDateString('en-US', {
+  // Date-only strings like "2026-03-11" are treated as UTC midnight by JS,
+  // which shifts the displayed date by one day for negative-offset timezones (PST, EST).
+  // Fix by parsing them at local noon instead.
+  const d = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
+    ? new Date(date + 'T12:00:00')
+    : new Date(date)
+  return d.toLocaleDateString('en-US', {
     weekday: 'short', month: 'short', day: 'numeric',
   })
 }

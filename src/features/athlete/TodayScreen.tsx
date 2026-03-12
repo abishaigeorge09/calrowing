@@ -3,18 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import { useRegisterPush } from '@/hooks/useRegisterPush'
 import {
   Flame, Moon, Zap, Brain, Activity, MessageSquare,
-  CheckCircle2, ChevronRight, AlertTriangle, BookOpen,
+  CheckCircle2, ChevronRight, AlertTriangle, BookOpen, Hexagon
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth'
 import { useTodaySession } from '@/hooks/useSessions'
 import { useWellnessLogs } from '@/hooks/useWellnessLogs'
 import { useAllConversations } from '@/hooks/useMessages'
 import { useTeam } from '@/hooks/useTeam'
 import { sessionTypeColor, intensityColor, localDateStr, cn } from '@/lib/utils'
-import type { MorningLogData, PostSessionLogData } from '@/types/database'
+import type { MorningLogData } from '@/types/database'
 import MorningCheckinForm from './MorningCheckinForm'
 import PostSessionForm from './PostSessionForm'
 import EveningCheckinForm from './EveningCheckinForm'
@@ -22,7 +19,7 @@ import EveningCheckinForm from './EveningCheckinForm'
 export default function TodayScreen() {
   const { user } = useAuthStore()
   const navigate = useNavigate()
-  useRegisterPush() // Register for Web Push notifications silently on first load
+  useRegisterPush()
   const [showMorning, setShowMorning] = useState(false)
   const [showPost, setShowPost] = useState(false)
   const [showEvening, setShowEvening] = useState(false)
@@ -30,7 +27,6 @@ export default function TodayScreen() {
   const [postDone, setPostDone] = useState(false)
   const [eveningDone, setEveningDone] = useState(false)
 
-  // Use LOCAL date (not UTC) so PST users see the correct date in evenings
   const today = localDateStr()
 
   const { data: team } = useTeam(user?.team_id)
@@ -40,26 +36,21 @@ export default function TodayScreen() {
   const { data: myLogs = [] } = useWellnessLogs(user?.id, { days: 30 })
   const { data: allMessages = [] } = useAllConversations(user?.id)
 
-  // Check if athlete has submitted morning check-in today.
-  // Convert Supabase UTC timestamps to local dates for comparison.
   const existingMorning = myLogs.find(
     l => l.log_type === 'morning' && localDateStr(new Date(l.created_at)) === today
   )
   const hasMorningCheckin = morningDone || !!existingMorning
   const morningData = existingMorning?.data as MorningLogData | undefined
 
-  // Check if post-session done
   const existingPost = myLogs.find(
     l => l.log_type === 'post' && localDateStr(new Date(l.created_at)) === today
   )
   const hasPostCheckin = postDone || !!existingPost
 
-  // Unread messages
   const unreadMessages = allMessages.filter(
     m => m.receiver_id === user?.id && !m.read_at
   )
 
-  // Streak: count consecutive days with morning check-in (all dates local)
   const morningLogDates = myLogs
     .filter(l => l.log_type === 'morning')
     .map(l => localDateStr(new Date(l.created_at)))
@@ -81,23 +72,23 @@ export default function TodayScreen() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="px-4 py-5 space-y-5 max-w-lg mx-auto">
+    <div className="px-4 py-8 space-y-6 max-w-2xl mx-auto font-sans text-white">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
-            {greeting}, {user?.name?.split(' ')[0]} 👋
+           <h1 className="text-2xl font-black tracking-tight flex items-center gap-2 text-white">
+            <Hexagon className="h-5 w-5 text-gray-400" /> {greeting}, {user?.name?.split(' ')[0]}
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
             {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
         </div>
         {streak > 0 && (
-          <div className="flex items-center gap-1.5 bg-orange-50 border border-orange-200 rounded-2xl px-3 py-2">
-            <Flame className="h-5 w-5 text-orange-500" />
+          <div className="flex items-center gap-2 bg-orange-950/40 border border-orange-500/50 rounded-2xl px-4 py-2 shadow-[0_0_15px_rgba(251,146,60,0.2)]">
+            <Flame className="h-6 w-6 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]" />
             <div>
-              <p className="text-lg font-black text-orange-600 leading-none">{streak}</p>
-              <p className="text-xs text-orange-500">day streak</p>
+              <p className="text-2xl font-black text-white tracking-widest leading-none drop-shadow-[0_0_5px_currentColor]">{streak}</p>
+              <p className="text-[9px] uppercase font-bold tracking-widest text-orange-300">Sync Streak</p>
             </div>
           </div>
         )}
@@ -106,45 +97,46 @@ export default function TodayScreen() {
       {/* Morning Check-in prompt */}
       {!hasMorningCheckin && (
         <div
-          className="bg-gradient-to-r from-[#1e3a5f] to-[#2d5a8e] rounded-2xl p-5 cursor-pointer hover:shadow-lg transition-shadow"
+          className="bg-white/5 backdrop-blur-2xl border border-white/20 hover:bg-white/10 rounded-3xl p-6 cursor-pointer hover:shadow-[0_0_30px_rgba(255,255,255,0.1)] transition-all group relative overflow-hidden"
           onClick={() => setShowMorning(true)}
         >
-          <div className="flex items-center justify-between">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[20px] rounded-full pointer-events-none group-hover:bg-white/10 transition-colors" />
+          <div className="flex items-center justify-between relative z-10">
             <div>
-              <p className="text-white font-bold text-base mb-1">Morning Check-in</p>
-              <p className="text-blue-200 text-sm">How are you feeling today? ~90 sec</p>
+              <p className="text-lg font-black text-white uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Boot Sequence</p>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Diagnostic Run ~90s</p>
             </div>
-            <div className="bg-white/20 rounded-full p-3">
+            <div className="bg-white/10 rounded-full p-4 border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-shadow">
               <Activity className="h-6 w-6 text-white" />
             </div>
           </div>
-          <div className="mt-4">
-            <Button variant="accent" size="sm" className="bg-white text-[#1e3a5f] hover:bg-white/90">
-              Start Check-in →
-            </Button>
+          <div className="mt-6 relative z-10">
+            <button className="bg-white text-black text-xs font-bold uppercase tracking-widest px-6 py-2.5 rounded-xl hover:bg-gray-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)] w-w-auto">
+              Initialize Sync
+            </button>
           </div>
         </div>
       )}
 
       {/* Morning summary if done */}
       {hasMorningCheckin && morningData && (
-        <div className="bg-green-50 border border-green-200 rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="h-5 w-5 text-green-600" />
-            <p className="font-semibold text-green-800">Morning check-in complete</p>
+        <div className="bg-green-950/20 border border-green-500/30 rounded-3xl p-5 shadow-inner backdrop-blur-xl">
+          <div className="flex items-center gap-3 mb-4 border-b border-green-500/20 pb-3">
+            <CheckCircle2 className="h-5 w-5 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
+            <p className="font-black text-green-400 uppercase tracking-widest text-sm drop-shadow-[0_0_5px_rgba(74,222,128,0.2)]">Boot Sequence Complete</p>
           </div>
-          <div className="flex gap-4">
-            <div className="flex items-center gap-1.5">
-              <Moon className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-semibold">{Number(morningData.sleep_hours).toFixed(1)}h sleep</span>
+          <div className="flex gap-6 justify-center">
+            <div className="flex items-center gap-2">
+              <Moon className="h-4 w-4 text-blue-400" />
+              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">{Number(morningData.sleep_hours).toFixed(1)}H Pwr</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              <span className="text-sm font-semibold">Energy {morningData.energy}/5</span>
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-yellow-400" />
+              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">Lvl {morningData.energy}/5</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Brain className="h-4 w-4 text-purple-500" />
-              <span className="text-sm font-semibold">Stress {morningData.stress}/5</span>
+            <div className="flex items-center gap-2">
+              <Brain className="h-4 w-4 text-purple-400" />
+              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">Str {morningData.stress}/5</span>
             </div>
           </div>
         </div>
@@ -152,154 +144,164 @@ export default function TodayScreen() {
 
       {/* Today's Session */}
       {todaySession ? (
-        <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Today's Session</CardTitle>
-              <div className="flex gap-2">
-                <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-bold text-white', sessionTypeColor(todaySession.type))}>
-                  {todaySession.type}
-                </span>
-                <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-semibold', intensityColor(todaySession.intensity))}>
-                  {todaySession.intensity}
-                </span>
-              </div>
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
+            <h2 className="text-sm font-black text-white uppercase tracking-widest drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Active Protocol</h2>
+            <div className="flex gap-2">
+              <span className={cn('px-2.5 py-0.5 rounded-sm text-[10px] font-black uppercase tracking-widest text-white shadow-[0_0_10px_currentColor]', sessionTypeColor(todaySession.type).replace('bg-','text-').replace('shadow-','drop-shadow-'))}>
+                {todaySession.type}
+              </span>
+              <span className={cn('px-2.5 py-0.5 rounded-sm text-[10px] uppercase tracking-widest font-black', intensityColor(todaySession.intensity).replace('bg-','text-').replace('text-gray-800','text-yellow-400'))}>
+                {todaySession.intensity}
+              </span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-xs text-slate-500">Duration</p>
-                <p className="font-bold text-slate-900">{todaySession.duration}min</p>
+          </div>
+          
+          <div className="space-y-5">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Time</p>
+                <p className="font-black text-xl text-white">{todaySession.duration}m</p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-xs text-slate-500">Split</p>
-                <p className="font-bold text-slate-900">{todaySession.target_split ?? '—'}</p>
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Split</p>
+                <p className="font-black text-xl text-white">{todaySession.target_split ?? '—'}</p>
               </div>
-              <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-xs text-slate-500">Rate</p>
-                <p className="font-bold text-slate-900">{todaySession.stroke_rate ? `r${todaySession.stroke_rate}` : '—'}</p>
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Rate</p>
+                <p className="font-black text-xl text-white">{todaySession.stroke_rate ? `r${todaySession.stroke_rate}` : '—'}</p>
               </div>
             </div>
 
             {todaySession.warmup && (
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Warmup</p>
-                <p className="text-sm text-slate-700">{todaySession.warmup}</p>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-inner">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><Flame className="w-3.5 h-3.5 text-orange-400"/> Startup Seq</p>
+                <p className="text-sm text-gray-300 leading-relaxed font-light">{todaySession.warmup}</p>
               </div>
             )}
-            <div>
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Main Set</p>
-              <p className="text-sm text-slate-900 font-medium">{todaySession.main_set}</p>
+            
+            <div className="bg-black/60 border border-white/20 rounded-2xl p-5 shadow-[0_0_20px_rgba(0,0,0,0.8)_inset] relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[30px] rounded-full pointer-events-none" />
+              <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2 relative z-10 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] flex items-center gap-2"><Activity className="w-4 h-4"/> Main Execution Loop</p>
+              <p className="text-lg text-white font-medium leading-relaxed relative z-10">{todaySession.main_set}</p>
             </div>
+            
             {todaySession.cooldown && (
-              <div>
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Cooldown</p>
-                <p className="text-sm text-slate-700">{todaySession.cooldown}</p>
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-inner">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><Moon className="w-3.5 h-3.5 text-blue-400"/> Shutdown Seq</p>
+                <p className="text-sm text-gray-300 leading-relaxed font-light">{todaySession.cooldown}</p>
               </div>
             )}
+            
             {todaySession.is_notes_public && todaySession.coach_notes && (
-              <div className="bg-[#1e3a5f]/5 rounded-xl p-3">
-                <p className="text-xs font-semibold text-[#1e3a5f] mb-1">Coach's Note</p>
-                <p className="text-sm text-slate-700 italic">"{todaySession.coach_notes}"</p>
+              <div className="bg-blue-950/30 border border-blue-500/30 rounded-2xl p-4 shadow-inner">
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5"/> Director Note</p>
+                <p className="text-sm text-blue-200 italic font-light">"{todaySession.coach_notes}"</p>
               </div>
             )}
 
             {/* Post-session check-in */}
-            {!hasPostCheckin ? (
-              <Button className="w-full" variant="outline" onClick={() => setShowPost(true)}>
-                Log Post-Session Check-in
-              </Button>
-            ) : (
-              <div className="flex items-center gap-2 text-green-700 text-sm font-medium">
-                <CheckCircle2 className="h-4 w-4" />
-                Post-session check-in logged
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            <div className="pt-2">
+              {!hasPostCheckin ? (
+                <button 
+                  className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white uppercase tracking-widest text-xs font-bold py-3.5 rounded-xl transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                  onClick={() => setShowPost(true)}
+                >
+                  Log Telemetry (Post-Session)
+                </button>
+              ) : (
+                <div className="flex justify-center items-center gap-2 text-green-400 text-xs uppercase font-black tracking-widest bg-green-950/20 border border-green-500/30 py-3 rounded-xl shadow-[0_0_10px_rgba(74,222,128,0.1)]">
+                  <CheckCircle2 className="h-4 w-4 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]" />
+                  Telemetry Logged
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       ) : (
-        <Card>
-          <CardContent className="py-6 text-center">
-            <p className="text-slate-500">No session scheduled for today</p>
-            <p className="text-sm text-slate-400 mt-1">Check the calendar for upcoming sessions</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Academic Load */}
-      {morningData?.exam_this_week && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 flex items-start gap-3">
-          <BookOpen className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-yellow-800 text-sm">Exam week</p>
-            <p className="text-yellow-700 text-sm">Your coach has been notified about your academic load.</p>
-          </div>
+        <div className="text-center py-12 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+          <Hexagon className="h-10 w-10 text-white/20 mx-auto mb-4" />
+          <p className="text-white text-lg font-black uppercase tracking-widest drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">No Active Protocol</p>
+          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mt-2">Check schedule for future cycles</p>
         </div>
       )}
 
-      {/* Messages from Coach */}
-      {unreadMessages.length > 0 && (
-        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => navigate('/athlete/messages')}>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="bg-[#1e3a5f]/10 rounded-full p-2">
-                <MessageSquare className="h-5 w-5 text-[#1e3a5f]" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Messages from Coach */}
+        {unreadMessages.length > 0 && (
+          <div 
+            className="bg-blue-950/40 border border-blue-500/40 rounded-3xl p-5 cursor-pointer hover:bg-blue-900/40 transition-colors shadow-inner flex items-center justify-between group"
+            onClick={() => navigate('/athlete/messages')}
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-blue-500/20 border border-blue-500/40 rounded-full p-3 shadow-[0_0_10px_rgba(59,130,246,0.3)] group-hover:shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-shadow">
+                <MessageSquare className="h-5 w-5 text-blue-400" />
               </div>
-              <div className="flex-1">
-                <p className="font-semibold text-slate-900 text-sm">
-                  {unreadMessages.length} unread message{unreadMessages.length > 1 ? 's' : ''} from coach
+              <div>
+                <p className="font-black text-white text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+                  {unreadMessages.length} Comms Detected
                 </p>
-                <p className="text-xs text-slate-500 line-clamp-1">{unreadMessages[0]?.content}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest line-clamp-1">{unreadMessages[0]?.content}</p>
               </div>
-              <ChevronRight className="h-4 w-4 text-slate-300" />
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <ChevronRight className="h-5 w-5 text-gray-500 group-hover:text-white transition-colors" />
+          </div>
+        )}
 
-      {/* Evening log prompt */}
-      {!eveningDone && hasMorningCheckin && (
-        <div
-          className="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-2xl p-5 cursor-pointer hover:shadow-lg transition-shadow"
-          onClick={() => setShowEvening(true)}
-        >
-          <div className="flex items-center justify-between">
+        {/* Academic Load */}
+        {morningData?.exam_this_week && (
+          <div className="bg-yellow-950/30 border border-yellow-500/40 rounded-3xl p-5 shadow-inner flex items-start gap-4">
+            <BookOpen className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />
             <div>
-              <p className="text-white font-bold text-base mb-1">Evening Log</p>
-              <p className="text-indigo-200 text-sm">Nutrition · Hydration · Sleep plan ~60 sec</p>
-            </div>
-            <div className="bg-white/20 rounded-full p-3">
-              <Moon className="h-6 w-6 text-white" />
+              <p className="font-black text-yellow-500 text-sm uppercase tracking-widest mb-1">Evaluation Cycle Active</p>
+              <p className="text-[10px] text-yellow-200/70 font-bold uppercase tracking-widest leading-relaxed">Director notified of academic load.</p>
             </div>
           </div>
-          <div className="mt-4">
-            <Button variant="accent" size="sm" className="bg-white text-indigo-700 hover:bg-white/90">
-              Log Evening →
-            </Button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Evening log prompt */}
+        {!eveningDone && hasMorningCheckin && (
+          <div
+            className="bg-white/5 backdrop-blur-2xl border border-white/20 hover:bg-white/10 rounded-3xl p-5 cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all group flex items-center justify-between"
+            onClick={() => setShowEvening(true)}
+          >
+            <div>
+              <p className="text-white font-black text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Shutdown Sequence</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Regen Log ~60s</p>
+            </div>
+            <div className="bg-white/10 rounded-full p-3 border border-white/20 group-hover:border-white/40 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.05)] text-white group-hover:text-black group-hover:bg-white">
+              <Moon className="h-5 w-5 transition-colors" />
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {eveningDone && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-indigo-600" />
-          <p className="font-semibold text-indigo-800 text-sm">Evening log complete</p>
-        </div>
-      )}
+        {eveningDone && (
+          <div className="bg-indigo-950/30 border border-indigo-500/40 rounded-3xl p-5 flex items-center justify-between shadow-inner">
+             <div>
+              <p className="text-indigo-300 font-black text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(165,180,252,0.3)]">Shutdown Complete</p>
+              <p className="text-[10px] text-indigo-400/60 font-bold uppercase tracking-widest">Regen Active</p>
+            </div>
+            <CheckCircle2 className="h-6 w-6 text-indigo-400 drop-shadow-[0_0_5px_rgba(129,140,248,0.5)]" />
+          </div>
+        )}
 
-      {/* Injury flag shortcut */}
-      <button
-        className="w-full flex items-center gap-3 bg-red-50 border border-red-200 rounded-2xl p-4 text-left hover:bg-red-100 transition-colors"
-        onClick={() => navigate('/athlete/injury')}
-      >
-        <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0" />
-        <div>
-          <p className="font-semibold text-red-800 text-sm">Flag an Injury or Pain</p>
-          <p className="text-red-600 text-xs">Alert your coach immediately</p>
-        </div>
-        <ChevronRight className="h-4 w-4 text-red-300 ml-auto" />
-      </button>
+        {/* Injury flag shortcut */}
+        <button
+          className="w-full flex items-center gap-4 bg-red-950/30 border border-red-500/40 rounded-3xl p-5 text-left hover:bg-red-900/40 transition-all group shadow-inner"
+          onClick={() => navigate('/athlete/injury')}
+        >
+          <div className="bg-red-500/20 rounded-full p-2 border border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.3)] group-hover:shadow-[0_0_15px_rgba(239,68,68,0.5)] group-hover:bg-red-500/30 transition-all">
+            <AlertTriangle className="h-5 w-5 text-red-400" />
+          </div>
+          <div className="flex-1">
+            <p className="font-black text-red-500 text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(239,68,68,0.3)]">Hardware Damage</p>
+            <p className="text-[10px] text-red-300/70 font-bold uppercase tracking-widest">Alert Director Immediately</p>
+          </div>
+          <ChevronRight className="h-5 w-5 text-red-900 group-hover:text-red-400 transition-colors" />
+        </button>
+      </div>
 
       {/* Forms */}
       {showMorning && (

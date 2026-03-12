@@ -46,9 +46,10 @@ interface TapRatingProps {
   onChange: (val: number) => void
   labels?: string[]
   className?: string
+  colorClass?: string
 }
 
-export function TapRating({ min = 1, max = 5, value, onChange, labels, className }: TapRatingProps) {
+export function TapRating({ min = 1, max = 5, value, onChange, labels, className, colorClass }: TapRatingProps) {
   const count = max - min + 1
   return (
     <div className={cn('flex gap-2', className)}>
@@ -60,7 +61,7 @@ export function TapRating({ min = 1, max = 5, value, onChange, labels, className
           className={cn(
             'flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all',
             value === n
-              ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
+              ? colorClass || 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
               : 'bg-white text-slate-600 border-slate-200 hover:border-[#1e3a5f]'
           )}
         >

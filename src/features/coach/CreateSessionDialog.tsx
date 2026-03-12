@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import { Check } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Check, Hexagon, X } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth'
 import { useCreateSession } from '@/hooks/mutations'
-import { localDateStr } from '@/lib/utils'
+import { localDateStr, cn } from '@/lib/utils'
 import type { SessionType, Intensity } from '@/types/database'
 
 interface Props { open: boolean; onClose: () => void }
@@ -57,7 +57,6 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
       setSaved(true)
       setTimeout(() => {
         setSaved(false)
-        // Reset form for next use
         setForm({
           date: localDateStr(),
           type: 'Erg',
@@ -80,136 +79,145 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
     }
   }
 
+  const darkInputClasses = "bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-11"
+  const darkLabelClasses = "text-[10px] uppercase tracking-widest text-gray-400 font-bold"
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Create Training Session</DialogTitle>
+      <DialogContent className="max-w-xl bg-black/90 backdrop-blur-3xl border border-white/10 text-white rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] sm:rounded-[2rem]">
+        {/* Background effects */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
+
+        <DialogHeader className="relative z-10 space-y-3">
+          <DialogTitle className="text-xl font-black tracking-widest uppercase flex items-center gap-3 border-b border-white/5 pb-4">
+            <Hexagon className="h-6 w-6 text-white" /> Compiler Interface
+          </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Date + Type */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Date</Label>
-              <Input type="date" value={form.date}
+
+        <form onSubmit={handleSubmit} className="space-y-5 relative z-10 pt-2">
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5 flex flex-col">
+              <Label className={darkLabelClasses}>Date Parameter</Label>
+              <Input type="date" value={form.date} className={darkInputClasses} style={{ colorScheme: 'dark' }}
                 onChange={(e) => setForm({ ...form, date: e.target.value })} required />
             </div>
-            <div className="space-y-1.5">
-              <Label>Session Type</Label>
+            
+            <div className="space-y-1.5 flex flex-col">
+              <Label className={darkLabelClasses}>Protocol Type</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as SessionType })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
                   {(['Erg', 'Water', 'Weights', 'Cross Training', 'Rest'] as SessionType[]).map(t => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{t}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Duration + Intensity */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Duration (min)</Label>
-              <Input type="number" placeholder="90" value={form.duration}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5 flex flex-col">
+              <Label className={darkLabelClasses}>Duration (Min)</Label>
+              <Input type="number" placeholder="90" value={form.duration} className={darkInputClasses}
                 onChange={(e) => setForm({ ...form, duration: e.target.value })} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Intensity</Label>
+            
+            <div className="space-y-1.5 flex flex-col">
+              <Label className={darkLabelClasses}>Intensity Level</Label>
               <Select value={form.intensity} onValueChange={(v) => setForm({ ...form, intensity: v as Intensity })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
+                <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
                   {(['Low', 'Moderate', 'High', 'Race Pace'] as Intensity[]).map(i => (
-                    <SelectItem key={i} value={i}>{i}</SelectItem>
+                    <SelectItem key={i} value={i} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{i}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Warmup */}
           <div className="space-y-1.5">
-            <Label>Warmup</Label>
-            <Input placeholder="10 min easy, focus on catch timing" value={form.warmup}
+            <Label className={darkLabelClasses}>Startup Sequence (Warmup)</Label>
+            <Input placeholder="Define parameters..." value={form.warmup} className={darkInputClasses}
               onChange={(e) => setForm({ ...form, warmup: e.target.value })} />
           </div>
 
-          {/* Main Set */}
           <div className="space-y-1.5">
-            <Label>Main Set *</Label>
+            <Label className={darkLabelClasses}>Main Execution Loop *</Label>
             <textarea
-              className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a5f] resize-none transition-colors"
-              rows={3}
-              placeholder="4x2000m @ 2:05/500m, r20, 5 min rest between pieces"
+              className="w-full bg-black/50 border border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm resize-none transition-colors shadow-inner min-h-[100px]"
+              placeholder="e.g. 4x2000m @ 2:05/500m, r20..."
               value={form.main_set}
               onChange={(e) => setForm({ ...form, main_set: e.target.value })}
               required
             />
           </div>
 
-          {/* Cooldown */}
           <div className="space-y-1.5">
-            <Label>Cooldown</Label>
-            <Input placeholder="10 min easy rowing, stretching" value={form.cooldown}
+            <Label className={darkLabelClasses}>Shutdown Sequence (Cooldown)</Label>
+            <Input placeholder="Define parameters..." value={form.cooldown} className={darkInputClasses}
               onChange={(e) => setForm({ ...form, cooldown: e.target.value })} />
           </div>
 
-          {/* Target Metrics */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label>Target Split</Label>
-              <Input placeholder="2:02/500m" value={form.target_split}
+           <div className="grid grid-cols-3 gap-3 pt-2 pb-2 border-y border-white/5">
+            <div className="space-y-1.5 flex flex-col">
+              <Label className={cn(darkLabelClasses, 'truncate')} title="Target Split">Split</Label>
+              <Input placeholder="2:02" value={form.target_split} className={darkInputClasses}
                 onChange={(e) => setForm({ ...form, target_split: e.target.value })} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Stroke Rate</Label>
-              <Input type="number" placeholder="20" value={form.stroke_rate}
+            <div className="space-y-1.5 flex flex-col">
+              <Label className={cn(darkLabelClasses, 'truncate')} title="Stroke Rate">Rate</Label>
+              <Input type="number" placeholder="20" value={form.stroke_rate} className={darkInputClasses}
                 onChange={(e) => setForm({ ...form, stroke_rate: e.target.value })} />
             </div>
-            <div className="space-y-1.5">
-              <Label>HR Zone</Label>
-              <Input placeholder="Zone 4-5" value={form.hr_zone}
+            <div className="space-y-1.5 flex flex-col">
+              <Label className={cn(darkLabelClasses, 'truncate')} title="HR Zone">HR</Label>
+              <Input placeholder="Z4" value={form.hr_zone} className={darkInputClasses}
                 onChange={(e) => setForm({ ...form, hr_zone: e.target.value })} />
             </div>
           </div>
 
-          {/* Assign To */}
           <div className="space-y-1.5">
-            <Label>Assign To</Label>
+            <Label className={darkLabelClasses}>Target Array (Assign)</Label>
             <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="whole_team">Whole Team</SelectItem>
-                <SelectItem value="Varsity 8">Varsity 8</SelectItem>
-                <SelectItem value="JV 8">JV 8</SelectItem>
+              <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
+                <SelectItem value="whole_team" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Base Array (All)</SelectItem>
+                <SelectItem value="Varsity 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Varsity 8</SelectItem>
+                <SelectItem value="JV 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">JV 8</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* Coach Notes */}
           <div className="space-y-1.5">
-            <Label>Coach Notes (optional)</Label>
-            <Input placeholder="Trust your training. Focus on ratio." value={form.coach_notes}
+            <Label className={darkLabelClasses}>Director Embedded Data (Notes)</Label>
+            <Input placeholder="Secret params..." value={form.coach_notes} className={darkInputClasses}
               onChange={(e) => setForm({ ...form, coach_notes: e.target.value })} />
-            <div className="flex items-center gap-2 mt-1">
+            <div className="flex items-center gap-2 mt-2 px-1">
               <input type="checkbox" id="notes-public" checked={form.is_notes_public}
                 onChange={(e) => setForm({ ...form, is_notes_public: e.target.checked })}
-                className="w-4 h-4 accent-[#1e3a5f]"
+                className="w-4 h-4 rounded border-gray-300 text-white focus:ring-slate-500 accent-white/20 bg-black/50"
               />
-              <label htmlFor="notes-public" className="text-sm text-slate-600">Visible to athletes</label>
+              <label htmlFor="notes-public" className="text-[10px] uppercase font-bold tracking-widest text-gray-500 cursor-pointer">Unmask to Nodes (Public)</label>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}
-              disabled={createSession.isPending}>
-              Cancel
-            </Button>
-            <Button type="submit" variant={saved ? 'success' : 'default'}
+          <DialogFooter className="pt-4 border-t border-white/5 flex gap-3 sm:justify-between w-full">
+            <DialogClose asChild>
+              <Button type="button" variant="outline" 
+                className="bg-transparent border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-1/3"
+                disabled={createSession.isPending}>
+                Abort
+              </Button>
+            </DialogClose>
+            <Button type="submit" 
+              className={cn('uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-2/3 transition-all', 
+                saved ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)]')}
               disabled={createSession.isPending || saved}>
               {saved
-                ? <><Check className="h-4 w-4 mr-1" /> Published!</>
-                : createSession.isPending ? 'Publishing…' : 'Publish Session'}
+                ? <><Check className="h-4 w-4 mr-2" /> Deployed</>
+                : createSession.isPending ? 'Compiling…' : 'Compile To Array'}
             </Button>
           </DialogFooter>
         </form>

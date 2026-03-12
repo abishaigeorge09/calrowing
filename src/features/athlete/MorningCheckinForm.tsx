@@ -5,6 +5,7 @@ import { TapRating, Slider } from '@/components/ui/slider'
 import { Label } from '@/components/ui/label'
 import { useSubmitWellnessLog } from '@/hooks/mutations'
 import type { WellnessLog, Session } from '@/types/database'
+import { cn } from '@/lib/utils'
 
 interface Props {
   onClose: () => void
@@ -75,209 +76,259 @@ export default function MorningCheckinForm({ onClose, onDone, coachId, recentLog
   const motivationLabels = ['', 'Dread', 'Low', 'OK', 'Motivated', 'Pumped']
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end">
-      <div className="bg-white rounded-t-3xl px-6 pt-6 pb-8 max-h-[92dvh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end">
+      <div className="bg-black/95 border-t border-white/10 w-full rounded-t-[2.5rem] px-6 pt-8 pb-10 safe-bottom max-h-[92dvh] overflow-y-auto shadow-[0_-20px_50px_rgba(0,0,0,0.8)] relative">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-6 relative z-10">
           <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wide">Morning Check-in</p>
-            <h2 className="text-xl font-bold">{steps[step].emoji} {steps[step].title}</h2>
+            <p className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-1">Boot Sequence</p>
+            <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-3 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+              <span className="text-2xl drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">{steps[step].emoji}</span> {steps[step].title}
+            </h2>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100">
-            <X className="h-5 w-5 text-slate-500" />
+          <button onClick={onClose} className="p-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/20 text-white transition-colors shadow-inner">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Progress */}
-        <div className="flex gap-1.5 mb-6">
+        <div className="flex gap-2 mb-8 relative z-10 w-full max-w-sm mx-auto">
           {steps.map((_, i) => (
-            <div key={i} className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? 'bg-[#1e3a5f]' : 'bg-slate-200'}`} />
+            <div key={i} className={cn(
+              'flex-1 h-1.5 rounded-full transition-colors',
+              i <= step ? 'bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'bg-white/10'
+            )} />
           ))}
         </div>
 
-        {step === 0 && (
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <Label>Sleep hours last night</Label>
-              <div className="text-center">
-                <span className="text-5xl font-black text-[#1e3a5f]">{form.sleep_hours}</span>
-                <span className="text-slate-500 ml-1">hrs</span>
-              </div>
-              <Slider min={3} max={12} step={0.5} value={form.sleep_hours}
-                onChange={(v) => setForm({ ...form, sleep_hours: v })} showValue={false} />
-              <div className="flex justify-between text-xs text-slate-400">
-                <span>3h</span><span>6h</span><span>8h</span><span>12h</span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <Label>Sleep quality</Label>
-              <TapRating min={1} max={5} value={form.sleep_quality}
-                onChange={(v) => setForm({ ...form, sleep_quality: v })}
-                labels={qualityLabels.slice(1)} />
-            </div>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-6">
-            <div className="space-y-3">
-              <Label>Energy level right now</Label>
-              <TapRating min={1} max={5} value={form.energy}
-                onChange={(v) => setForm({ ...form, energy: v })}
-                labels={energyLabels.slice(1)} />
-            </div>
-            <div className="space-y-3">
-              <Label>Mental stress today</Label>
-              <TapRating min={1} max={5} value={form.stress}
-                onChange={(v) => setForm({ ...form, stress: v })}
-                labels={stressLabels.slice(1)} />
-            </div>
-            <div className="space-y-3">
-              <Label>Motivation to train</Label>
-              <TapRating min={1} max={5} value={form.motivation}
-                onChange={(v) => setForm({ ...form, motivation: v })}
-                labels={motivationLabels.slice(1)} />
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <Label>Any soreness or pain?</Label>
-              <div className="flex gap-3">
-                {(['No', 'Yes'] as const).map(opt => (
-                  <button key={opt} type="button"
-                    onClick={() => setForm({ ...form, has_soreness: opt === 'Yes' })}
-                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${
-                      form.has_soreness === (opt === 'Yes')
-                        ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
-                        : 'bg-white text-slate-600 border-slate-200'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {form.has_soreness && (
-              <>
-                <div className="space-y-2">
-                  <Label>Where?</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {BODY_PARTS.map(part => (
-                      <button key={part} type="button"
-                        onClick={() => setForm({ ...form, soreness_body_part: part })}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 transition-all ${
-                          form.soreness_body_part === part
-                            ? 'bg-orange-500 text-white border-orange-500'
-                            : 'bg-white text-slate-600 border-slate-200'
-                        }`}
-                      >
-                        {part}
-                      </button>
-                    ))}
-                  </div>
+        <div className="relative z-10 w-full max-w-sm mx-auto">
+          {step === 0 && (
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">Power Cycle (Sleep Hours)</Label>
+                <div className="text-center bg-black/40 border border-white/5 rounded-3xl py-6 shadow-inner">
+                  <span className="text-6xl font-black text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{form.sleep_hours}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 ml-2">hrs</span>
                 </div>
-                <div className="space-y-3">
-                  <Label>Soreness level</Label>
-                  <TapRating min={1} max={5} value={form.soreness_level}
-                    onChange={(v) => setForm({ ...form, soreness_level: v })}
-                    labels={['Mild', 'Minor', 'Moderate', 'Significant', 'Severe']} />
+                <Slider min={3} max={12} step={0.5} value={form.sleep_hours} colorClass="accent-white"
+                  onChange={(v) => setForm({ ...form, sleep_hours: v })} showValue={false} />
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                  <span>3h</span><span>6h</span><span>8h</span><span>12h</span>
                 </div>
-              </>
-            )}
-          </div>
-        )}
+              </div>
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">Power Quality</Label>
+                <TapRating min={1} max={5} value={form.sleep_quality}
+                  onChange={(v) => setForm({ ...form, sleep_quality: v })}
+                  labels={qualityLabels.slice(1).map(l => l.toUpperCase())}
+                  colorClass="bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+              </div>
+            </div>
+          )}
 
-        {step === 3 && (
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <Label>Classes today</Label>
-              <TapRating min={0} max={5} value={form.classes_today}
-                onChange={(v) => setForm({ ...form, classes_today: v })}
-                labels={['0', '1', '2', '3', '4', '5']} />
+          {step === 1 && (
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">Active Energy Level</Label>
+                <TapRating min={1} max={5} value={form.energy}
+                  onChange={(v) => setForm({ ...form, energy: v })}
+                  labels={energyLabels.slice(1).map(l => l.toUpperCase())}
+                  colorClass="bg-yellow-400 text-yellow-950 shadow-[0_0_10px_rgba(250,204,21,0.5)]" />
+              </div>
+              <div className="space-y-3 pt-4 border-t border-white/5">
+                 <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">System Stress</Label>
+                <TapRating min={1} max={5} value={form.stress}
+                   onChange={(v) => setForm({ ...form, stress: v })}
+                  labels={stressLabels.slice(1).map(l => l.toUpperCase())}
+                  colorClass="bg-purple-400 text-purple-950 shadow-[0_0_10px_rgba(192,132,252,0.5)]" />
+              </div>
+              <div className="space-y-3 pt-4 border-t border-white/5">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">Operational Motivation</Label>
+                <TapRating min={1} max={5} value={form.motivation}
+                  onChange={(v) => setForm({ ...form, motivation: v })}
+                  labels={motivationLabels.slice(1).map(l => l.toUpperCase())}
+                  colorClass="bg-blue-400 text-blue-950 shadow-[0_0_10px_rgba(96,165,250,0.5)]" />
+              </div>
             </div>
-            <div className="flex items-center justify-between py-3 border-y border-slate-100">
-              <Label>Assignment due today?</Label>
-              <button type="button"
-                onClick={() => setForm({ ...form, assignments_due: !form.assignments_due })}
-                className={`w-12 h-6 rounded-full transition-colors ${form.assignments_due ? 'bg-[#1e3a5f]' : 'bg-slate-200'}`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform mx-0.5 ${form.assignments_due ? 'translate-x-6' : 'translate-x-0'}`} />
-              </button>
-            </div>
-            <div className="flex items-center justify-between py-3 border-b border-slate-100">
-              <Label>Exam this week?</Label>
-              <button type="button"
-                onClick={() => setForm({ ...form, exam_this_week: !form.exam_this_week })}
-                className={`w-12 h-6 rounded-full transition-colors ${form.exam_this_week ? 'bg-[#1e3a5f]' : 'bg-slate-200'}`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform mx-0.5 ${form.exam_this_week ? 'translate-x-6' : 'translate-x-0'}`} />
-              </button>
-            </div>
-            <div className="space-y-2">
-              <Label>Optional note to coach</Label>
-              <textarea
-                className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#1e3a5f] transition-colors"
-                rows={2}
-                placeholder="Anything your coach should know..."
-                value={form.note}
-                onChange={e => setForm({ ...form, note: e.target.value })}
-              />
-            </div>
-          </div>
-        )}
+          )}
 
-        {step === 4 && (
-          <div className="text-center py-6">
-            <div className="bg-green-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Check-in Complete!</h3>
-            <p className="text-slate-500 text-sm mb-1">Your coach can see your data.</p>
-            <div className="bg-slate-50 rounded-2xl p-4 mt-4 text-left space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Sleep</span>
-                <span className="font-bold">{form.sleep_hours}h (quality {form.sleep_quality}/5)</span>
+          {step === 2 && (
+            <div className="space-y-6">
+              <div className="space-y-3">
+                 <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">Hardware Soreness/Pain?</Label>
+                <div className="flex gap-3">
+                  {(['No', 'Yes'] as const).map(opt => (
+                    <button key={opt} type="button"
+                      onClick={() => setForm({ ...form, has_soreness: opt === 'Yes' })}
+                      className={cn(
+                        'flex-1 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all border',
+                        form.has_soreness === (opt === 'Yes')
+                          ? (opt === 'Yes' ? 'bg-orange-500 text-white border-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.4)]' : 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]')
+                          : 'bg-black/50 text-gray-500 border-white/10 hover:border-white/30'
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Energy</span>
-                <span className="font-bold">{form.energy}/5</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Stress</span>
-                <span className="font-bold">{form.stress}/5</span>
-              </div>
+
               {form.has_soreness && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Soreness</span>
-                  <span className="font-bold text-orange-600">{form.soreness_body_part} ({form.soreness_level}/5)</span>
+                <div className="bg-orange-950/20 border border-orange-500/20 rounded-2xl p-5 space-y-5 shadow-inner backdrop-blur-sm">
+                  <div className="space-y-3">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-orange-400">Specify Component</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {BODY_PARTS.map(part => (
+                        <button key={part} type="button"
+                          onClick={() => setForm({ ...form, soreness_body_part: part })}
+                          className={cn(
+                            'px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border border-transparent',
+                            form.soreness_body_part === part
+                              ? 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.5)]'
+                              : 'bg-black/60 text-orange-200 border-orange-500/20 hover:bg-orange-500/20'
+                          )}
+                        >
+                          {part}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-3 pt-2">
+                    <Label className="text-[10px] uppercase font-black tracking-widest text-orange-400">Soreness Level</Label>
+                    <TapRating min={1} max={5} value={form.soreness_level}
+                      onChange={(v) => setForm({ ...form, soreness_level: v })}
+                      labels={['Mild', 'Minor', 'Moderate', 'Severe', 'Critical'].map(l => l.toUpperCase())}
+                      colorClass="bg-orange-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Navigation */}
-        <div className="flex gap-3 mt-8">
-          {step > 0 && step < 4 && (
-            <Button variant="outline" size="lg" className="flex-1" onClick={back}>Back</Button>
-          )}
-          {step < 3 && (
-            <Button size="lg" className="flex-1" onClick={next}>Continue</Button>
-          )}
           {step === 3 && (
-            <Button size="lg" className="flex-1" onClick={handleSubmit} disabled={submitLog.isPending}>
-              {submitLog.isPending ? 'Saving…' : 'Submit Check-in'}
-            </Button>
+            <div className="space-y-6">
+              <div className="space-y-3 bg-white/5 p-5 rounded-2xl border border-white/10 shadow-inner">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">Academic Modules (Classes)</Label>
+                <TapRating min={0} max={5} value={form.classes_today}
+                   onChange={(v) => setForm({ ...form, classes_today: v })}
+                  labels={['0', '1', '2', '3', '4', '5+']}
+                  colorClass="bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+              </div>
+              <div className="flex items-center justify-between py-4 px-5 bg-white/5 rounded-2xl border border-white/10 shadow-inner">
+                 <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">Assignments Due?</Label>
+                <button type="button"
+                  onClick={() => setForm({ ...form, assignments_due: !form.assignments_due })}
+                   className={cn(
+                    'w-14 h-7 rounded-full transition-colors flex items-center shadow-inner border border-white/10',
+                    form.assignments_due ? 'bg-white' : 'bg-black/60'
+                  )}
+                >
+                   <div className={cn(
+                    'w-5 h-5 rounded-full shadow-md transition-transform mx-1',
+                    form.assignments_due ? 'bg-black translate-x-7' : 'bg-gray-500 translate-x-0'
+                  )} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between py-4 px-5 bg-yellow-950/20 rounded-2xl border border-yellow-500/20 shadow-inner">
+                <Label className="text-[10px] uppercase font-black tracking-widest text-yellow-500">Exams this week?</Label>
+                <button type="button"
+                  onClick={() => setForm({ ...form, exam_this_week: !form.exam_this_week })}
+                  className={cn(
+                    'w-14 h-7 rounded-full transition-colors flex items-center shadow-inner border',
+                    form.exam_this_week ? 'bg-yellow-500 border-yellow-400' : 'bg-black/60 border-white/10'
+                  )}
+                >
+                  <div className={cn(
+                    'w-5 h-5 rounded-full shadow-md transition-transform mx-1',
+                    form.exam_this_week ? 'bg-black translate-x-7' : 'bg-yellow-500 translate-x-0'
+                  )} />
+                </button>
+              </div>
+              <div className="space-y-3 pt-2">
+                 <Label className="text-[10px] uppercase font-black tracking-widest text-gray-400">Notes for Director (Opt)</Label>
+                <textarea
+                  className="w-full bg-black/60 border border-white/10 text-white placeholder:text-gray-600 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-white focus:bg-white/5 transition-all shadow-inner resize-none min-h-[80px]"
+                  placeholder="Additional context..."
+                  value={form.note}
+                  onChange={e => setForm({ ...form, note: e.target.value })}
+                />
+              </div>
+            </div>
           )}
+
           {step === 4 && (
-            <Button size="lg" className="flex-1" onClick={onDone}>
-              Done
-            </Button>
+            <div className="text-center py-6">
+              <div className="relative mb-8">
+                <div className="absolute inset-0 bg-green-500/20 blur-[30px] rounded-full" />
+                <div className="bg-green-950/40 border border-green-500/50 rounded-full w-24 h-24 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(74,222,128,0.3)_inset] relative z-10">
+                  <CheckCircle2 className="h-10 w-10 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.8)]" />
+                </div>
+              </div>
+              
+              <h3 className="text-xl font-black text-white uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Boot Complete</h3>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-gray-400 mb-6">Data synchronized with array director</p>
+              
+               <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 flex items-center justify-between text-left shadow-inner border border-white/10 flex-wrap gap-y-3">
+                 <div className="w-1/2">
+                   <p className="text-[9px] uppercase font-black tracking-widest text-gray-500 mb-1">Power</p>
+                   <p className="font-black text-white tracking-widest text-sm">{form.sleep_hours}H <span className="text-gray-500 text-xs px-1">|</span> Q {form.sleep_quality}</p>
+                 </div>
+                 <div className="w-1/2">
+                   <p className="text-[9px] uppercase font-black tracking-widest text-gray-500 mb-1">Energy Lvl</p>
+                   <p className="font-black text-white tracking-widest text-sm">{form.energy}/5</p>
+                 </div>
+                 <div className="w-1/2">
+                   <p className="text-[9px] uppercase font-black tracking-widest text-gray-500 mb-1">Stress Lvl</p>
+                   <p className="font-black text-white tracking-widest text-sm">{form.stress}/5</p>
+                 </div>
+                 {form.has_soreness && (
+                    <div className="w-1/2">
+                       <p className="text-[9px] uppercase font-black tracking-widest text-orange-400 mb-1">Dmg Flag</p>
+                       <p className="font-black text-orange-300 tracking-widest text-[11px] truncate">{form.soreness_body_part} ({form.soreness_level})</p>
+                    </div>
+                 )}
+              </div>
+            </div>
           )}
+
+          {/* Navigation */}
+          <div className="flex gap-3 mt-10">
+            {step > 0 && step < 4 && (
+              <button 
+                className="flex-1 bg-transparent border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all"
+                onClick={back}
+              >
+                Back
+              </button>
+            )}
+            {step < 3 && (
+              <button 
+                className="flex-[2] bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                onClick={next}
+              >
+                Continue
+              </button>
+            )}
+            {step === 3 && (
+              <button 
+                 className="flex-[2] bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)] flex justify-center items-center gap-2 disabled:opacity-50"
+                onClick={handleSubmit} 
+                disabled={submitLog.isPending}
+              >
+                {submitLog.isPending ? 'Syncing...' : 'Commit Sequence'}
+              </button>
+            )}
+            {step === 4 && (
+              <button 
+                className="w-full bg-green-500 text-white uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:bg-green-400"
+                onClick={onDone}
+              >
+                Acknowledge
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

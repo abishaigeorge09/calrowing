@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, Waves, Copy, Check } from 'lucide-react'
+import { ChevronLeft, Hexagon, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import { IS_SUPABASE, supabase } from '@/lib/db'
 import { generateInviteCode } from '@/lib/utils'
 import type { Profile } from '@/types/database'
+import { motion } from 'framer-motion'
 
 type Step = 'account' | 'team' | 'done'
 type ProgressStep = 'account' | 'team'
@@ -26,6 +27,7 @@ export default function RegisterCoachPage() {
     teamName: '', division: '', seasonStart: '', seasonEnd: '',
   })
 
+  // ... (keep standard logic unchanged)
   const handleAccountNext = (e: React.FormEvent) => {
     e.preventDefault()
     setStep('team')
@@ -40,7 +42,6 @@ export default function RegisterCoachPage() {
     setInviteCode(code)
 
     if (!IS_SUPABASE) {
-      // Demo mode: create a local mock profile
       const mockProfile: Profile = {
         id: `coach-${Date.now()}`,
         email: form.email,
@@ -57,7 +58,6 @@ export default function RegisterCoachPage() {
     }
 
     try {
-      // 1. Create auth user (trigger inserts profile row automatically)
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -68,10 +68,6 @@ export default function RegisterCoachPage() {
       if (signUpError) throw new Error(signUpError.message)
       if (!authData.user) throw new Error('Sign up failed — please try again.')
 
-      // Ensure we have an active session before writing to DB.
-      // When Supabase email confirmation is enabled, signUp returns no session.
-      // Sign in immediately to get one (works when confirmation is disabled, which
-      // is recommended for this app — disable in Supabase Auth settings).
       if (!authData.session) {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: form.email,
@@ -82,7 +78,6 @@ export default function RegisterCoachPage() {
         }
       }
 
-      // 2. Create the team
       const { data: team, error: teamError } = await supabase
         .from('teams')
         .insert({
@@ -98,13 +93,11 @@ export default function RegisterCoachPage() {
         .single()
       if (teamError) throw new Error(teamError.message)
 
-      // 3. Update profile with team_id (trigger created the row, just needs team)
       await supabase
         .from('profiles')
         .update({ team_id: team.id })
         .eq('id', authData.user.id)
 
-      // 4. Fetch the full profile and put it in the auth store
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -126,138 +119,165 @@ export default function RegisterCoachPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  // Custom UI components
+  const darkInputClasses = "bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-11"
+  const darkLabelClasses = "text-[10px] uppercase tracking-widest text-gray-400 font-bold"
+
   if (step === 'done') {
     return (
-      <div className="min-h-dvh bg-gradient-to-br from-[#0f2d52] to-[#1e3a5f] flex flex-col">
-        <div className="flex-1 bg-white rounded-t-3xl mt-20 px-6 pt-8 pb-8 flex flex-col items-center text-center">
-          <div className="bg-green-100 rounded-full p-4 mb-4">
-            <Check className="h-10 w-10 text-green-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-900 mb-2">Team Created!</h1>
-          <p className="text-slate-500 mb-6">
-            Share this invite code with your athletes so they can join your team.
-          </p>
+      <div className="relative min-h-dvh bg-black flex flex-col font-sans text-white overflow-hidden">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 blur-[150px] rounded-full mix-blend-screen" />
+        </div>
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 max-w-md shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            <div className="bg-white/10 rounded-full p-5 mb-6 inline-flex border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+              <Check className="h-10 w-10 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2 tracking-wide uppercase">Array Initialized</h1>
+            <p className="text-gray-400 mb-8 font-light text-sm">
+              Distribute access key to operatives.
+            </p>
 
-          <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl px-8 py-6 mb-6 w-full">
-            <p className="text-xs text-slate-500 mb-1">Team Invite Code</p>
-            <p className="text-3xl font-black text-[#1e3a5f] tracking-widest mb-4">{inviteCode}</p>
-            <Button variant="outline" size="sm" onClick={copyCode} className="gap-2">
-              {copied ? <><Check className="h-4 w-4" /> Copied!</> : <><Copy className="h-4 w-4" /> Copy code</>}
+            <div className="bg-black/60 border border-white/10 rounded-2xl p-6 mb-8 w-full shadow-inner relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[30px] rounded-full" />
+              <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-2">Network Key</p>
+              <p className="text-3xl font-black text-white tracking-widest mb-6 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{inviteCode}</p>
+              <Button onClick={copyCode} className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 uppercase tracking-widest text-xs font-bold transition-all h-10">
+                {copied ? <><Check className="h-4 w-4 mr-2" /> Copied</> : <><Copy className="h-4 w-4 mr-2" /> Copy to Clipboard</>}
+              </Button>
+            </div>
+
+            <p className="text-sm font-light text-gray-400 mb-8 border-t border-white/10 pt-6">
+              Array ID: <strong className="text-white uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded">{form.teamName}</strong>
+            </p>
+
+            <Button size="lg" className="w-full bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-sm font-bold shadow-[0_0_20px_rgba(255,255,255,0.2)] h-12" onClick={() => navigate('/coach')}>
+              Access Command Center
             </Button>
-          </div>
-
-          <p className="text-sm text-slate-500 mb-6">
-            Your team: <strong>{form.teamName}</strong>
-          </p>
-
-          <Button size="lg" className="w-full" onClick={() => navigate('/coach')}>
-            Go to Dashboard
-          </Button>
+          </motion.div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-[#0f2d52] to-[#1e3a5f] flex flex-col">
-      <div className="flex items-center gap-3 px-6 pt-12 pb-6">
-        <Link to="/login" className="text-white/70 hover:text-white">
-          <ChevronLeft className="h-6 w-6" />
-        </Link>
-        <div className="flex items-center gap-2">
-          <Waves className="h-6 w-6 text-white" />
-          <span className="text-xl font-black text-white">RowIQ</span>
-        </div>
+    <div className="relative min-h-dvh bg-black flex flex-col font-sans text-white overflow-hidden">
+      {/* Background ambient light */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-white/5 blur-[120px] rounded-full mix-blend-screen" />
+        <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-white/5 blur-[150px] rounded-full mix-blend-screen" />
       </div>
 
-      <div className="flex-1 bg-white rounded-t-3xl px-6 pt-8 pb-8">
-        <div className="flex gap-2 mb-6">
-          {(['account', 'team'] as ProgressStep[]).map((s, i) => (
-            <div key={s} className={`flex-1 h-1.5 rounded-full transition-colors ${(step as string) === s || ((step as string) === 'done' && i < 2) ? 'bg-[#1e3a5f]' : 'bg-slate-200'}`} />
-          ))}
+      <div className="relative z-10 flex-1 flex flex-col">
+        <div className="flex items-center gap-3 px-6 pt-12 pb-6 border-b border-white/5 bg-black/40 backdrop-blur-xl">
+          <Link to="/login" className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-xl">
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <Hexagon className="h-6 w-6 text-white" strokeWidth={1.5} />
+            <span className="text-xl font-black text-white uppercase tracking-widest">RowIQ</span>
+          </div>
         </div>
 
-        {step === 'account' && (
-          <>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Create Coach Account</h1>
-            <p className="text-slate-500 text-sm mb-6">Step 1 of 2 — Your account details</p>
-            <form onSubmit={handleAccountNext} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" placeholder="Coach Mike Teti" value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="coach@berkeley.edu" value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="Min 8 characters" value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })} minLength={8} required />
-              </div>
-              <Button type="submit" size="lg" className="w-full">Continue</Button>
-            </form>
-          </>
-        )}
+        <div className="flex-1 overflow-y-auto px-6 pt-8 pb-12 w-full max-w-xl mx-auto">
+          {/* Progress bar */}
+          <div className="flex gap-2 mb-8">
+            {(['account', 'team'] as ProgressStep[]).map((s, i) => {
+              const stepIdx = ['account', 'team'].indexOf(step)
+              const isActive = i <= stepIdx
+              return (
+                <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-500 ${isActive ? 'bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'bg-white/10'}`} />
+              )
+            })}
+          </div>
 
-        {step === 'team' && (
-          <>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Set Up Your Team</h1>
-            <p className="text-slate-500 text-sm mb-6">Step 2 of 2 — Team details</p>
-            <form onSubmit={handleTeamSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>Team Name</Label>
-                <Input placeholder="UC Berkeley Men's Rowing" value={form.teamName}
-                  onChange={(e) => setForm({ ...form, teamName: e.target.value })} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Division</Label>
-                <Select value={form.division} onValueChange={(v) => setForm({ ...form, division: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select division" /></SelectTrigger>
-                  <SelectContent>
-                    {['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'Club', 'High School'].map(d => (
-                      <SelectItem key={d} value={d}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Season Start <span className="text-slate-400 font-normal">(optional)</span></Label>
-                  <Input type="date" value={form.seasonStart}
-                    onChange={(e) => setForm({ ...form, seasonStart: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Season End <span className="text-slate-400 font-normal">(optional)</span></Label>
-                  <Input type="date" value={form.seasonEnd}
-                    onChange={(e) => setForm({ ...form, seasonEnd: e.target.value })} />
-                </div>
-              </div>
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            {step === 'account' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Director Authorization</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Define command privileges</p>
+                <form onSubmit={handleAccountNext} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Commander Designation</Label>
+                    <Input placeholder="Coach Mike Teti" value={form.name} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Secure Link (Email)</Label>
+                    <Input type="email" placeholder="coach@berkeley.edu" value={form.email} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Encryption Cipher (Password)</Label>
+                    <Input type="password" placeholder="Min 8 characters" value={form.password} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })} minLength={8} required />
+                  </div>
+                  <div className="pt-4">
+                    <Button type="submit" className="w-full bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]">Proceed</Button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
-                  {error}
-                </div>
-              )}
+            {step === 'team' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Initialize Array</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Configure team parameters</p>
+                <form onSubmit={handleTeamSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Array Identifier (Team Name)</Label>
+                    <Input placeholder="UC Berkeley Men's Rowing" value={form.teamName} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, teamName: e.target.value })} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Division Parameter</Label>
+                    <Select value={form.division} onValueChange={(v) => setForm({ ...form, division: v })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue placeholder="Select class" /></SelectTrigger>
+                      <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
+                        {['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'Club', 'High School'].map(d => (
+                          <SelectItem key={d} value={d} className="focus:bg-white/10">{d}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className={darkLabelClasses}>Cycle T-Zero (Start)</Label>
+                      <Input type="date" value={form.seasonStart} className={darkInputClasses} style={{ colorScheme: 'dark' }}
+                        onChange={(e) => setForm({ ...form, seasonStart: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={darkLabelClasses}>Cycle T-End (End)</Label>
+                      <Input type="date" value={form.seasonEnd} className={darkInputClasses} style={{ colorScheme: 'dark' }}
+                        onChange={(e) => setForm({ ...form, seasonEnd: e.target.value })} />
+                    </div>
+                  </div>
 
-              <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => setStep('account')}>
-                  Back
-                </Button>
-                <Button type="submit" size="lg" className="flex-1" disabled={loading}>
-                  {loading ? 'Creating…' : 'Create Team'}
-                </Button>
-              </div>
-            </form>
-          </>
-        )}
+                  {error && (
+                    <div className="bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-red-200 text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                      {error}
+                    </div>
+                  )}
 
-        <p className="text-center text-sm text-slate-500 mt-6">
-          Already have an account?{' '}
-          <Link to="/login" className="text-[#1e3a5f] font-semibold hover:underline">Sign in</Link>
-        </p>
+                  <div className="flex gap-3 pt-4">
+                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('account')}>
+                      Abort
+                    </Button>
+                    <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]" disabled={loading}>
+                      {loading ? 'Compiling…' : 'Generate Array'}
+                    </Button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+
+            <p className="text-center text-[10px] uppercase font-bold tracking-widest text-gray-500 mt-8 border-t border-white/10 pt-6">
+              Existing Director?{' '}
+              <Link to="/login" className="text-white hover:text-gray-300 transition-colors shadow-[0_0_5px_rgba(255,255,255,0.8)]">Establish Link</Link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

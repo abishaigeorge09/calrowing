@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { ChevronLeft, ChevronRight, BookOpen, Hexagon } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import { useSessions } from '@/hooks/useSessions'
 import { useTeamWellnessLogs } from '@/hooks/useWellnessLogs'
@@ -11,6 +9,16 @@ import type { MorningLogData } from '@/types/database'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+function typeToColor(type: string): string {
+  switch(type) {
+    case 'Erg': return 'bg-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.6)]'
+    case 'Water': return 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]'
+    case 'Weights': return 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.6)]'
+    case 'Cross Training': return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]'
+    default: return 'bg-gray-400'
+  }
+}
 
 export default function CalendarPage() {
   const navigate = useNavigate()
@@ -29,7 +37,6 @@ export default function CalendarPage() {
   const { data: sessions = [] } = useSessions(user?.team_id, { from, to })
   const { data: teamLogs = [] } = useTeamWellnessLogs(user?.team_id, { days: 30 })
 
-  // Academic load: days where athletes have exams
   const examDays = new Set<string>()
   teamLogs
     .filter(l => l.log_type === 'morning' && (l.data as MorningLogData).exam_this_week)
@@ -59,51 +66,62 @@ export default function CalendarPage() {
     .slice(0, 5)
 
   return (
-    <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
-      <h1 className="text-xl font-bold text-slate-900">Training Calendar</h1>
+    <div className="px-4 py-8 space-y-6 max-w-3xl mx-auto font-sans text-white">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-4 border-b border-white/10">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            <Hexagon className="h-5 w-5 text-gray-400" /> Array Schedule
+          </h1>
+          <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
+            Temporal Synchronization
+          </p>
+        </div>
+      </div>
 
       {/* Calendar Header */}
-      <div className="flex items-center justify-between">
-        <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-slate-100">
-          <ChevronLeft className="h-5 w-5 text-slate-600" />
+      <div className="flex items-center justify-between bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+        <button onClick={prevMonth} className="p-2 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors border border-transparent hover:border-white/10">
+          <ChevronLeft className="h-5 w-5" />
         </button>
-        <h2 className="font-bold text-slate-900">{MONTHS[month]} {year}</h2>
-        <button onClick={nextMonth} className="p-2 rounded-xl hover:bg-slate-100">
-          <ChevronRight className="h-5 w-5 text-slate-600" />
+        <h2 className="text-lg font-black tracking-widest uppercase text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.4)]">
+          {MONTHS[month]} {year}
+        </h2>
+        <button onClick={nextMonth} className="p-2 rounded-xl hover:bg-white/10 text-gray-400 hover:text-white transition-colors border border-transparent hover:border-white/10">
+          <ChevronRight className="h-5 w-5" />
         </button>
       </div>
 
       {/* Legend */}
-      <div className="flex gap-3 flex-wrap text-xs">
+      <div className="flex gap-4 flex-wrap bg-black/40 border border-white/5 rounded-2xl p-4 justify-center shadow-inner">
         {[
-          { color: 'bg-blue-500', label: 'Erg' },
-          { color: 'bg-cyan-500', label: 'Water' },
-          { color: 'bg-purple-500', label: 'Weights' },
-          { color: 'bg-green-500', label: 'Cross Training' },
-          { color: 'bg-gray-400', label: 'Rest' },
-          { color: 'bg-yellow-400', label: 'Academic Load' },
+          { color: 'bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.8)]', label: 'Erg' },
+          { color: 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]', label: 'Water' },
+          { color: 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]', label: 'Weights' },
+          { color: 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]', label: 'Cross' },
+          { color: 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.8)]', label: 'Assessments' },
         ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-1">
-            <div className={cn('w-2.5 h-2.5 rounded-full', color)} />
-            <span className="text-slate-500">{label}</span>
+          <div key={label} className="flex items-center gap-1.5">
+            <div className={cn('w-2 h-2 rounded-full', color)} />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{label}</span>
           </div>
         ))}
       </div>
 
       {/* Calendar Grid */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-[0_0_30px_rgba(0,0,0,0.5)]">
         {/* Day headers */}
-        <div className="grid grid-cols-7 border-b border-slate-100">
+        <div className="grid grid-cols-7 border-b border-white/10 bg-black/40">
           {DAYS.map(d => (
-            <div key={d} className="text-center text-xs font-semibold text-slate-500 py-2.5">{d}</div>
+            <div key={d} className="text-center text-[10px] uppercase font-black tracking-widest text-gray-500 py-3">{d}</div>
           ))}
         </div>
 
         {/* Days grid */}
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-7 bg-black/20">
           {/* Empty cells */}
           {Array.from({ length: firstDay }).map((_, i) => (
-            <div key={`empty-${i}`} className="h-14 border-b border-r border-slate-50" />
+            <div key={`empty-${i}`} className="h-16 border-b border-r border-white/5" />
           ))}
 
           {/* Day cells */}
@@ -116,25 +134,25 @@ export default function CalendarPage() {
               <div
                 key={day}
                 className={cn(
-                  'h-14 border-b border-r border-slate-50 p-1 cursor-pointer hover:bg-slate-50 transition-colors relative',
-                  today_ && 'bg-blue-50'
+                  'h-16 border-b border-r border-white/5 p-1.5 cursor-pointer hover:bg-white/10 transition-colors relative group',
+                  today_ ? 'bg-white/10 shadow-inner' : ''
                 )}
                 onClick={() => session && navigate(`/coach/session/${session.id}`)}
               >
                 <div className={cn(
-                  'text-xs font-semibold w-6 h-6 flex items-center justify-center rounded-full mb-1',
-                  today_ ? 'bg-[#1e3a5f] text-white' : 'text-slate-700'
+                  'text-[10px] font-black w-6 h-6 flex items-center justify-center rounded-full mb-1 border',
+                  today_ ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'text-gray-400 border-transparent group-hover:text-white'
                 )}>
                   {day}
                 </div>
                 {session && (
-                  <div className={cn('w-full h-1.5 rounded-full', sessionTypeColor(session.type))} />
+                  <div className={cn('w-full h-1 rounded-full mt-1', typeToColor(session.type))} />
                 )}
                 {examDay && !session && (
-                  <div className="w-full h-1.5 rounded-full bg-yellow-400 mt-0.5" />
+                  <div className="w-full h-1 rounded-full bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)] mt-1" />
                 )}
                 {examDay && (
-                  <BookOpen className="absolute top-1 right-1 h-2.5 w-2.5 text-yellow-500" />
+                  <BookOpen className="absolute top-1.5 right-1.5 h-3 w-3 text-yellow-500 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />
                 )}
               </div>
             )
@@ -143,31 +161,46 @@ export default function CalendarPage() {
       </div>
 
       {/* Upcoming Sessions */}
-      <div className="space-y-3">
-        <h2 className="font-bold text-slate-900">Upcoming Sessions</h2>
-        {upcomingSessions.map(session => (
-          <Card key={session.id} className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => navigate(`/coach/session/${session.id}`)}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn('w-2 h-12 rounded-full flex-shrink-0', sessionTypeColor(session.type))} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-semibold text-slate-900 text-sm">
-                      {new Date(session.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-                    </p>
-                    <Badge variant="secondary" className="text-xs">{session.type}</Badge>
-                    <Badge variant={
-                      session.intensity === 'High' || session.intensity === 'Race Pace' ? 'destructive' :
-                      session.intensity === 'Moderate' ? 'warning' : 'success'
-                    } className="text-xs">{session.intensity}</Badge>
-                  </div>
-                  <p className="text-xs text-slate-500 line-clamp-1">{session.main_set}</p>
+      <div className="space-y-4 pt-4">
+        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-4 pl-1">Approaching Cycles</h2>
+        
+        {upcomingSessions.length === 0 ? (
+          <p className="text-xs text-gray-500 italic px-4">No upcoming cycles scheduled.</p>
+        ) : upcomingSessions.map(session => (
+          <div 
+            key={session.id} 
+            className="flex items-center gap-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 cursor-pointer hover:bg-white/10 transition-all shadow-[0_0_20px_rgba(0,0,0,0.3)] group text-left"
+            onClick={() => navigate(`/coach/session/${session.id}`)}
+          >
+            <div className={cn('w-2 h-14 rounded-full flex-shrink-0', typeToColor(session.type))} />
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-1.5">
+                <p className="font-bold text-white text-sm tracking-wide">
+                  {new Date(session.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </p>
+                <div className="flex gap-1.5">
+                  <span className="bg-white/10 border border-white/20 text-white text-[9px] uppercase font-bold px-1.5 py-0.5 rounded">
+                    {session.type}
+                  </span>
+                  <span className={cn(
+                    'border text-[9px] uppercase font-bold px-1.5 py-0.5 rounded',
+                    session.intensity === 'High' || session.intensity === 'Race Pace' ? 'bg-red-950/40 border-red-500/50 text-red-400' :
+                    session.intensity === 'Moderate' ? 'bg-yellow-950/40 border-yellow-500/50 text-yellow-400' : 
+                    'bg-green-950/40 border-green-500/50 text-green-400'
+                  )}>
+                    {session.intensity}
+                  </span>
                 </div>
-                <span className="text-xs text-slate-400 font-medium">{session.duration}min</span>
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-xs text-gray-400 font-light truncate">{session.main_set}</p>
+            </div>
+            
+            <div className="text-right">
+              <p className="text-xl font-black text-white">{session.duration}</p>
+              <p className="text-[9px] uppercase tracking-widest text-gray-500 font-bold mt-0.5">Min</p>
+            </div>
+          </div>
         ))}
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff, Waves } from 'lucide-react'
+import { Eye, EyeOff, Hexagon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -33,123 +33,131 @@ export default function LoginPage() {
     setEmail(demoEmail)
     setPassword('Demo1234!')
     setError('')
-  }
+  }  
 
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-[#0f2d52] via-[#1e3a5f] to-[#2d5a8e] flex flex-col">
-      {/* Header */}
-      <div className="flex flex-col items-center pt-16 pb-8 px-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="bg-white/20 rounded-2xl p-3">
-            <Waves className="h-8 w-8 text-white" />
-          </div>
-          <span className="text-4xl font-black text-white tracking-tight">RowIQ</span>
-        </div>
-        <p className="text-blue-200 text-base mt-1">Train smarter. Row faster.</p>
+    <div className="relative min-h-dvh bg-black flex flex-col font-sans overflow-hidden text-white">
+      {/* Background ambient light */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-white/5 blur-[120px] rounded-full mix-blend-screen" />
+        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-white/5 blur-[150px] rounded-full mix-blend-screen" />
       </div>
 
-      {/* Card */}
-      <div className="flex-1 bg-white rounded-t-3xl px-6 pt-8 pb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">Welcome back</h1>
-        <p className="text-slate-500 text-sm mb-5">Sign in to your account</p>
-
-        {/* Demo Section — always visible so anyone can explore the app */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-4 mb-5">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-base">🚣</span>
-            <p className="text-blue-800 text-sm font-bold">Try RowIQ — No signup needed</p>
-          </div>
-          <p className="text-blue-600 text-xs mb-3">Explore as a coach or athlete with live data and real chat.</p>
-          <div className="grid grid-cols-2 gap-2 mb-2">
-            <button
-              type="button"
-              onClick={() => fillDemo('coach@rowiq.demo')}
-              className="bg-[#1e3a5f] text-white rounded-lg py-2 px-3 text-xs font-semibold hover:bg-[#2d5a8e] transition-colors"
-            >
-              👨‍💼 Coach View
-            </button>
-            <button
-              type="button"
-              onClick={() => fillDemo('alex@rowiq.demo')}
-              className="bg-white border border-blue-200 text-[#1e3a5f] rounded-lg py-2 px-3 text-xs font-semibold hover:bg-blue-50 transition-colors"
-            >
-              🚣 Athlete View
-            </button>
-          </div>
-          <div className="flex gap-3 flex-wrap">
-            <button type="button" onClick={() => fillDemo('jordan@rowiq.demo')} className="text-[10px] text-blue-500 hover:text-blue-700 underline">Jordan (alert)</button>
-            <button type="button" onClick={() => fillDemo('sam@rowiq.demo')}    className="text-[10px] text-blue-500 hover:text-blue-700 underline">Sam (exam)</button>
-            <button type="button" onClick={() => fillDemo('taylor@rowiq.demo')} className="text-[10px] text-blue-500 hover:text-blue-700 underline">Taylor</button>
-          </div>
-          <p className="text-blue-400 text-[10px] mt-2">Password: Demo1234! (auto-filled)</p>
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6">
+        {/* Header */}
+        <div className="flex flex-col items-center mb-8">
+          <Link to="/" className="flex items-center gap-3 mb-2 group">
+            <div className="bg-white/10 rounded-2xl p-3 border border-white/20 group-hover:bg-white/20 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+              <Hexagon className="h-8 w-8 text-white" strokeWidth={1.5} />
+            </div>
+            <span className="text-4xl font-black text-white tracking-widest uppercase">RowIQ</span>
+          </Link>
+          <p className="text-gray-400 text-sm tracking-widest uppercase font-semibold">System Access Terminal</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
-            />
-          </div>
+        {/* Card */}
+        <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+          <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">Initialize Session</h1>
+          <p className="text-gray-400 text-sm mb-6 font-light">Enter credentials to authenticate</p>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-              />
+          {/* Demo Section */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 shadow-inner">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></span>
+              <p className="text-gray-200 text-sm font-bold uppercase tracking-widest">Demo Protocols</p>
+            </div>
+            <p className="text-gray-400 text-xs mb-4 font-light">Test the platform instantly without registration.</p>
+            <div className="grid grid-cols-2 gap-3 mb-3">
               <button
                 type="button"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={() => fillDemo('coach@rowiq.demo')}
+                className="bg-white/10 border border-white/10 hover:bg-white/20 text-white rounded-xl py-2 px-3 text-xs font-semibold tracking-wider transition-all"
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                Coach Interface
+              </button>
+              <button
+                type="button"
+                onClick={() => fillDemo('alex@rowiq.demo')}
+                className="bg-white text-black rounded-xl py-2 px-3 text-xs font-bold tracking-wider hover:bg-gray-200 transition-all shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+              >
+                Athlete Interface
               </button>
             </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
-              {error}
+            <div className="flex gap-3 flex-wrap">
+              <button type="button" onClick={() => fillDemo('jordan@rowiq.demo')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Jordan (Alert)</button>
+              <button type="button" onClick={() => fillDemo('sam@rowiq.demo')}    className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Sam (Exam)</button>
+              <button type="button" onClick={() => fillDemo('taylor@rowiq.demo')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Taylor</button>
             </div>
-          )}
-
-          <div className="flex justify-end">
-            <Link to="/forgot-password" className="text-sm text-[#1e3a5f] font-medium hover:underline">
-              Forgot password?
-            </Link>
           </div>
 
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
-          </Button>
-        </form>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-xs uppercase tracking-widest text-gray-400 font-bold">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="operative@rowiq.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                className="bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-12 px-4 shadow-inner"
+                required
+              />
+            </div>
 
-        <div className="mt-6 text-center">
-          <p className="text-sm text-slate-500">
-            New coach?{' '}
-            <Link to="/register/coach" className="text-[#1e3a5f] font-semibold hover:underline">
-              Create account
-            </Link>
-          </p>
-          <p className="text-sm text-slate-500 mt-2">
-            Got an invite code?{' '}
-            <Link to="/register/athlete" className="text-[#1e3a5f] font-semibold hover:underline">
-              Join your team
-            </Link>
-          </p>
+            <div className="space-y-2">
+              <div className="flex justify-between items-center">
+                <Label htmlFor="password" className="text-xs uppercase tracking-widest text-gray-400 font-bold">Password</Label>
+                <Link to="/forgot-password" className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
+                  Lost Access?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  className="bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-12 px-4 shadow-inner"
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-red-200 text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full bg-white text-black hover:bg-gray-200 hover:scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all font-bold tracking-widest uppercase rounded-xl h-12 mt-2" disabled={loading}>
+              {loading ? 'Authenticating…' : 'Authenticate'}
+            </Button>
+          </form>
+
+          <div className="mt-8 text-center border-t border-white/10 pt-6">
+            <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">
+              Unregistered Operative?
+            </p>
+            <div className="flex justify-center gap-4 text-sm">
+              <Link to="/register/coach" className="text-gray-300 hover:text-white font-bold transition-colors">
+                Create Protocol (Coach)
+              </Link>
+              <span className="text-white/20">|</span>
+              <Link to="/register/athlete" className="text-gray-300 hover:text-white font-bold transition-colors">
+                Join Roster (Athlete)
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>

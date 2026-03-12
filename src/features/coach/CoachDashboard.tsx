@@ -2,11 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   AlertTriangle, CheckCircle2, Moon, Zap, Activity,
-  Brain, Plus, ChevronRight, BookOpen, Users, Copy,
+  Brain, Plus, ChevronRight, BookOpen, Users, Copy, Hexagon
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { useAuthStore } from '@/stores/auth'
 import { useTeam } from '@/hooks/useTeam'
 import { useTeamAthletes } from '@/hooks/useTeamAthletes'
@@ -33,14 +30,12 @@ export default function CoachDashboard() {
 
   const todaySession = sessions.find(s => s.date === today) ?? null
 
-  // Today's morning check-ins (compare using local dates, not UTC string prefix)
   const todayLogs = teamLogs.filter(
     l => l.log_type === 'morning' && localDateStr(new Date(l.created_at)) === today
   )
   const checkedInCount = todayLogs.length
   const totalAthletes = athletes.length
 
-  // Compute wellness averages from today's logs
   const avgSleep = todayLogs.length > 0
     ? (todayLogs.reduce((s, l) => s + (l.data as MorningLogData).sleep_hours, 0) / todayLogs.length).toFixed(1)
     : '—'
@@ -54,7 +49,6 @@ export default function CoachDashboard() {
     ? (todayLogs.reduce((s, l) => s + (l.data as MorningLogData).motivation, 0) / todayLogs.length).toFixed(1)
     : '—'
 
-  // Athlete check-in status
   const checkedInIds = todayLogs.map(l => l.athlete_id)
 
   const copyInviteCode = () => {
@@ -65,180 +59,193 @@ export default function CoachDashboard() {
   }
 
   return (
-    <div className="px-4 py-5 space-y-5 max-w-2xl mx-auto">
+    <div className="px-4 py-8 space-y-6 max-w-3xl mx-auto font-sans text-white">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">
-            Good morning, {user?.name?.split(' ')[0]} 👋
+          <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            <Hexagon className="h-5 w-5 text-gray-400" /> Greetings, Dir. {user?.name?.split(' ')[0]}
           </h1>
-          <p className="text-sm text-slate-500">{formatDate(today)} · {team?.name}</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
+            {formatDate(today)} · {team?.name}
+          </p>
         </div>
-        <Button size="sm" onClick={() => setShowCreate(true)} className="gap-1.5">
-          <Plus className="h-4 w-4" />
-          Session
-        </Button>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl px-4 py-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+        >
+          <Plus className="h-4 w-4" /> Initialize
+        </button>
       </div>
 
       {/* Red Flag Alerts */}
       {unreviewedAlerts.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-500" />
-            <h2 className="font-bold text-slate-900">Red Flags ({unreviewedAlerts.length})</h2>
+            <span className="flex h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+            <h2 className="text-xs font-bold uppercase tracking-widest text-red-400">Critical Alerts ({unreviewedAlerts.length})</h2>
           </div>
           {unreviewedAlerts.map((alert) => (
             <div
               key={alert.id}
               className={cn(
-                'rounded-2xl p-4 border-l-4 flex items-start gap-3 cursor-pointer',
-                alert.severity === 'high' ? 'bg-red-50 border-red-500' : 'bg-yellow-50 border-yellow-500'
+                'rounded-2xl p-4 border border-y-0 border-r-0 border-l-[4px] flex items-start gap-4 cursor-pointer hover:bg-white/5 transition-colors shadow-inner',
+                alert.severity === 'high' ? 'bg-red-950/20 border-l-red-500' : 'bg-yellow-950/20 border-l-yellow-500'
               )}
               onClick={() => navigate(`/coach/athlete/${alert.athlete_id}`)}
             >
               <div className={cn(
-                'rounded-full p-1.5 mt-0.5',
-                alert.severity === 'high' ? 'bg-red-100' : 'bg-yellow-100'
+                'rounded-full p-2 mt-0.5 border',
+                alert.severity === 'high' ? 'bg-red-900/40 border-red-500/30' : 'bg-yellow-900/40 border-yellow-500/30'
               )}>
-                {alert.type === 'soreness_streak' && <Activity className={cn('h-4 w-4', alert.severity === 'high' ? 'text-red-600' : 'text-yellow-600')} />}
-                {alert.type === 'low_sleep' && <Moon className="h-4 w-4 text-red-600" />}
-                {alert.type === 'exam_tomorrow' && <BookOpen className="h-4 w-4 text-yellow-600" />}
-                {alert.type === 'injury' && <AlertTriangle className="h-4 w-4 text-red-600" />}
+                {alert.type === 'soreness_streak' && <Activity className={cn('h-4 w-4', alert.severity === 'high' ? 'text-red-400' : 'text-yellow-400')} />}
+                {alert.type === 'low_sleep' && <Moon className="h-4 w-4 text-red-400" />}
+                {alert.type === 'exam_tomorrow' && <BookOpen className="h-4 w-4 text-yellow-400" />}
+                {alert.type === 'injury' && <AlertTriangle className="h-4 w-4 text-red-400" />}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900 text-sm">{alert.athlete?.name}</p>
-                <p className="text-sm text-slate-600">
+              <div className="flex-1 min-w-0 pt-0.5">
+                <p className="font-bold text-white text-sm tracking-wide">{alert.athlete?.name}</p>
+                <p className="text-xs text-gray-400 font-light mt-1 leading-relaxed">
                   {alert.type === 'soreness_streak' && `Soreness flagged ${(alert.data as {streak_days: number}).streak_days} days in a row (${(alert.data as {body_part: string}).body_part})`}
                   {alert.type === 'low_sleep' && `Slept ${(alert.data as {sleep_hours: number}).sleep_hours}h before today's ${(alert.data as {session_intensity: string}).session_intensity} session`}
                   {alert.type === 'exam_tomorrow' && `Exam tomorrow: ${(alert.data as {exam_subject: string}).exam_subject}`}
                   {alert.type === 'injury' && `Injury flagged`}
                 </p>
               </div>
-              <Badge variant={alert.severity === 'high' ? 'destructive' : 'warning'}>
+              <span className={cn(
+                'px-2 py-1 rounded text-[10px] uppercase font-black tracking-widest',
+                alert.severity === 'high' ? 'bg-red-500 text-white' : 'bg-yellow-500 text-black'
+              )}>
                 {alert.severity}
-              </Badge>
+              </span>
             </div>
           ))}
         </div>
       )}
 
-      {/* Today's Session */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Today's Session</CardTitle>
+      {/* Grid Layouts for smaller panels */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        {/* Today's Session */}
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400">Current Directive</h2>
             {todaySession && (
               <div className="flex gap-2">
-                <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-bold text-white', sessionTypeColor(todaySession.type))}>
+                 <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white', sessionTypeColor(todaySession.type))}>
                   {todaySession.type}
                 </span>
-                <span className={cn('px-2.5 py-0.5 rounded-full text-xs font-semibold', intensityColor(todaySession.intensity))}>
+                <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest', intensityColor(todaySession.intensity))}>
                   {todaySession.intensity}
                 </span>
               </div>
             )}
           </div>
-        </CardHeader>
-        <CardContent>
+          
           {todaySession ? (
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <p className="text-xs text-slate-500">Duration</p>
-                  <p className="font-bold text-slate-900">{todaySession.duration} min</p>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Duration</p>
+                  <p className="font-black text-xl text-white">{todaySession.duration}m</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3">
-                  <p className="text-xs text-slate-500">Target Split</p>
-                  <p className="font-bold text-slate-900">{todaySession.target_split ?? '—'}</p>
+                <div className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-1">Target Split</p>
+                  <p className="font-black text-xl text-white">{todaySession.target_split ?? '—'}</p>
                 </div>
               </div>
-              <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-xs text-slate-500 mb-1">Main Set</p>
-                <p className="text-sm text-slate-900 font-medium">{todaySession.main_set}</p>
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Main Sequence</p>
+                <p className="text-sm text-gray-200 font-light leading-relaxed">{todaySession.main_set}</p>
               </div>
-              <Button
-                variant="outline" size="sm" className="w-full"
+              <button
+                className="w-full mt-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl py-3 text-xs font-bold uppercase tracking-widest text-white transition-colors"
                 onClick={() => navigate(`/coach/session/${todaySession.id}`)}
               >
-                View Full Session
-              </Button>
+                Expand Details
+              </button>
             </div>
           ) : (
-            <div className="text-center py-4">
-              <p className="text-slate-500 text-sm mb-3">No session scheduled for today</p>
-              <Button size="sm" onClick={() => setShowCreate(true)}>
-                <Plus className="h-4 w-4 mr-1" /> Create Session
-              </Button>
+            <div className="text-center py-10 bg-black/20 rounded-2xl border border-white/5 shadow-inner">
+              <Hexagon className="h-8 w-8 text-white/20 mx-auto mb-3" />
+              <p className="text-gray-500 text-xs tracking-widest uppercase font-bold mb-4">No active protocol detected</p>
+              <button 
+                className="bg-white text-black text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                onClick={() => setShowCreate(true)}
+              >
+                Compile New Schema
+              </button>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Team Wellness Summary */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base">Team Wellness</CardTitle>
+        {/* Team Wellness Summary */}
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400">Fleet Telemetry</h2>
             {totalAthletes > 0 && (
-              <span className="text-sm text-slate-500">{checkedInCount}/{totalAthletes} checked in</span>
+              <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase bg-white/5 px-2 py-1 rounded-full border border-white/10">
+                {checkedInCount}/{totalAthletes} Active
+              </span>
             )}
           </div>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {totalAthletes === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-2">No check-ins yet — invite athletes to get started</p>
-          ) : (
-            <>
-              <div className="w-full bg-slate-100 rounded-full h-2">
-                <div
-                  className="bg-[#1e3a5f] h-2 rounded-full transition-all"
-                  style={{ width: `${(checkedInCount / totalAthletes) * 100}%` }}
-                />
-              </div>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { label: 'Sleep', value: avgSleep, icon: Moon, color: 'text-blue-600', bg: 'bg-blue-50' },
-                  { label: 'Energy', value: avgEnergy, icon: Zap, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-                  { label: 'Stress', value: avgStress, icon: Brain, color: 'text-purple-600', bg: 'bg-purple-50' },
-                  { label: 'Motivation', value: avgMotivation, icon: Activity, color: 'text-green-600', bg: 'bg-green-50' },
-                ].map(({ label, value, icon: Icon, color, bg }) => (
-                  <div key={label} className={cn('rounded-xl p-3 text-center', bg)}>
-                    <Icon className={cn('h-4 w-4 mx-auto mb-1', color)} />
-                    <p className={cn('text-lg font-black', color)}>{value}</p>
-                    <p className="text-xs text-slate-500">{label}</p>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+          
+          <div className="flex-1 flex flex-col justify-center">
+            {totalAthletes === 0 ? (
+              <p className="text-xs text-gray-500 text-center py-4 tracking-widest uppercase font-bold bg-black/20 rounded-2xl border border-white/5">No array registered</p>
+            ) : (
+              <>
+                <div className="w-full bg-white/10 rounded-full h-1.5 mb-6 overflow-hidden">
+                  <div
+                    className="bg-white h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(255,255,255,0.8)]"
+                    style={{ width: `${(checkedInCount / totalAthletes) * 100}%` }}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { label: 'Sleep', value: avgSleep, icon: Moon, color: 'text-blue-400', glow: 'shadow-[0_0_15px_rgba(96,165,250,0.15)]' },
+                    { label: 'Energy', value: avgEnergy, icon: Zap, color: 'text-yellow-400', glow: 'shadow-[0_0_15px_rgba(250,204,21,0.15)]' },
+                    { label: 'Stress', value: avgStress, icon: Brain, color: 'text-purple-400', glow: 'shadow-[0_0_15px_rgba(192,132,252,0.15)]' },
+                    { label: 'Drive', value: avgMotivation, icon: Activity, color: 'text-green-400', glow: 'shadow-[0_0_15px_rgba(74,222,128,0.15)]' },
+                  ].map(({ label, value, icon: Icon, color, glow }) => (
+                    <div key={label} className={cn('bg-black/40 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center', glow)}>
+                      <Icon className={cn('h-5 w-5 mb-2', color)} />
+                      <p className={cn('text-2xl font-black tracking-tight mb-1', color)}>{value}</p>
+                      <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">{label}</p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
 
       {/* Athlete Check-in Status */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Athlete Check-ins</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
+      <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Node Operations Center</h2>
+        
+        <div className="space-y-3">
           {athletes.length === 0 ? (
-            <div className="py-8 text-center space-y-4">
-              <Users className="h-10 w-10 mx-auto text-slate-300" />
+            <div className="py-8 text-center bg-black/20 rounded-2xl border border-white/5">
+              <Users className="h-8 w-8 mx-auto text-white/20 mb-3" />
               <div>
-                <p className="font-semibold text-slate-700">No athletes yet</p>
-                <p className="text-sm text-slate-500 mt-1">Share your team invite code to get started</p>
+                <p className="font-bold text-gray-300 text-sm uppercase tracking-widest">Array Empty</p>
+                <p className="text-xs text-gray-500 mt-1 font-light">Distribute network key to expand capacity.</p>
               </div>
               {team?.invite_code && (
-                <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 inline-block">
-                  <p className="text-xs text-slate-500 mb-0.5">Invite Code</p>
-                  <p className="text-xl font-black text-[#1e3a5f] tracking-wider">{team.invite_code}</p>
+                <div className="mt-6">
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Network Key</p>
+                  <p className="text-2xl font-black text-white tracking-widest mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{team.invite_code}</p>
+                  <button 
+                    onClick={copyInviteCode} 
+                    className="bg-white/10 hover:bg-white/20 text-white border border-white/20 uppercase tracking-widest text-xs font-bold px-4 py-2 rounded-xl transition-all inline-flex items-center gap-2"
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    {copied ? 'Copied Sequence' : 'Copy Sequence'}
+                  </button>
                 </div>
               )}
-              <div>
-                <Button variant="outline" size="sm" onClick={copyInviteCode} className="gap-1.5">
-                  <Copy className="h-3.5 w-3.5" />
-                  {copied ? 'Copied!' : 'Copy Code'}
-                </Button>
-              </div>
             </div>
           ) : (
             athletes.map((athlete) => {
@@ -250,42 +257,44 @@ export default function CoachDashboard() {
               return (
                 <div
                   key={athlete.id}
-                  className="flex items-center gap-3 py-2.5 px-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
+                  className="flex items-center gap-4 py-3 px-4 bg-black/40 border border-white/5 rounded-2xl hover:bg-white/10 cursor-pointer transition-all shadow-inner group"
                   onClick={() => navigate(`/coach/athlete/${athlete.id}`)}
                 >
-                  <div className="w-9 h-9 rounded-full bg-[#1e3a5f]/10 flex items-center justify-center text-sm font-bold text-[#1e3a5f] flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-xs font-black text-white flex-shrink-0 relative border border-white/20 group-hover:bg-white group-hover:text-black transition-colors">
                     {athlete.name.split(' ').map(n => n[0]).join('')}
+                    {hasAlert && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-black rounded-full shadow-[0_0_8px_rgba(239,68,68,0.8)]" />}
                   </div>
+                  
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-slate-900 text-sm">{athlete.name}</p>
+                    <p className="font-bold text-white text-sm tracking-wide">{athlete.name}</p>
                     {data && (
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-slate-500 flex items-center gap-1">
-                          <Moon className="h-3 w-3" /> {Number(data.sleep_hours).toFixed(1)}h
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 flex items-center gap-1">
+                          <Moon className="h-3 w-3 text-blue-400" /> {Number(data.sleep_hours).toFixed(1)}H
                         </span>
-                        <span className="text-xs text-slate-500 flex items-center gap-1">
-                          <Zap className="h-3 w-3" /> {data.energy}/5
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 flex items-center gap-1">
+                          <Zap className="h-3 w-3 text-yellow-400" /> Lvl {data.energy}
                         </span>
                         {data.has_soreness && (
-                          <span className="text-xs text-orange-600 font-medium">Soreness</span>
+                          <span className="text-[10px] text-red-400 uppercase font-black tracking-widest bg-red-950/40 px-1.5 py-0.5 rounded border border-red-500/30">Warn</span>
                         )}
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    {hasAlert && <div className="w-2 h-2 bg-red-500 rounded-full" />}
+                  
+                  <div className="flex items-center gap-3">
                     {checkedIn
-                      ? <CheckCircle2 className="h-5 w-5 text-green-500" />
-                      : <div className="w-5 h-5 rounded-full border-2 border-slate-300" />
+                      ? <CheckCircle2 className="h-5 w-5 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.4)]" />
+                      : <div className="w-5 h-5 rounded-full border-2 border-white/10" />
                     }
-                    <ChevronRight className="h-4 w-4 text-slate-300" />
+                    <ChevronRight className="h-4 w-4 text-gray-500 group-hover:text-white transition-colors" />
                   </div>
                 </div>
               )
             })
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <CreateSessionDialog open={showCreate} onClose={() => setShowCreate(false)} />
     </div>

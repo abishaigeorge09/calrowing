@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, Waves, Check } from 'lucide-react'
+import { ChevronLeft, Hexagon, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -9,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import { IS_SUPABASE, supabase } from '@/lib/db'
 import { MOCK_TEAM } from '@/lib/mock-data'
 import type { Profile } from '@/types/database'
+import { motion } from 'framer-motion'
 
 type Step = 'invite' | 'account' | 'profile' | 'academic'
 
@@ -30,12 +31,12 @@ export default function RegisterAthletePage() {
     injuries: '',
   })
 
+  // ... (keep standard logic unchanged)
   const handleInviteCheck = async (e: React.FormEvent) => {
     e.preventDefault()
     setInviteError('')
 
     if (!IS_SUPABASE) {
-      // Demo mode: accept CAL-ROW-2026 or any 6+ char code
       if (inviteCode.toUpperCase() === MOCK_TEAM.invite_code || inviteCode.length >= 6) {
         setResolvedTeamId(MOCK_TEAM.id)
         setResolvedTeamName(MOCK_TEAM.name)
@@ -46,7 +47,6 @@ export default function RegisterAthletePage() {
       return
     }
 
-    // Real Supabase: look up invite code
     const { data: team, error: teamError } = await supabase
       .from('teams')
       .select('id, name')
@@ -69,7 +69,6 @@ export default function RegisterAthletePage() {
     setError('')
 
     if (!IS_SUPABASE) {
-      // Demo mode: create local mock profile
       const profile: Profile = {
         id: `athlete-${Date.now()}`,
         email: form.email,
@@ -86,7 +85,6 @@ export default function RegisterAthletePage() {
     }
 
     try {
-      // 1. Create auth user (trigger auto-creates profile row)
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
@@ -97,7 +95,6 @@ export default function RegisterAthletePage() {
       if (signUpError) throw new Error(signUpError.message)
       if (!authData.user) throw new Error('Sign up failed — please try again.')
 
-      // Ensure active session before writing to DB (email confirmation may be enabled)
       if (!authData.session) {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email: form.email,
@@ -110,13 +107,11 @@ export default function RegisterAthletePage() {
 
       const uid = authData.user.id
 
-      // 2. Update profile with team_id (trigger created row, just needs team)
       await supabase
         .from('profiles')
         .update({ team_id: resolvedTeamId })
         .eq('id', uid)
 
-      // 3. Insert athlete row (id = user id — no separate user_id column)
       await supabase.from('athletes').insert({
         id: uid,
         year: form.year || null,
@@ -128,7 +123,6 @@ export default function RegisterAthletePage() {
         injuries_text: form.injuries || null,
       })
 
-      // 4. Insert academic schedule
       await supabase.from('academic_schedules').insert({
         athlete_id: uid,
         classes_per_day: parseInt(form.classes_per_day) || 3,
@@ -138,7 +132,6 @@ export default function RegisterAthletePage() {
           : [],
       })
 
-      // 5. Fetch profile and set in auth store
       const { data: profile } = await supabase
         .from('profiles')
         .select('*')
@@ -162,216 +155,239 @@ export default function RegisterAthletePage() {
     setForm({ ...form, hard_days: updated })
   }
 
+  // Custom UI components
+  const darkInputClasses = "bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-11"
+  const darkLabelClasses = "text-[10px] uppercase tracking-widest text-gray-400 font-bold"
+
   return (
-    <div className="min-h-dvh bg-gradient-to-br from-[#0f2d52] to-[#1e3a5f] flex flex-col">
-      <div className="flex items-center gap-3 px-6 pt-12 pb-6">
-        <Link to="/login" className="text-white/70 hover:text-white">
-          <ChevronLeft className="h-6 w-6" />
-        </Link>
-        <div className="flex items-center gap-2">
-          <Waves className="h-6 w-6 text-white" />
-          <span className="text-xl font-black text-white">RowIQ</span>
+    <div className="relative min-h-dvh bg-black flex flex-col font-sans text-white overflow-hidden">
+      {/* Background ambient light */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-white/5 blur-[120px] rounded-full mix-blend-screen" />
+        <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-white/5 blur-[150px] rounded-full mix-blend-screen" />
+      </div>
+
+      <div className="relative z-10 flex-1 flex flex-col">
+        <div className="flex items-center gap-3 px-6 pt-12 pb-6 border-b border-white/5 bg-black/40 backdrop-blur-xl">
+          <Link to="/login" className="text-gray-400 hover:text-white transition-colors bg-white/5 p-2 rounded-xl">
+            <ChevronLeft className="h-5 w-5" />
+          </Link>
+          <div className="flex items-center gap-2">
+            <Hexagon className="h-6 w-6 text-white" strokeWidth={1.5} />
+            <span className="text-xl font-black text-white uppercase tracking-widest">RowIQ</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-6 pt-8 pb-12 w-full max-w-xl mx-auto">
+          {/* Progress bar */}
+          <div className="flex gap-2 mb-8">
+            {(['invite', 'account', 'profile', 'academic'] as Step[]).map((s, i) => {
+              const stepIdx = ['invite', 'account', 'profile', 'academic'].indexOf(step)
+              const isActive = i <= stepIdx
+              return (
+                <div key={s} className={`flex-1 h-1 rounded-full transition-all duration-500 ${isActive ? 'bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]' : 'bg-white/10'}`} />
+              )
+            })}
+          </div>
+
+          <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            {step === 'invite' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Join Synchronization</h1>
+                <p className="text-gray-400 text-sm mb-8 font-light text-center">Verify operational node via invite code</p>
+                
+                <form onSubmit={handleInviteCheck} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label className={darkLabelClasses}>Access Identifier Code</Label>
+                    <Input
+                      placeholder="e.g. CAL-ROW-2026"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                      className={`${darkInputClasses} text-center tracking-[0.2em] font-mono text-xl uppercase h-14`}
+                      required
+                    />
+                    {inviteError && <p className="text-red-400 text-xs text-center mt-2">{inviteError}</p>}
+                    {!IS_SUPABASE && (
+                      <p className="text-gray-500 text-xs text-center mt-2">Simulation bypass: <strong className="text-white">CAL-ROW-2026</strong></p>
+                    )}
+                  </div>
+                  <Button type="submit" size="lg" className="w-full bg-white text-black hover:bg-gray-200 uppercase tracking-widest font-bold mt-4 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+                    Verify Link
+                  </Button>
+                </form>
+              </motion.div>
+            )}
+
+            {step === 'account' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Establish Identity</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">
+                  Aligning with array: <strong className="text-white bg-white/10 px-2 py-0.5 rounded ml-1">{resolvedTeamName || MOCK_TEAM.name}</strong>
+                </p>
+                <form onSubmit={(e) => { e.preventDefault(); setStep('profile') }} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Operative Designation (Name)</Label>
+                    <Input placeholder="Alex Chen" value={form.name} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Communication Link (Email)</Label>
+                    <Input type="email" placeholder="alex@berkeley.edu" value={form.email} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Security Cipher (Password)</Label>
+                    <Input type="password" placeholder="Min 8 characters" value={form.password} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, password: e.target.value })} minLength={8} required />
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('invite')}>Abort</Button>
+                    <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]">Proceed</Button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+
+            {step === 'profile' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Biometric Alignment</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Define physiological parameters</p>
+                <form onSubmit={(e) => { e.preventDefault(); setStep('academic') }} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className={darkLabelClasses}>Class Year</Label>
+                      <Select value={form.year} onValueChange={(v) => setForm({ ...form, year: v })}>
+                        <SelectTrigger className={darkInputClasses}><SelectValue placeholder="Year" /></SelectTrigger>
+                        <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
+                          {['Freshman', 'Sophomore', 'Junior', 'Senior'].map(y => (
+                            <SelectItem key={y} value={y} className="focus:bg-white/10">{y}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={darkLabelClasses}>Vessel Class</Label>
+                      <Select value={form.boat_class} onValueChange={(v) => setForm({ ...form, boat_class: v })}>
+                        <SelectTrigger className={darkInputClasses}><SelectValue placeholder="Boat" /></SelectTrigger>
+                        <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
+                          {['Varsity 8', 'JV 8', 'Lightweight', 'Single', 'Double', 'Four'].map(b => (
+                            <SelectItem key={b} value={b} className="focus:bg-white/10">{b}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Vector Position (Seat)</Label>
+                    <Select value={form.seat_position} onValueChange={(v) => setForm({ ...form, seat_position: v })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue placeholder="Assignment" /></SelectTrigger>
+                      <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
+                        {['Stroke', '2-seat', '3-seat', '4-seat', '5-seat', '6-seat', '7-seat', 'Bow', 'Cox'].map(s => (
+                          <SelectItem key={s} value={s} className="focus:bg-white/10">{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className={darkLabelClasses}>Y-Axis (cm)</Label>
+                      <Input type="number" placeholder="190" value={form.height} className={darkInputClasses}
+                        onChange={(e) => setForm({ ...form, height: e.target.value })} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className={darkLabelClasses}>Mass (kg)</Label>
+                      <Input type="number" placeholder="85" value={form.weight} className={darkInputClasses}
+                        onChange={(e) => setForm({ ...form, weight: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Regeneration Goal (HRS)</Label>
+                    <Select value={form.sleep_goal} onValueChange={(v) => setForm({ ...form, sleep_goal: v })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
+                        {['6', '7', '7.5', '8', '8.5', '9'].map(h => (
+                          <SelectItem key={h} value={h} className="focus:bg-white/10">{h} hours</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Hardware Damage (Injuries)</Label>
+                    <Input placeholder="e.g. L4-L5 disc" value={form.injuries} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, injuries: e.target.value })} />
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('account')}>Abort</Button>
+                    <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]">Proceed</Button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+
+            {step === 'academic' && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">External Load</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Input academic strain metrics</p>
+                <form onSubmit={handleFinish} className="space-y-6">
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Daily Cognitive Load (Classes/Day)</Label>
+                    <Select value={form.classes_per_day} onValueChange={(v) => setForm({ ...form, classes_per_day: v })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
+                        {['1', '2', '3', '4', '5'].map(n => (
+                          <SelectItem key={n} value={n} className="focus:bg-white/10">{n} {n === '1' ? 'unit' : 'units'}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className={darkLabelClasses}>High Strain Cycles (Select Days)</Label>
+                    <div className="flex gap-2 flex-wrap justify-center">
+                      {days.map(day => {
+                        const isSelected = form.hard_days.includes(day)
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(day)}
+                            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${
+                              isSelected
+                                ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.5)]'
+                                : 'bg-black/50 text-gray-500 border-white/10 hover:border-white/30 hover:text-white'
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className={darkLabelClasses}>Critical Evaluation Windows (Exams)</Label>
+                    <Input placeholder="e.g. October 10-14" value={form.exam_weeks} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, exam_weeks: e.target.value })} />
+                  </div>
+
+                  {error && (
+                    <div className="bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-red-200 text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-4">
+                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('profile')}>Abort</Button>
+                    <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]" disabled={loading}>
+                      {loading ? 'Initializing…' : <><Check className="h-4 w-4 mr-2" /> Finalize Link</>}
+                    </Button>
+                  </div>
+                </form>
+              </motion.div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 bg-white rounded-t-3xl px-6 pt-8 pb-8 overflow-y-auto">
-        {/* Progress bar */}
-        <div className="flex gap-2 mb-6">
-          {(['invite', 'account', 'profile', 'academic'] as Step[]).map((s, i) => {
-            const stepIdx = ['invite', 'account', 'profile', 'academic'].indexOf(step)
-            return (
-              <div key={s} className={`flex-1 h-1.5 rounded-full transition-colors ${i <= stepIdx ? 'bg-[#1e3a5f]' : 'bg-slate-200'}`} />
-            )
-          })}
-        </div>
-
-        {step === 'invite' && (
-          <>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Join Your Team</h1>
-            <p className="text-slate-500 text-sm mb-6">Enter the invite code from your coach</p>
-            <form onSubmit={handleInviteCheck} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label>Team Invite Code</Label>
-                <Input
-                  placeholder="e.g. CAL-ROW-2026"
-                  value={inviteCode}
-                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  className="uppercase tracking-widest text-lg font-mono text-center"
-                  required
-                />
-                {inviteError && <p className="text-red-600 text-sm">{inviteError}</p>}
-                {!IS_SUPABASE && (
-                  <p className="text-slate-400 text-xs">Demo: use <strong>CAL-ROW-2026</strong></p>
-                )}
-              </div>
-              <Button type="submit" size="lg" className="w-full">Verify Code</Button>
-            </form>
-          </>
-        )}
-
-        {step === 'account' && (
-          <>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Create Your Account</h1>
-            <p className="text-slate-500 text-sm mb-2">
-              Joining: <strong className="text-[#1e3a5f]">{resolvedTeamName || MOCK_TEAM.name}</strong>
-            </p>
-            <form onSubmit={(e) => { e.preventDefault(); setStep('profile') }} className="space-y-4 mt-4">
-              <div className="space-y-1.5">
-                <Label>Full Name</Label>
-                <Input placeholder="Alex Chen" value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Email</Label>
-                <Input type="email" placeholder="alex@berkeley.edu" value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Password</Label>
-                <Input type="password" placeholder="Min 8 characters" value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })} minLength={8} required />
-              </div>
-              <div className="flex gap-3">
-                <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => setStep('invite')}>Back</Button>
-                <Button type="submit" size="lg" className="flex-1">Continue</Button>
-              </div>
-            </form>
-          </>
-        )}
-
-        {step === 'profile' && (
-          <>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Athlete Profile</h1>
-            <p className="text-slate-500 text-sm mb-4">Tell us about you as a rower</p>
-            <form onSubmit={(e) => { e.preventDefault(); setStep('academic') }} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Year</Label>
-                  <Select value={form.year} onValueChange={(v) => setForm({ ...form, year: v })}>
-                    <SelectTrigger><SelectValue placeholder="Year" /></SelectTrigger>
-                    <SelectContent>
-                      {['Freshman', 'Sophomore', 'Junior', 'Senior'].map(y => (
-                        <SelectItem key={y} value={y}>{y}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Boat Class</Label>
-                  <Select value={form.boat_class} onValueChange={(v) => setForm({ ...form, boat_class: v })}>
-                    <SelectTrigger><SelectValue placeholder="Boat" /></SelectTrigger>
-                    <SelectContent>
-                      {['Varsity 8', 'JV 8', 'Lightweight', 'Single', 'Double', 'Four'].map(b => (
-                        <SelectItem key={b} value={b}>{b}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Seat Position</Label>
-                <Select value={form.seat_position} onValueChange={(v) => setForm({ ...form, seat_position: v })}>
-                  <SelectTrigger><SelectValue placeholder="Seat position" /></SelectTrigger>
-                  <SelectContent>
-                    {['Stroke', '2-seat', '3-seat', '4-seat', '5-seat', '6-seat', '7-seat', 'Bow', 'Cox'].map(s => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Height (cm)</Label>
-                  <Input type="number" placeholder="190" value={form.height}
-                    onChange={(e) => setForm({ ...form, height: e.target.value })} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Weight (kg)</Label>
-                  <Input type="number" placeholder="85" value={form.weight}
-                    onChange={(e) => setForm({ ...form, weight: e.target.value })} />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Sleep Goal (hours/night)</Label>
-                <Select value={form.sleep_goal} onValueChange={(v) => setForm({ ...form, sleep_goal: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {['6', '7', '7.5', '8', '8.5', '9'].map(h => (
-                      <SelectItem key={h} value={h}>{h} hours</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Known Injuries / Limitations (optional)</Label>
-                <Input placeholder="e.g. chronic lower back" value={form.injuries}
-                  onChange={(e) => setForm({ ...form, injuries: e.target.value })} />
-              </div>
-              <div className="flex gap-3">
-                <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => setStep('account')}>Back</Button>
-                <Button type="submit" size="lg" className="flex-1">Continue</Button>
-              </div>
-            </form>
-          </>
-        )}
-
-        {step === 'academic' && (
-          <>
-            <h1 className="text-2xl font-bold text-slate-900 mb-1">Academic Schedule</h1>
-            <p className="text-slate-500 text-sm mb-4">Help your coach understand your academic load</p>
-            <form onSubmit={handleFinish} className="space-y-5">
-              <div className="space-y-1.5">
-                <Label>Classes per day (average)</Label>
-                <Select value={form.classes_per_day} onValueChange={(v) => setForm({ ...form, classes_per_day: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {['1', '2', '3', '4', '5'].map(n => (
-                      <SelectItem key={n} value={n}>{n} {n === '1' ? 'class' : 'classes'}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Hard academic days (select all that apply)</Label>
-                <div className="flex gap-2 flex-wrap">
-                  {days.map(day => (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => toggleDay(day)}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium border-2 transition-all ${
-                        form.hard_days.includes(day)
-                          ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
-                          : 'bg-white text-slate-600 border-slate-200'
-                      }`}
-                    >
-                      {day}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Upcoming exam weeks (optional)</Label>
-                <Input placeholder="e.g. March 15-19 (Midterms)" value={form.exam_weeks}
-                  onChange={(e) => setForm({ ...form, exam_weeks: e.target.value })} />
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
-                  {error}
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <Button type="button" variant="outline" size="lg" className="flex-1" onClick={() => setStep('profile')}>Back</Button>
-                <Button type="submit" size="lg" className="flex-1" disabled={loading}>
-                  {loading ? 'Joining…' : <><Check className="h-4 w-4" /> Join Team</>}
-                </Button>
-              </div>
-            </form>
-          </>
-        )}
-      </div>
+      {/* Basic motion div substitute since framer-motion might complain without wrapper if not imported properly. */}
     </div>
   )
 }

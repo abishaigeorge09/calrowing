@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronLeft, AlertTriangle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/stores/auth'
 import { useTeam } from '@/hooks/useTeam'
 import { useLogInjury } from '@/hooks/mutations'
+import { cn } from '@/lib/utils'
 
 const BODY_PARTS = [
   'Head / Concussion', 'Neck', 'Shoulder (Left)', 'Shoulder (Right)',
@@ -56,70 +55,98 @@ export default function InjuryFlagPage() {
 
   if (submitted) {
     return (
-      <div className="px-4 py-5 max-w-lg mx-auto text-center">
-        <div className="bg-red-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4 mt-10">
-          <AlertTriangle className="h-10 w-10 text-red-500" />
+      <div className="px-4 py-8 max-w-2xl mx-auto font-sans text-center text-white h-[calc(100vh-80px)] flex flex-col items-center justify-center">
+        <div className="relative mb-8">
+          <div className="absolute inset-0 bg-red-500/30 blur-[40px] rounded-full" />
+          <div className="relative bg-red-950/40 border-2 border-red-500/50 rounded-full w-24 h-24 flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(239,68,68,0.5)_inset]">
+            <AlertTriangle className="h-10 w-10 text-red-500 drop-shadow-[0_0_10px_currentColor]" />
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">Coach Notified</h1>
-        <p className="text-slate-500 mb-2">
-          Your injury flag has been sent to your coach immediately.
+        
+        <h1 className="text-3xl font-black text-white uppercase tracking-widest mb-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Alert Transmitted</h1>
+        <p className="text-gray-400 text-sm font-bold uppercase tracking-widest leading-relaxed mb-8 max-w-xs">
+          Hardware damage report sent directly to director node.
         </p>
-        <div className="bg-slate-50 rounded-2xl p-4 text-left space-y-2 my-6">
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Body Part</span>
-            <span className="font-bold">{bodyPart}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-slate-500">Severity</span>
-            <span className={`font-bold ${severity === 'Severe' ? 'text-red-600' : severity === 'Moderate' ? 'text-orange-600' : 'text-yellow-600'}`}>
-              {severity}
-            </span>
-          </div>
-          {description && (
-            <div className="text-sm">
-              <span className="text-slate-500">Note: </span>
-              <span>{description}</span>
+        
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 w-full max-w-sm text-left shadow-[0_0_30px_rgba(0,0,0,0.5)] mb-8">
+          <div className="space-y-4">
+             <div className="flex flex-col border-b border-white/5 pb-3">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Target Component</span>
+              <span className="font-black text-white text-lg tracking-wide">{bodyPart}</span>
             </div>
-          )}
+            <div className="flex flex-col border-b border-white/5 pb-3">
+              <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Severity Level</span>
+              <span className={cn(
+                'font-black text-lg tracking-wide',
+                severity === 'Severe' ? 'text-red-500 drop-shadow-[0_0_5px_currentColor]' : 
+                severity === 'Moderate' ? 'text-orange-500 drop-shadow-[0_0_5px_currentColor]' : 
+                'text-yellow-500 drop-shadow-[0_0_5px_currentColor]'
+              )}>
+                {severity}
+              </span>
+            </div>
+             {description && (
+              <div className="flex flex-col pt-1">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-1">Diagnostic Note</span>
+                <span className="text-gray-300 text-sm leading-relaxed">{description}</span>
+              </div>
+            )}
+          </div>
         </div>
-        <Button size="lg" className="w-full" onClick={() => navigate('/athlete')}>
-          Back to Today
-        </Button>
+        
+        <button 
+          className="bg-white text-black hover:bg-gray-200 text-xs font-bold uppercase tracking-widest px-8 py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] w-full max-w-sm"
+          onClick={() => navigate('/athlete')}
+        >
+          Return to Hub
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="px-4 py-5 max-w-lg mx-auto">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-xl hover:bg-slate-100">
-          <ChevronLeft className="h-5 w-5 text-slate-600" />
+    <div className="px-4 py-8 space-y-6 max-w-2xl mx-auto font-sans text-white">
+      {/* Header */}
+      <div className="flex items-center gap-4 pb-4 border-b border-white/10">
+        <button onClick={() => navigate(-1)} className="p-2 border border-white/10 rounded-xl bg-white/5 hover:bg-white/20 text-white transition-colors shadow-[0_0_15px_rgba(255,255,255,0.05)]">
+          <ChevronLeft className="h-5 w-5" />
         </button>
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Flag an Injury</h1>
-          <p className="text-sm text-slate-500">Your coach will be notified immediately</p>
+        <div className="flex-1">
+           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            Flag Hardware Damage
+          </h1>
+          <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mt-1">
+            Director receives immediate alert
+          </p>
         </div>
       </div>
 
-      <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
-        <AlertTriangle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-        <p className="text-red-700 text-sm">
-          This sends an immediate alert to your coach. Use this for pain or injury during or after training.
-        </p>
+       {/* Warning Banner */}
+       <div className="bg-red-950/20 border border-red-500/30 rounded-3xl p-5 flex items-start gap-4 shadow-inner relative overflow-hidden">
+        <div className="absolute top-1/2 -right-4 -translate-y-1/2 w-32 h-32 bg-red-500/20 blur-[30px] rounded-full pointer-events-none" />
+        <AlertTriangle className="h-6 w-6 text-red-500 flex-shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
+        <div className="relative z-10 w-full pr-4">
+           <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-1">Critical Transmission</p>
+           <p className="text-sm font-medium text-red-200/80 leading-relaxed">
+            This bypasses regular protocol to alert the director node of pain or injury instantly.
+          </p>
+        </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-3">
-          <Label>Where does it hurt?</Label>
+      <form onSubmit={handleSubmit} className="space-y-8 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
+        
+        <div className="space-y-4">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block border-b border-white/5 pb-2">Identify Affected Component</label>
           <div className="flex flex-wrap gap-2">
             {BODY_PARTS.map(part => (
               <button key={part} type="button"
                 onClick={() => setBodyPart(part)}
-                className={`px-3 py-2 rounded-xl text-sm font-medium border-2 transition-all ${
+                className={cn(
+                  'px-4 py-2.5 rounded-xl text-[10px] uppercase font-bold tracking-widest transition-all',
                   bodyPart === part
-                    ? 'bg-red-500 text-white border-red-500'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-red-300'
-                }`}
+                    ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-400'
+                    : 'bg-black/40 text-gray-400 border border-white/5 hover:border-white/20 hover:text-white'
+                )}
               >
                 {part}
               </button>
@@ -127,54 +154,64 @@ export default function InjuryFlagPage() {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <Label>Severity</Label>
-          <div className="grid grid-cols-3 gap-3">
-            {(['Mild', 'Moderate', 'Severe'] as const).map(s => (
-              <button key={s} type="button"
-                onClick={() => setSeverity(s)}
-                className={`py-4 rounded-2xl border-2 font-bold transition-all ${
-                  severity === s
-                    ? s === 'Severe' ? 'bg-red-600 text-white border-red-600'
-                    : s === 'Moderate' ? 'bg-orange-500 text-white border-orange-500'
-                    : 'bg-yellow-500 text-white border-yellow-500'
-                    : 'bg-white text-slate-600 border-slate-200'
-                }`}
-              >
-                {s === 'Mild' ? '😐' : s === 'Moderate' ? '😣' : '😰'}<br />
-                {s}
-              </button>
-            ))}
+        <div className="space-y-4">
+           <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block border-b border-white/5 pb-2">Damage Severity</label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {(['Mild', 'Moderate', 'Severe'] as const).map(s => {
+               const isActive = severity === s
+               const baseColor = s === 'Severe' ? 'red' : s === 'Moderate' ? 'orange' : 'yellow'
+               return (
+                <button key={s} type="button"
+                  onClick={() => setSeverity(s)}
+                  className={cn(
+                    'py-5 rounded-2xl border font-black uppercase tracking-widest transition-all flex flex-col items-center gap-2 group',
+                    isActive
+                      ? `bg-${baseColor}-500/20 text-${baseColor}-400 border-${baseColor}-500 shadow-[0_0_20px_rgba(var(--${baseColor}-rgb),0.3)_inset]`
+                      : 'bg-black/40 text-gray-500 border-white/5 hover:border-white/20 hover:text-white'
+                  )}
+                >
+                  <span className={cn(
+                    'text-2xl drop-shadow-md transition-transform group-hover:scale-110', 
+                    isActive && 'scale-110 grayscale-0',
+                    !isActive && 'grayscale opacity-50'
+                  )}>
+                    {s === 'Mild' ? '😐' : s === 'Moderate' ? '😣' : '😰'}
+                  </span>
+                  <span className="text-xs">{s}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>Description (optional)</Label>
+        <div className="space-y-4">
+          <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 block border-b border-white/5 pb-2">Diagnostic Log (Optional)</label>
           <textarea
-            className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#1e3a5f] transition-colors"
-            rows={3}
-            placeholder="Describe the pain — sharp, dull, when did it start..."
+            className="w-full bg-black/50 border border-white/10 text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-white focus:bg-white/5 transition-all shadow-inner resize-none min-h-[100px]"
+            placeholder="Describe the anomalies..."
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
         </div>
 
-        <Button
+        <button
           type="submit"
-          size="lg"
-          variant="destructive"
-          className="w-full"
           disabled={!bodyPart || !severity || submitting}
+          className={cn(
+            'w-full py-4 rounded-xl text-xs font-bold uppercase tracking-widest flex justify-center items-center gap-2 transition-all',
+            !bodyPart || !severity || submitting ? 'bg-white/5 text-white/30 border border-white/5 cursor-not-allowed' : 
+            'bg-red-500 text-white shadow-[0_0_20px_rgba(239,68,68,0.5)] hover:bg-red-400 border border-red-400'
+          )}
         >
           {submitting ? (
-            'Sending alert…'
+            'Transmitting Data...'
           ) : (
             <>
-              <AlertTriangle className="h-4 w-4 mr-2" />
-              Send Alert to Coach
+              <AlertTriangle className={cn("h-4 w-4", !bodyPart || !severity ? 'opacity-30' : '')} />
+              Transmit Alert to Director
             </>
           )}
-        </Button>
+        </button>
       </form>
     </div>
   )

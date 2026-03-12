@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { CheckCircle2, X, AlertTriangle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { CheckCircle2, X, AlertTriangle, Hexagon } from 'lucide-react'
 import { TapRating, Slider } from '@/components/ui/slider'
-import { Label } from '@/components/ui/label'
 import { useSubmitWellnessLog } from '@/hooks/mutations'
 import type { Session } from '@/types/database'
+import { cn } from '@/lib/utils'
 
 interface Props {
   session: Session
@@ -41,12 +40,12 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
   })
 
   const steps = [
-    { title: 'Session Completion', emoji: '🏁' },
-    { title: 'Effort & Fatigue', emoji: '💪' },
-    { title: 'Pain Check', emoji: '🩺' },
-    { title: 'Performance', emoji: '🎯' },
-    { title: 'Recovery', emoji: '🔋' },
-    { title: 'Done!', emoji: '✅' },
+    { title: 'Status', emoji: '🏁' },
+    { title: 'Metrics', emoji: '⚙️' },
+    { title: 'Damage', emoji: '⚠️' },
+    { title: 'Target', emoji: '🎯' },
+    { title: 'Regen', emoji: '🔋' },
+    { title: 'Transmitted', emoji: '✅' },
   ]
 
   const handleSubmit = async () => {
@@ -83,293 +82,389 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
   const back = () => setStep(s => Math.max(s - 1, 0))
 
   const rpeColors = [
-    '', '#22c55e', '#4ade80', '#86efac', '#fde047', '#fbbf24',
-    '#fb923c', '#f97316', '#ef4444', '#dc2626', '#991b1b',
+    '', '#4ade80', '#86efac', '#fde047', '#facc15', '#eab308',
+    '#f97316', '#ea580c', '#ef4444', '#dc2626', '#b91c1c',
   ]
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex flex-col justify-end">
-      <div className="bg-white rounded-t-3xl px-6 pt-6 pb-8 max-h-[92dvh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end">
+      <div className="bg-black/95 border-t border-white/10 w-full rounded-t-[2.5rem] px-6 pt-8 pb-10 safe-bottom max-h-[92dvh] overflow-y-auto shadow-[0_-20px_50px_rgba(0,0,0,0.8)] relative">
+        <div className="absolute top-0 left-3/4 -translate-y-1/2 w-32 h-32 bg-yellow-500/20 blur-[50px] rounded-full pointer-events-none" />
+
         {/* Header */}
-        <div className="flex items-center justify-between mb-5">
+         <div className="flex items-center justify-between mb-6 relative z-10 w-full max-w-sm mx-auto">
           <div>
-            <p className="text-xs text-slate-500 uppercase tracking-wide">Post-Session Check-in</p>
-            <h2 className="text-xl font-bold">{steps[step].emoji} {steps[step].title}</h2>
+            <p className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-1">Post-Cycle Telemetry</p>
+             <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-3 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
+              {step !== steps.length - 1 ? (
+                <>
+                  <span className="bg-white/10 p-2 rounded-xl border border-white/20 shadow-inner text-lg leading-none">
+                    {steps[step].emoji}
+                  </span>
+                  {steps[step].title}
+                </>
+              ) : 'End Transmission'}
+            </h2>
           </div>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-slate-100">
-            <X className="h-5 w-5 text-slate-500" />
+          <button onClick={onClose} className="p-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/20 text-white transition-colors shadow-inner">
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Progress */}
-        <div className="flex gap-1.5 mb-6">
+        {/* Progress bar */}
+         <div className="w-full max-w-sm mx-auto bg-white/10 rounded-full h-1.5 mb-8 relative z-10 overflow-hidden shadow-inner border border-white/5 flex gap-1">
           {steps.map((_, i) => (
-            <div key={i} className={`flex-1 h-1.5 rounded-full transition-colors ${i <= step ? 'bg-[#1e3a5f]' : 'bg-slate-200'}`} />
+             <div key={i} className={cn(
+              'h-full rounded-full transition-all',
+              i <= step ? 'bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.8)]' : 'bg-transparent',
+              i === steps.length - 1 ? 'flex-0' : 'flex-1' // hide last tick unless completed
+            )} />
           ))}
         </div>
 
-        {step === 0 && (
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <Label>How did it go?</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { value: 'full', label: 'Completed', emoji: '✅' },
-                  { value: 'partial', label: 'Partial', emoji: '⚠️' },
-                  { value: 'dnf', label: 'Did Not Complete', emoji: '❌' },
-                ] as const).map(opt => (
-                  <button key={opt.value} type="button"
-                    onClick={() => setForm({ ...form, completion: opt.value })}
-                    className={`py-3 px-2 rounded-xl border-2 transition-all text-center ${
-                      form.completion === opt.value
-                        ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
-                        : 'bg-white text-slate-600 border-slate-200'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">{opt.emoji}</div>
-                    <div className="text-xs font-semibold">{opt.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            {(form.completion === 'partial' || form.completion === 'dnf') && (
-              <div className="space-y-2">
-                <Label>Reason</Label>
-                <div className="flex flex-wrap gap-2">
-                  {['Injury', 'Fatigue', 'Time', 'Illness', 'Other'].map(r => (
-                    <button key={r} type="button"
-                      onClick={() => setForm({ ...form, dnf_reason: r })}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium border-2 ${
-                        form.dnf_reason === r ? 'bg-red-500 text-white border-red-500' : 'bg-white border-slate-200'
-                      }`}
+        <div className="relative z-10 w-full max-w-sm mx-auto min-h-[50vh] flex flex-col pt-2">
+          {step === 0 && (
+            <div className="space-y-6 flex-1">
+              <div className="space-y-4">
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-4 flex"><Hexagon className="w-3.5 h-3.5"/>Cycle Completion Status</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {([
+                    { value: 'full', label: '100% Exec', emoji: '✅', color: 'green' },
+                    { value: 'partial', label: 'Partial', emoji: '⚠️', color: 'yellow' },
+                    { value: 'dnf', label: 'Abort', emoji: '❌', color: 'red' },
+                  ] as const).map(opt => (
+                    <button key={opt.value} type="button"
+                      onClick={() => setForm({ ...form, completion: opt.value })}
+                      className={cn(
+                        'py-5 px-3 rounded-2xl border transition-all text-center flex flex-col items-center gap-2',
+                        form.completion === opt.value
+                           ? `bg-${opt.color}-500/20 text-${opt.color}-400 border-${opt.color}-500 shadow-[0_0_15px_rgba(var(--${opt.color}-rgb),0.3)_inset]`
+                          : 'bg-black/40 text-gray-500 border-white/5 hover:border-white/20 hover:text-white'
+                      )}
                     >
-                      {r}
+                      <div className={cn(
+                        "text-2xl drop-shadow-md",
+                        form.completion !== opt.value && "grayscale opacity-50"
+                      )}>{opt.emoji}</div>
+                      <div className="text-[10px] uppercase font-black tracking-widest">{opt.label}</div>
                     </button>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        )}
 
-        {step === 1 && (
-          <div className="space-y-6">
-            {/* RPE */}
-            <div className="space-y-3">
-              <Label>RPE (Rate of Perceived Exertion)</Label>
-              <div className="text-center mb-2">
-                <span className="text-6xl font-black" style={{ color: rpeColors[form.rpe] }}>{form.rpe}</span>
-                <span className="text-slate-500">/10</span>
-                <p className="text-sm text-slate-500 mt-1">
-                  {form.rpe <= 3 ? 'Very easy' : form.rpe <= 5 ? 'Moderate' : form.rpe <= 7 ? 'Hard' : form.rpe <= 9 ? 'Very hard' : 'Max effort'}
-                </p>
-              </div>
-              <Slider min={1} max={10} value={form.rpe} onChange={v => setForm({ ...form, rpe: v })} showValue={false} />
-              <div className="flex justify-between text-xs text-slate-400">
-                <span>1 (Easy)</span><span>5 (Moderate)</span><span>10 (Max)</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Label>Legs fatigue</Label>
-              <TapRating min={1} max={5} value={form.legs_fatigue}
-                onChange={v => setForm({ ...form, legs_fatigue: v })}
-                labels={['Fresh', 'Light', 'Normal', 'Heavy', 'Dead']} />
-            </div>
-            <div className="space-y-3">
-              <Label>Back & Core fatigue</Label>
-              <TapRating min={1} max={5} value={form.back_core_fatigue}
-                onChange={v => setForm({ ...form, back_core_fatigue: v })}
-                labels={['Fresh', 'Light', 'Normal', 'Heavy', 'Spent']} />
-            </div>
-            <div className="space-y-3">
-              <Label>Breathing difficulty</Label>
-              <TapRating min={1} max={5} value={form.breathing_difficulty}
-                onChange={v => setForm({ ...form, breathing_difficulty: v })}
-                labels={['Easy', 'Light', 'Normal', 'Hard', 'Max']} />
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <Label>Any pain during the session?</Label>
-              <div className="flex gap-3">
-                {(['No', 'Yes'] as const).map(opt => (
-                  <button key={opt} type="button"
-                    onClick={() => setForm({ ...form, has_pain: opt === 'Yes' })}
-                    className={`flex-1 py-3 rounded-xl font-bold border-2 transition-all ${
-                      form.has_pain === (opt === 'Yes')
-                        ? opt === 'Yes' ? 'bg-red-500 text-white border-red-500' : 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
-                        : 'bg-white text-slate-600 border-slate-200'
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {form.has_pain && (
-              <>
-                <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2">
-                  <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                  <p className="text-red-700 text-sm">Your coach will be notified immediately.</p>
-                </div>
-                <div className="space-y-2">
-                  <Label>Where?</Label>
+               {(form.completion === 'partial' || form.completion === 'dnf') && (
+                <div className="space-y-4 pt-4 border-t border-white/5">
+                   <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Abort Reason</p>
                   <div className="flex flex-wrap gap-2">
-                    {BODY_PARTS.map(part => (
-                      <button key={part} type="button"
-                        onClick={() => setForm({ ...form, pain_body_part: part })}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium border-2 ${
-                          form.pain_body_part === part ? 'bg-red-500 text-white border-red-500' : 'bg-white border-slate-200'
-                        }`}
+                    {['Dmg/Pain', 'Sys Limit', 'Time Sync', 'Viral Payload', 'Other'].map(r => (
+                      <button key={r} type="button"
+                        onClick={() => setForm({ ...form, dnf_reason: r })}
+                        className={cn(
+                          'px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all',
+                          form.dnf_reason === r ? 'bg-red-500 text-white border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)]' : 'bg-black/40 text-gray-400 border-white/5 hover:border-white/20'
+                        )}
                       >
-                        {part}
+                        {r}
                       </button>
                     ))}
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <Label>Pain level</Label>
-                  <TapRating min={1} max={5} value={form.pain_level}
-                    onChange={v => setForm({ ...form, pain_level: v })}
-                    labels={['Mild', 'Minor', 'Moderate', 'Significant', 'Severe']} />
+              )}
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="space-y-8 flex-1">
+              {/* RPE */}
+              <div className="space-y-4">
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-yellow-500">⚡</span> System Strain (RPE)</p>
+                <div className="flex flex-col items-center mb-6 bg-black/40 border border-white/5 rounded-3xl py-6 shadow-inner relative overflow-hidden">
+                   <div 
+                    className="absolute inset-0 opacity-20 transition-colors duration-300" 
+                    style={{ backgroundColor: rpeColors[form.rpe] }} 
+                  />
+                  <div className="flex items-end gap-1 relative z-10">
+                     <span className="text-6xl font-black drop-shadow-[0_0_10px_currentColor] transition-colors duration-300" style={{ color: rpeColors[form.rpe] }}>{form.rpe}</span>
+                     <span className="text-xl font-bold uppercase tracking-widest text-gray-500 mb-2 border-b-2 border-gray-600 pb-1 w-10 text-center">/10</span>
+                  </div>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-2 relative z-10">
+                    {form.rpe <= 3 ? 'Idle Load' : form.rpe <= 5 ? 'Nominal Load' : form.rpe <= 7 ? 'Heavy Load' : form.rpe <= 9 ? 'Critical Load' : 'Max Output'}
+                  </p>
                 </div>
-              </>
+                <Slider min={1} max={10} value={form.rpe} onChange={v => setForm({ ...form, rpe: v })} showValue={false} 
+                  colorClass={cn(
+                    form.rpe <= 3 ? 'accent-green-500' : 
+                    form.rpe <= 6 ? 'accent-yellow-500' : 
+                    form.rpe <= 8 ? 'accent-orange-500' : 'accent-red-600'
+                  )} />
+                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 mt-2">
+                  <span>1 (IDLE)</span><span>5 (NOM)</span><span>10 (MAX)</span>
+                </div>
+              </div>
+
+               <div className="space-y-4 pt-4 border-t border-white/5">
+                <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Leg Actuator Fatigue</p>
+                <TapRating min={1} max={5} value={form.legs_fatigue}
+                  onChange={v => setForm({ ...form, legs_fatigue: v })}
+                  labels={['Fresh', 'Light', 'Nom', 'Heavy', 'Dead'].map(l => l.toUpperCase())}
+                  colorClass="bg-yellow-500 text-yellow-950 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+              </div>
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Core/Back Array Fatigue</p>
+                <TapRating min={1} max={5} value={form.back_core_fatigue}
+                  onChange={v => setForm({ ...form, back_core_fatigue: v })}
+                  labels={['Fresh', 'Light', 'Nom', 'Heavy', 'Spent'].map(l => l.toUpperCase())}
+                   colorClass="bg-yellow-500 text-yellow-950 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+              </div>
+               <div className="space-y-4 pt-4 border-t border-white/5">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Respiratory Load</p>
+                <TapRating min={1} max={5} value={form.breathing_difficulty}
+                  onChange={v => setForm({ ...form, breathing_difficulty: v })}
+                  labels={['Idle', 'Light', 'Nom', 'Hard', 'Max'].map(l => l.toUpperCase())}
+                   colorClass="bg-yellow-500 text-yellow-950 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+              </div>
+            </div>
+          )}
+
+           {step === 2 && (
+            <div className="space-y-6 flex-1">
+              <div className="space-y-4">
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-red-500">⚠️</span> Hardware Damage Detected?</p>
+                <div className="flex gap-3">
+                  {(['No', 'Yes'] as const).map(opt => (
+                    <button key={opt} type="button"
+                      onClick={() => setForm({ ...form, has_pain: opt === 'Yes' })}
+                      className={cn(
+                        'flex-1 py-4 rounded-xl font-black uppercase tracking-widest text-xs transition-all border',
+                        form.has_pain === (opt === 'Yes')
+                          ? (opt === 'Yes' ? 'bg-red-500 text-white border-red-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]' : 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]')
+                          : 'bg-black/50 text-gray-500 border-white/10 hover:border-white/30'
+                      )}
+                    >
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {form.has_pain && (
+                <div className="bg-red-950/20 border border-red-500/20 rounded-2xl p-5 space-y-6 shadow-inner backdrop-blur-sm relative overflow-hidden mt-6">
+                   <div className="absolute top-0 right-0 w-32 h-32 bg-red-500/10 blur-[30px] rounded-full pointer-events-none" />
+                  
+                  <div className="flex items-center gap-3 relative z-10 border-b border-red-500/20 pb-4">
+                    <AlertTriangle className="h-5 w-5 text-red-500 drop-shadow-[0_0_8px_currentColor] flex-shrink-0" />
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400">Alert will be broadcast to director node.</p>
+                  </div>
+
+                  <div className="space-y-4 relative z-10">
+                    <p className="text-[10px] uppercase font-black tracking-widest text-red-400">Target Component</p>
+                    <div className="flex flex-wrap gap-2">
+                      {BODY_PARTS.map(part => (
+                        <button key={part} type="button"
+                          onClick={() => setForm({ ...form, pain_body_part: part })}
+                           className={cn(
+                            'px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border border-transparent',
+                            form.pain_body_part === part
+                              ? 'bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)]'
+                              : 'bg-black/60 text-red-200 border-red-500/20 hover:bg-red-500/20'
+                          )}
+                        >
+                          {part}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pt-2 relative z-10">
+                     <p className="text-[10px] uppercase font-black tracking-widest text-red-400">Damage Severity</p>
+                    <TapRating min={1} max={5} value={form.pain_level}
+                      onChange={v => setForm({ ...form, pain_level: v })}
+                      labels={['Mild', 'Minor', 'Mod', 'Sig', 'Crit'].map(l => l.toUpperCase())}
+                      colorClass="bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+           {step === 3 && (
+            <div className="space-y-8 flex-1">
+              <div className="space-y-4">
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-blue-500">🎯</span> Variance from Parameter Target?</p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {([
+                    { value: 'yes', label: 'In Spec', emoji: '🎯', color: 'blue' },
+                    { value: 'close', label: 'Marginal', emoji: '↗️', color: 'teal' },
+                    { value: 'no', label: 'Deviated', emoji: '📉', color: 'orange' },
+                  ] as const).map(opt => (
+                    <button key={opt.value} type="button"
+                      onClick={() => setForm({ ...form, hit_target_splits: opt.value })}
+                       className={cn(
+                        'py-5 px-3 rounded-2xl border transition-all text-center flex flex-col items-center gap-2',
+                        form.hit_target_splits === opt.value
+                           ? `bg-${opt.color}-500/20 text-${opt.color}-400 border-${opt.color}-500 shadow-[0_0_15px_rgba(var(--${opt.color}-rgb),0.3)_inset]`
+                          : 'bg-black/40 text-gray-500 border-white/5 hover:border-white/20 hover:text-white'
+                      )}
+                    >
+                       <div className={cn(
+                        "text-2xl drop-shadow-md",
+                        form.hit_target_splits !== opt.value && "grayscale opacity-50"
+                      )}>{opt.emoji}</div>
+                      <div className="text-[10px] uppercase font-black tracking-widest">{opt.label}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <p className="text-[10px] uppercase font-black tracking-widest text-green-500 block mb-3">Optimal Variables (Opt)</p>
+                <input
+                   className="w-full bg-black/60 border border-green-500/20 text-white placeholder:text-gray-600 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-green-500 focus:bg-white/5 transition-all shadow-inner"
+                  placeholder="e.g. Kinetic transfer nominal..."
+                  value={form.felt_good}
+                  onChange={e => setForm({ ...form, felt_good: e.target.value })}
+                />
+              </div>
+
+               <div className="space-y-4 pt-4 border-t border-white/5">
+                <p className="text-[10px] uppercase font-black tracking-widest text-red-500/70 block mb-3">Suboptimal Variables (Opt)</p>
+                 <input
+                   className="w-full bg-black/60 border border-red-500/20 text-white placeholder:text-gray-600 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-red-500/50 focus:bg-white/5 transition-all shadow-inner"
+                  placeholder="e.g. Lag in actuator response..."
+                  value={form.felt_off}
+                  onChange={e => setForm({ ...form, felt_off: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+
+           {step === 4 && (
+            <div className="space-y-8 flex-1">
+              <div className="space-y-4">
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-2 flex"><span className="text-purple-500">🔋</span> Current Regen Capacity</p>
+                <TapRating min={1} max={5} value={form.recovery_status}
+                  onChange={v => setForm({ ...form, recovery_status: v })}
+                  labels={['Depleted', 'Low', 'Nominal', 'Good', 'Peak'].map(l => l.toUpperCase())}
+                  colorClass="bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
+              </div>
+              
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">T+24H Readiness Prediction</p>
+                <div className="flex gap-3">
+                  {([
+                    { value: 'yes', label: 'Go', emoji: '🟢', color: 'green' },
+                    { value: 'maybe', label: 'Marginal', emoji: '🟡', color: 'yellow' },
+                    { value: 'no', label: 'No Go', emoji: '🔴', color: 'red' },
+                  ] as const).map(opt => (
+                    <button key={opt.value} type="button"
+                      onClick={() => setForm({ ...form, ready_tomorrow: opt.value })}
+                       className={cn(
+                        'flex-1 py-4 px-2 rounded-xl border transition-all text-center flex flex-col items-center gap-2',
+                        form.ready_tomorrow === opt.value
+                           ? `bg-${opt.color}-500/20 text-${opt.color}-400 border-${opt.color}-500 shadow-[0_0_15px_rgba(var(--${opt.color}-rgb),0.3)_inset]`
+                          : 'bg-black/40 text-gray-500 border-white/5 hover:border-white/20 hover:text-white'
+                      )}
+                    >
+                       <div className="text-[8px] uppercase font-black tracking-widest">{opt.label}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+               <div className="flex items-center justify-between py-5 px-5 bg-white/5 rounded-2xl border border-white/10 shadow-inner mt-4">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400">Academic Load Tonight?</p>
+                <button type="button"
+                  onClick={() => setForm({ ...form, studying_tonight: !form.studying_tonight })}
+                   className={cn(
+                    'w-14 h-7 rounded-full transition-colors flex items-center shadow-inner border border-white/10',
+                    form.studying_tonight ? 'bg-white' : 'bg-black/60'
+                  )}
+                >
+                   <div className={cn(
+                    'w-5 h-5 rounded-full shadow-md transition-transform mx-1',
+                    form.studying_tonight ? 'bg-black translate-x-7' : 'bg-gray-500 translate-x-0'
+                  )} />
+                </button>
+              </div>
+
+               <div className="space-y-4 pt-4 border-t border-white/5">
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Log Override Notes (Opt)</p>
+                 <textarea
+                  className="w-full bg-black/60 border border-white/10 text-white placeholder:text-gray-600 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-white focus:bg-white/5 transition-all shadow-inner resize-none min-h-[80px]"
+                  rows={2}
+                  placeholder="Additional parameters..."
+                  value={form.note}
+                  onChange={e => setForm({ ...form, note: e.target.value })}
+                />
+              </div>
+            </div>
+          )}
+
+          {step === 5 && (
+             <div className="flex flex-col items-center justify-center py-6 flex-1 relative">
+               <div className="absolute inset-0 bg-green-500/20 blur-[50px] rounded-full z-0 pointer-events-none" />
+               <div className="bg-green-950/40 border border-green-500/30 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(34,197,94,0.3)_inset] relative z-10">
+                <CheckCircle2 className="h-10 w-10 text-green-400 drop-shadow-[0_0_10px_currentColor]" />
+              </div>
+              
+               <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] relative z-10">Transmission Secure</h2>
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-8 relative z-10 text-center max-w-[200px]">
+                Telemetry data routed to director node array.
+              </p>
+
+              {form.has_pain && (
+                <div className="relative z-10 w-full max-w-[300px] bg-red-950/20 border border-red-500/30 rounded-2xl p-4 flex items-center gap-4 text-left shadow-inner">
+                  <div className="bg-red-500/20 p-2 rounded-full">
+                    <AlertTriangle className="h-5 w-5 text-red-500 drop-shadow-[0_0_5px_currentColor]" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] uppercase font-black tracking-widest text-red-400 mb-0.5">Alert Flagged</p>
+                    <p className="text-[10px] text-red-200 uppercase font-bold tracking-widest">Dmg priority packet sent.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Navigation */}
+          <div className="flex gap-3 justify-end mt-8 relative z-10">
+            {step > 0 && step < steps.length - 1 && (
+               <button 
+                 className="flex-1 bg-transparent border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all"
+                 onClick={back}
+               >
+                 Back
+               </button>
+            )}
+            {step < steps.length - 2 && (
+               <button 
+                  className="flex-[2] bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                  onClick={next}
+                >
+                  Continue
+                </button>
+            )}
+            {step === steps.length - 2 && (
+               <button 
+                  className={cn(
+                    "flex-[2] uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all flex justify-center items-center gap-2",
+                    submitLog.isPending ? "bg-white/50 text-black cursor-not-allowed" : "bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                  )}
+                  onClick={handleSubmit} 
+                  disabled={submitLog.isPending}
+               >
+                 {submitLog.isPending ? 'Syncing...' : 'Commit Sequence'}
+               </button>
+            )}
+            {step === steps.length - 1 && (
+               <button 
+                  className="w-full bg-green-500 text-white uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:bg-green-400"
+                  onClick={onDone}
+                >
+                  Terminate Output
+                </button>
             )}
           </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <Label>Did you hit target splits?</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { value: 'yes', label: 'Yes', emoji: '🎯' },
-                  { value: 'close', label: 'Close', emoji: '↗️' },
-                  { value: 'no', label: 'No', emoji: '📉' },
-                ] as const).map(opt => (
-                  <button key={opt.value} type="button"
-                    onClick={() => setForm({ ...form, hit_target_splits: opt.value })}
-                    className={`py-3 rounded-xl border-2 text-center transition-all ${
-                      form.hit_target_splits === opt.value
-                        ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
-                        : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">{opt.emoji}</div>
-                    <div className="text-sm font-semibold">{opt.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>What felt good? (optional)</Label>
-              <input
-                className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a5f] transition-colors"
-                placeholder="My catch timing was solid…"
-                value={form.felt_good}
-                onChange={e => setForm({ ...form, felt_good: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>What felt off? (optional)</Label>
-              <input
-                className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm focus:outline-none focus:border-[#1e3a5f] transition-colors"
-                placeholder="Legs felt heavy in the 3rd piece…"
-                value={form.felt_off}
-                onChange={e => setForm({ ...form, felt_off: e.target.value })}
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 4 && (
-          <div className="space-y-5">
-            <div className="space-y-3">
-              <Label>Recovery status right now</Label>
-              <TapRating min={1} max={5} value={form.recovery_status}
-                onChange={v => setForm({ ...form, recovery_status: v })}
-                labels={['Spent', 'Tired', 'OK', 'Good', 'Fresh']} />
-            </div>
-            <div className="space-y-3">
-              <Label>Ready for tomorrow's session?</Label>
-              <div className="grid grid-cols-3 gap-2">
-                {([
-                  { value: 'yes', label: 'Ready', emoji: '💪' },
-                  { value: 'maybe', label: 'Maybe', emoji: '🤷' },
-                  { value: 'no', label: 'Need Rest', emoji: '😴' },
-                ] as const).map(opt => (
-                  <button key={opt.value} type="button"
-                    onClick={() => setForm({ ...form, ready_tomorrow: opt.value })}
-                    className={`py-3 rounded-xl border-2 text-center transition-all ${
-                      form.ready_tomorrow === opt.value ? 'bg-[#1e3a5f] text-white border-[#1e3a5f]' : 'bg-white border-slate-200'
-                    }`}
-                  >
-                    <div className="text-xl mb-1">{opt.emoji}</div>
-                    <div className="text-xs font-semibold">{opt.label}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center justify-between py-3 border-y border-slate-100">
-              <Label>Studying tonight?</Label>
-              <button type="button"
-                onClick={() => setForm({ ...form, studying_tonight: !form.studying_tonight })}
-                className={`w-12 h-6 rounded-full transition-colors ${form.studying_tonight ? 'bg-[#1e3a5f]' : 'bg-slate-200'}`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform mx-0.5 ${form.studying_tonight ? 'translate-x-6' : 'translate-x-0'}`} />
-              </button>
-            </div>
-            <div className="space-y-2">
-              <Label>Optional note to coach</Label>
-              <textarea
-                className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#1e3a5f] transition-colors"
-                rows={2}
-                placeholder="Anything your coach should know..."
-                value={form.note}
-                onChange={e => setForm({ ...form, note: e.target.value })}
-              />
-            </div>
-          </div>
-        )}
-
-        {step === 5 && (
-          <div className="text-center py-6">
-            <div className="bg-green-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Session Logged!</h3>
-            <p className="text-slate-500 text-sm">Your coach has your feedback.</p>
-            {form.has_pain && (
-              <div className="mt-4 bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2 text-left">
-                <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
-                <p className="text-red-700 text-sm">Pain flag sent to your coach.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Navigation */}
-        <div className="flex gap-3 mt-8">
-          {step > 0 && step < steps.length - 1 && (
-            <Button variant="outline" size="lg" className="flex-1" onClick={back}>Back</Button>
-          )}
-          {step < steps.length - 2 && (
-            <Button size="lg" className="flex-1" onClick={next}>Continue</Button>
-          )}
-          {step === steps.length - 2 && (
-            <Button size="lg" className="flex-1" onClick={handleSubmit} disabled={submitLog.isPending}>
-              {submitLog.isPending ? 'Saving…' : 'Submit'}
-            </Button>
-          )}
-          {step === steps.length - 1 && (
-            <Button size="lg" className="flex-1" onClick={onDone}>Done</Button>
-          )}
         </div>
       </div>
     </div>

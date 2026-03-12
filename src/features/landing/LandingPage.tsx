@@ -1,6 +1,10 @@
 import { useNavigate } from 'react-router-dom'
+import { useRef, useMemo } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { Points, PointMaterial } from '@react-three/drei'
+import { motion } from 'framer-motion'
 import {
-  Waves,
+  Hexagon,
   CalendarDays,
   HeartPulse,
   BellRing,
@@ -9,184 +13,234 @@ import {
   Users,
   Zap,
 } from 'lucide-react'
+import * as THREE from 'three'
+
+// Starfield Background Component
+function Starfield(props: any) {
+  const ref = useRef<any>(null)
+  
+  const sphere = useMemo(() => {
+    // Generate random points in a sphere shell
+    const coords = new Float32Array(3000)
+    for (let i = 0; i < 3000; i += 3) {
+      const u = Math.random()
+      const v = Math.random()
+      const theta = 2 * Math.PI * u
+      const phi = Math.acos(2 * v - 1)
+      const r = 3 + Math.random() * 2 // radius between 3 and 5
+      coords[i] = r * Math.sin(phi) * Math.cos(theta)
+      coords[i+1] = r * Math.sin(phi) * Math.sin(theta)
+      coords[i+2] = r * Math.cos(phi)
+    }
+    return coords
+  }, [])
+
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.rotation.x -= delta / 30
+      ref.current.rotation.y -= delta / 40
+    }
+  })
+
+  return (
+    <group rotation={[0, 0, Math.PI / 4]}>
+      <Points ref={ref} positions={sphere} stride={3} frustumCulled={false} {...props}>
+        <PointMaterial transparent color="#ffffff" size={0.015} sizeAttenuation={true} depthWrite={false} opacity={0.3} />
+      </Points>
+    </group>
+  )
+}
+
+function FloatingGeometry() {
+  const ref = useRef<any>(null)
+  
+  useFrame((state, delta) => {
+    if (ref.current) {
+      ref.current.rotation.x += delta * 0.1
+      ref.current.rotation.y += delta * 0.15
+    }
+  })
+  
+  return (
+    <mesh ref={ref} position={[0, 0, 0]}>
+      <icosahedronGeometry args={[2.5, 1]} />
+      <meshBasicMaterial color="#ffffff" wireframe transparent opacity={0.1} />
+    </mesh>
+  )
+}
 
 export default function LandingPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-dvh bg-white flex flex-col">
+    <div className="relative min-h-dvh bg-black text-white font-sans overflow-hidden">
+      
+      {/* 3D Background */}
+      <div className="absolute inset-0 z-0">
+        <Canvas camera={{ position: [0, 0, 5] }}>
+          <Starfield />
+          <FloatingGeometry />
+        </Canvas>
+      </div>
 
-      {/* ── Nav ─────────────────────────────────────────────────── */}
-      <nav className="bg-[#1e3a5f] px-6 py-4 flex items-center justify-between sticky top-0 z-40">
-        <div className="flex items-center gap-2">
-          <Waves className="h-6 w-6 text-orange-400" strokeWidth={2.5} />
-          <span className="text-white font-black text-xl tracking-tight">RowIQ</span>
-        </div>
-        <button
-          onClick={() => navigate('/early-access')}
-          className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-        >
-          Get Early Access
-        </button>
-      </nav>
-
-      {/* ── Hero ────────────────────────────────────────────────── */}
-      <section className="bg-gradient-to-br from-[#0f2d52] via-[#1e3a5f] to-[#2d5a8e] px-6 pt-20 pb-32 text-center flex flex-col items-center">
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <Waves className="h-12 w-12 text-orange-400" strokeWidth={2} />
-          <span className="text-white font-black text-5xl tracking-tight">RowIQ</span>
-        </div>
-        <h1 className="text-white font-black text-3xl leading-tight max-w-xs mb-4">
-          Train smarter.<br />Row faster.
-        </h1>
-        <p className="text-blue-200 text-base max-w-sm leading-relaxed mb-10">
-          The all-in-one platform built for competitive rowing programs — connecting coaches and athletes through data that actually matters.
-        </p>
-        <button
-          onClick={() => navigate('/early-access')}
-          className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-base px-8 py-4 rounded-xl transition-colors shadow-lg flex items-center gap-2"
-        >
-          Get Early Access <ChevronRight className="h-5 w-5" />
-        </button>
-        <p className="text-blue-300 text-xs mt-4">Free during beta · No credit card required</p>
-      </section>
-
-      {/* ── Value strip ─────────────────────────────────────────── */}
-      <section className="bg-slate-50 px-6 py-10 -mt-10 rounded-t-3xl">
-        <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
-          {[
-            { icon: <TrendingUp className="h-5 w-5 text-[#1e3a5f]" />, label: 'Built for rowing' },
-            { icon: <Users className="h-5 w-5 text-[#1e3a5f]" />, label: 'Coach + athlete views' },
-            { icon: <Zap className="h-5 w-5 text-[#1e3a5f]" />, label: 'Real-time insights' },
-          ].map(({ icon, label }) => (
-            <div key={label} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex flex-col items-center gap-2 text-center">
-              <div className="bg-[#1e3a5f]/10 rounded-xl p-2">{icon}</div>
-              <p className="text-xs font-semibold text-slate-700 leading-snug">{label}</p>
+      {/* Content wrapper with scroll */}
+      <div className="relative z-10 h-dvh overflow-y-auto overflow-x-hidden">
+        <div className="flex flex-col min-h-full">
+          {/* Nav */}
+          <nav className="px-6 py-5 flex items-center justify-between sticky top-0 z-50 bg-black/30 backdrop-blur-xl border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <Hexagon className="h-7 w-7 text-white" strokeWidth={1.5} />
+              <span className="font-bold text-xl tracking-widest uppercase">RowIQ</span>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Features ────────────────────────────────────────────── */}
-      <section className="bg-slate-50 px-6 py-10">
-        <div className="max-w-lg mx-auto">
-          <p className="text-xs font-semibold text-orange-500 uppercase tracking-widest text-center mb-2">What you get</p>
-          <h2 className="text-2xl font-black text-slate-900 text-center mb-8">Everything your program needs</h2>
-
-          <div className="space-y-4">
-            {[
-              {
-                icon: <CalendarDays className="h-6 w-6 text-[#1e3a5f]" />,
-                title: 'Training Calendar',
-                desc: 'Coaches plan erg, water, weights, and rest sessions. Athletes see exactly what\'s coming and what\'s expected of them — day by day.',
-              },
-              {
-                icon: <HeartPulse className="h-6 w-6 text-[#1e3a5f]" />,
-                title: 'Wellness Check-ins',
-                desc: 'Morning readiness, post-session RPE, and evening recovery logs. All data goes straight to your coach so nothing slips through the cracks.',
-              },
-              {
-                icon: <BellRing className="h-6 w-6 text-[#1e3a5f]" />,
-                title: 'Coach Alerts',
-                desc: 'Automatic flags when athletes show soreness streaks, low sleep patterns, or upcoming exam stress — so coaches can act before problems escalate.',
-              },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex gap-4">
-                <div className="bg-[#1e3a5f]/10 rounded-xl p-3 flex-shrink-0 h-fit">
-                  {icon}
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 mb-1">{title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── How it works ────────────────────────────────────────── */}
-      <section className="bg-white px-6 py-12">
-        <div className="max-w-lg mx-auto">
-          <p className="text-xs font-semibold text-orange-500 uppercase tracking-widest text-center mb-2">Simple by design</p>
-          <h2 className="text-2xl font-black text-slate-900 text-center mb-10">How it works</h2>
-
-          <div className="space-y-6">
-            {[
-              {
-                step: '01',
-                title: 'Athletes check in',
-                desc: 'Quick morning and post-session surveys take under 60 seconds. How\'s your sleep? Your soreness? Your readiness?',
-              },
-              {
-                step: '02',
-                title: 'Coaches review the data',
-                desc: 'The dashboard surfaces alerts, wellness trends, and session completion — all in one place, updated in real time.',
-              },
-              {
-                step: '03',
-                title: 'Train smarter together',
-                desc: 'Use data to adjust training loads, catch injuries early, and have better conversations between coach and athlete.',
-              },
-            ].map(({ step, title, desc }) => (
-              <div key={step} className="flex gap-5">
-                <div className="flex-shrink-0 w-12 h-12 rounded-2xl bg-[#1e3a5f] flex items-center justify-center">
-                  <span className="text-white font-black text-sm">{step}</span>
-                </div>
-                <div className="pt-1">
-                  <h3 className="font-bold text-slate-900 mb-1">{title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA banner ──────────────────────────────────────────── */}
-      <section className="px-6 py-10 bg-slate-50">
-        <div className="max-w-lg mx-auto bg-gradient-to-br from-[#0f2d52] via-[#1e3a5f] to-[#2d5a8e] rounded-2xl p-8 text-center shadow-lg">
-          <Waves className="h-8 w-8 text-orange-400 mx-auto mb-4" strokeWidth={2} />
-          <h2 className="text-white font-black text-2xl mb-2">Join the waitlist</h2>
-          <p className="text-blue-200 text-sm mb-6 leading-relaxed">
-            RowIQ is currently in early access. Get in now and help shape the future of rowing performance.
-          </p>
-          <button
-            onClick={() => navigate('/early-access')}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-xl transition-colors shadow-md w-full flex items-center justify-center gap-2"
-          >
-            Get Early Access <ChevronRight className="h-5 w-5" />
-          </button>
-          <p className="text-blue-300 text-xs mt-3">Takes 60 seconds · Free during beta</p>
-        </div>
-      </section>
-
-      {/* ── Footer ──────────────────────────────────────────────── */}
-      <footer className="bg-[#0f2d52] px-6 py-8 mt-auto">
-        <div className="max-w-lg mx-auto flex flex-col items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Waves className="h-5 w-5 text-orange-400" strokeWidth={2.5} />
-            <span className="text-white font-black text-lg tracking-tight">RowIQ</span>
-          </div>
-          <p className="text-blue-300 text-xs text-center">Train smarter. Row faster.</p>
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => navigate('/login')}
-              className="text-blue-300 hover:text-white text-xs transition-colors"
-            >
-              Sign In
-            </button>
             <button
               onClick={() => navigate('/early-access')}
-              className="text-blue-300 hover:text-white text-xs transition-colors"
+              className="bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-all backdrop-blur-md"
             >
               Early Access
             </button>
-          </div>
-          <p className="text-blue-400 text-xs">© {new Date().getFullYear()} RowIQ. All rights reserved.</p>
-        </div>
-      </footer>
+          </nav>
 
+          {/* Hero */}
+          <section className="flex-1 flex flex-col items-center justify-center px-6 py-20 text-center min-h-[80vh]">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              className="max-w-3xl mx-auto flex flex-col items-center"
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-8">
+                <span className="flex h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
+                <span className="text-xs font-semibold tracking-widest text-gray-300 uppercase">System Online</span>
+              </div>
+              
+              <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 bg-gradient-to-br from-white via-gray-300 to-gray-600 bg-clip-text text-transparent">
+                Elevate Your <br />Performance
+              </h1>
+              
+              <p className="text-gray-400 text-lg md:text-xl max-w-xl leading-relaxed mb-10 font-light">
+                The next-generation platform for competitive rowing. Connect data, optimize training, and dominate the water with precision insights.
+              </p>
+              
+              <button
+                onClick={() => navigate('/early-access')}
+                className="group relative px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-sm rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] duration-300"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Initialize Protocol <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-gray-200 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </button>
+            </motion.div>
+          </section>
+
+          {/* Value Strip */}
+          <section className="px-6 py-12 border-y border-white/5 bg-black/40 backdrop-blur-md z-10 relative">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+              {[
+                { icon: <TrendingUp className="h-6 w-6" />, label: 'Algorithmic Tracking' },
+                { icon: <Users className="h-6 w-6" />, label: 'Synchronized Rosters' },
+                { icon: <Zap className="h-6 w-6" />, label: 'Real-time Telemetry' },
+              ].map(({ icon, label }, i) => (
+                <motion.div 
+                  key={label}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ delay: i * 0.1, duration: 0.6 }}
+                  className="flex flex-col items-center gap-4 text-center p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
+                >
+                  <div className="p-3 bg-white/10 rounded-2xl text-white">
+                    {icon}
+                  </div>
+                  <p className="text-xs font-bold tracking-widest text-gray-300 uppercase">{label}</p>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* Features */}
+          <section className="px-6 py-32 z-10 relative">
+            <div className="max-w-5xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                className="text-center mb-20"
+              >
+                <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-3">Core Modules</p>
+                <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-6 bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">Everything You Need</h2>
+              </motion.div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {[
+                  {
+                    icon: <CalendarDays className="h-6 w-6 text-white" />,
+                    title: 'Quantum Scheduling',
+                    desc: 'Precision training calendars for athletes. Synchronize erg, water, and recovery effortlessly across your entire roster.',
+                  },
+                  {
+                    icon: <HeartPulse className="h-6 w-6 text-white" />,
+                    title: 'Biometric Monitoring',
+                    desc: 'Daily readiness and RPE logs. Turn subjective feelings into objective, actionable recovery metrics in seconds.',
+                  },
+                  {
+                    icon: <BellRing className="h-6 w-6 text-white" />,
+                    title: 'Predictive Alerts',
+                    desc: 'Automated warnings for fatigue and injury patterns before they impact performance. Stay ahead of the curve.',
+                  },
+                ].map(({ icon, title, desc }, i) => (
+                  <motion.div 
+                    key={title} 
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ delay: i * 0.15, duration: 0.6 }}
+                    className="group relative bg-gradient-to-b from-white/5 to-transparent border border-white/10 rounded-3xl p-8 hover:bg-white/10 transition-all duration-500 overflow-hidden"
+                  >
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-colors"></div>
+                    <div className="bg-white/10 rounded-2xl p-4 w-fit mb-6 ring-1 ring-white/20 group-hover:ring-white/40 group-hover:scale-110 transition-all duration-300 relative z-10">
+                      {icon}
+                    </div>
+                    <h3 className="font-bold text-xl mb-3 tracking-wide">{title}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed font-light">{desc}</p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* CTA Section */}
+          <section className="px-6 py-32 bg-black border-t border-white/5 relative overflow-hidden z-10">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-white/5 blur-[120px] rounded-full pointer-events-none"></div>
+            <div className="max-w-4xl mx-auto text-center relative z-10 p-12 md:p-20 rounded-[3rem] border border-white/10 bg-black/60 backdrop-blur-2xl">
+              <Hexagon className="h-16 w-16 text-white mx-auto mb-8 opacity-80" strokeWidth={1} />
+              <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter">Ready to Launch?</h2>
+              <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-xl mx-auto font-light leading-relaxed">
+                Join the exclusive early access tier to redefine your team's tactical advantage and dominate the competition.
+              </p>
+              <button
+                onClick={() => navigate('/early-access')}
+                className="bg-white text-black font-bold uppercase tracking-widest text-sm px-12 py-5 rounded-full hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.2)] transition-all duration-300"
+              >
+                Request Access Now
+              </button>
+            </div>
+          </section>
+
+          {/* Footer */}
+          <footer className="py-10 border-t border-white/5 bg-black text-center text-xs text-gray-500 z-10 relative">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <Hexagon className="h-4 w-4" />
+              <span className="font-bold tracking-widest uppercase text-gray-400">RowIQ © {new Date().getFullYear()}</span>
+            </div>
+            <div className="flex justify-center gap-8 mb-6 uppercase tracking-widest font-semibold text-[10px]">
+              <button onClick={() => navigate('/login')} className="hover:text-white transition-colors">Airlock (Sign In)</button>
+              <button onClick={() => navigate('/early-access')} className="hover:text-white transition-colors">Early Access</button>
+            </div>
+            <p className="font-light tracking-wide">Engineered for the future of rowing.</p>
+          </footer>
+        </div>
+      </div>
     </div>
   )
 }

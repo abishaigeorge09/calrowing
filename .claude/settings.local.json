@@ -28,7 +28,26 @@
       "Bash(git add src/features/auth/LoginPage.tsx)",
       "Bash(git add src/App.tsx src/features/athlete/MorningCheckinForm.tsx src/features/athlete/PostSessionForm.tsx src/features/auth/RegisterAthletePage.tsx src/features/auth/RegisterCoachPage.tsx src/stores/auth.ts src/hooks/ src/lib/db.ts DESIGN.md)",
       "Bash(npx tsc --noEmit)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(vercel --version)",
+      "Bash(npx vercel --version)",
+      "Bash(npx vercel whoami)",
+      "Bash(npx vercel --prod --yes)",
+      "Bash(npx vercel --prod --yes --name rowiq)",
+      "Bash(supabase --version)",
+      "Bash(ls -la /Users/abishaigeorgegosula/rowIQ/.env*)",
+      "Bash(npx supabase --version)",
+      "Bash(npx supabase status)",
+      "Bash(env)",
+      "Bash(grep -n \"coach@rowiq.demo\\\\|alex@rowiq.demo\\\\|jordan@rowiq.demo\\\\|sam@rowiq.demo\" /Users/abishaigeorgegosula/rowIQ/src/**/*.tsx /Users/abishaigeorgegosula/rowIQ/src/**/*.ts)",
+      "Bash(git rm --cached .env)",
+      "Bash(git add src/App.tsx src/features/athlete/AthleteProfilePage.tsx src/features/athlete/EveningCheckinForm.tsx src/features/athlete/InjuryFlagPage.tsx src/features/athlete/PostSessionForm.tsx src/features/athlete/TodayScreen.tsx src/features/messaging/MessagesPage.tsx src/hooks/mutations.ts src/hooks/useSessions.ts)",
+      "Bash(git add supabase/migrations/003_notifications.sql)",
+      "Bash(git add src/features/messaging/MessagesPage.tsx)",
+      "Bash(git add src/components/layout/AppShell.tsx src/features/coach/CoachProfilePage.tsx src/hooks/mutations.ts)",
+      "Bash(git add src/features/coach/CreateSessionDialog.tsx)",
+      "Bash(git add src/lib/utils.ts src/lib/mock-data.ts src/hooks/useSessions.ts src/features/athlete/TodayScreen.tsx src/features/coach/CalendarPage.tsx src/features/coach/CreateSessionDialog.tsx)",
+      "Bash(git add src/lib/utils.ts src/hooks/mutations.ts src/App.tsx src/features/coach/CoachDashboard.tsx src/features/coach/RosterPage.tsx src/features/coach/AthleteProfile.tsx)"
     ]
   }
 }

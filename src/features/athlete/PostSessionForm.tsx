@@ -363,7 +363,9 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
             <Button size="lg" className="flex-1" onClick={next}>Continue</Button>
           )}
           {step === steps.length - 2 && (
-            <Button size="lg" className="flex-1" onClick={next}>Submit</Button>
+            <Button size="lg" className="flex-1" onClick={handleSubmit} disabled={submitLog.isPending}>
+              {submitLog.isPending ? 'Saving…' : 'Submit'}
+            </Button>
           )}
           {step === steps.length - 1 && (
             <Button size="lg" className="flex-1" onClick={onDone}>Done</Button>

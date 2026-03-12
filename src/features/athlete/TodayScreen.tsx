@@ -12,6 +12,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTodaySession } from '@/hooks/useSessions'
 import { useWellnessLogs } from '@/hooks/useWellnessLogs'
 import { useAllConversations } from '@/hooks/useMessages'
+import { useTeam } from '@/hooks/useTeam'
 import { sessionTypeColor, intensityColor, cn } from '@/lib/utils'
 import type { MorningLogData, PostSessionLogData } from '@/types/database'
 import MorningCheckinForm from './MorningCheckinForm'
@@ -30,6 +31,9 @@ export default function TodayScreen() {
   const [eveningDone, setEveningDone] = useState(false)
 
   const today = new Date().toISOString().split('T')[0]
+
+  const { data: team } = useTeam(user?.team_id)
+  const coachId = team?.coach_id
 
   const { session: todaySession } = useTodaySession(user?.team_id)
   const { data: myLogs = [] } = useWellnessLogs(user?.id, { days: 30 })
@@ -296,9 +300,29 @@ export default function TodayScreen() {
       </button>
 
       {/* Forms */}
-      {showMorning && <MorningCheckinForm onClose={() => setShowMorning(false)} onDone={() => { setMorningDone(true); setShowMorning(false) }} />}
-      {showPost && todaySession && <PostSessionForm session={todaySession} onClose={() => setShowPost(false)} onDone={() => { setPostDone(true); setShowPost(false) }} />}
-      {showEvening && <EveningCheckinForm onClose={() => setShowEvening(false)} onDone={() => { setEveningDone(true); setShowEvening(false) }} />}
+      {showMorning && (
+        <MorningCheckinForm
+          onClose={() => setShowMorning(false)}
+          onDone={() => { setMorningDone(true); setShowMorning(false) }}
+          coachId={coachId}
+          recentLogs={myLogs}
+        />
+      )}
+      {showPost && todaySession && (
+        <PostSessionForm
+          session={todaySession}
+          onClose={() => setShowPost(false)}
+          onDone={() => { setPostDone(true); setShowPost(false) }}
+          coachId={coachId}
+        />
+      )}
+      {showEvening && (
+        <EveningCheckinForm
+          onClose={() => setShowEvening(false)}
+          onDone={() => { setEveningDone(true); setShowEvening(false) }}
+          coachId={coachId}
+        />
+      )}
     </div>
   )
 }

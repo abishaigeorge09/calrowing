@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { IS_SUPABASE, supabase } from '@/lib/db'
 import { MOCK_SESSIONS } from '@/lib/mock-data'
 import type { Session } from '@/types/database'
@@ -12,6 +13,32 @@ export function useSessions(
   teamId: string | null | undefined,
   opts: SessionsOptions = {}
 ) {
+  const queryClient = useQueryClient()
+
+  // Live-sync: invalidate cache whenever sessions change for this team
+  // This ensures both coach & athlete calendars update in real-time when sessions are created/edited
+  useEffect(() => {
+    if (!IS_SUPABASE || !teamId) return
+
+    const channel = supabase
+      .channel(`sessions-rt-${teamId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sessions',
+          filter: `team_id=eq.${teamId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['sessions', teamId] })
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [teamId, queryClient])
+
   return useQuery({
     queryKey: ['sessions', teamId, opts],
     enabled: !!teamId,

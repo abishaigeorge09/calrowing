@@ -10,6 +10,29 @@ import type {
   WellnessLog,
 } from '@/types/database'
 
+// ─── Helper: notify coach ──────────────────────────────────────────────────────
+async function notifyCoach(coachId: string, payload: {
+  type: string
+  title: string
+  body: string
+  actionUrl: string
+  data?: Record<string, unknown>
+}) {
+  try {
+    await supabase.from('notifications').insert({
+      user_id: coachId,
+      type: payload.type,
+      title: payload.title,
+      body: payload.body,
+      action_url: payload.actionUrl,
+      data: payload.data ?? null,
+    })
+  } catch (e) {
+    // Notifications are best-effort — don't break the main flow
+    console.warn('Could not send coach notification:', e)
+  }
+}
+
 // ─── useSubmitWellnessLog ──────────────────────────────────────────────────────
 interface WellnessLogPayload {
   logType: 'morning' | 'post' | 'evening'
@@ -41,7 +64,24 @@ export function useSubmitWellnessLog() {
       })
       if (logError) throw new Error(logError.message)
 
-      // 2. Morning check-in → generate alerts
+      // 2. Notify coach about check-in submission
+      if (payload.coachId) {
+        const logLabel = payload.logType === 'morning' ? 'Morning'
+          : payload.logType === 'post' ? 'Post-session'
+          : 'Evening'
+        const emoji = payload.logType === 'morning' ? '🌅'
+          : payload.logType === 'post' ? '💪'
+          : '🌙'
+        await notifyCoach(payload.coachId, {
+          type: 'survey_submitted',
+          title: `${emoji} ${user.name} — ${logLabel} check-in`,
+          body: `${user.name} completed their ${logLabel.toLowerCase()} check-in.`,
+          actionUrl: `/coach/athlete/${user.id}`,
+          data: { athlete_id: user.id, log_type: payload.logType },
+        })
+      }
+
+      // 3. Morning check-in → generate alerts
       if (payload.logType === 'morning' && payload.coachId) {
         const descriptors = generateMorningAlerts({
           coachId: payload.coachId,
@@ -62,7 +102,7 @@ export function useSubmitWellnessLog() {
         }
       }
 
-      // 3. Post-session with pain → injury + alert
+      // 4. Post-session with pain → injury + alert + notify coach
       if (payload.logType === 'post' && payload.coachId) {
         const postData = payload.data as PostSessionLogData
         if (postData.has_pain) {
@@ -85,6 +125,15 @@ export function useSubmitWellnessLog() {
             severity: alertDesc.severity,
             data: { ...alertDesc.data, body_part: postData.pain_body_part, pain_level: postData.pain_level },
           })
+
+          // Notify coach about pain flag
+          await notifyCoach(payload.coachId, {
+            type: 'pain_flag',
+            title: `🚨 Pain flag — ${postData.pain_body_part ?? 'Unknown'}`,
+            body: `${user.name} reported ${sev.toLowerCase()} pain: ${postData.pain_body_part ?? 'unknown area'} (level ${postData.pain_level ?? '?'}/5).`,
+            actionUrl: `/coach/athlete/${user.id}`,
+            data: { athlete_id: user.id, body_part: postData.pain_body_part, pain_level: postData.pain_level, severity: sev },
+          })
         }
       }
     },
@@ -95,6 +144,7 @@ export function useSubmitWellnessLog() {
       queryClient.invalidateQueries({ queryKey: ['teamWellnessLogs'] })
       if (payload.coachId) {
         queryClient.invalidateQueries({ queryKey: ['alerts', payload.coachId] })
+        queryClient.invalidateQueries({ queryKey: ['notifications', payload.coachId] })
       }
     },
   })
@@ -233,10 +283,77 @@ export function useLogInjury() {
         data: { body_part: payload.bodyPart, severity: payload.severity },
       })
       if (alertError) throw new Error(alertError.message)
+
+      // Notify coach immediately about injury flag
+      await notifyCoach(payload.coachId, {
+        type: 'injury_flag',
+        title: `🚨 Injury flag — ${payload.bodyPart}`,
+        body: `${user.name} flagged ${payload.severity.toLowerCase()} pain: ${payload.bodyPart}.${payload.description ? ` "${payload.description}"` : ''}`,
+        actionUrl: `/coach/athlete/${user.id}`,
+        data: { athlete_id: user.id, body_part: payload.bodyPart, severity: payload.severity },
+      })
     },
 
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['alerts', vars.coachId] })
+      queryClient.invalidateQueries({ queryKey: ['notifications', vars.coachId] })
+    },
+  })
+}
+
+// ─── useUpdateAthleteProfile ───────────────────────────────────────────────────
+export function useUpdateAthleteProfile() {
+  const queryClient = useQueryClient()
+  const { user, updateProfile } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (updates: {
+      name?: string
+      height_cm?: number | null
+      weight_kg?: number | null
+      sleep_goal?: number
+      boat_class?: string | null
+      seat_position?: string | null
+      year?: string | null
+      injuries_text?: string | null
+    }) => {
+      if (!IS_SUPABASE || !user) {
+        // Demo mode: update local auth state only
+        if (updates.name) updateProfile({ name: updates.name })
+        await new Promise(r => setTimeout(r, 400))
+        return
+      }
+
+      const { name, ...athleteFields } = updates
+
+      // Update profile name if provided
+      if (name && name !== user.name) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ name })
+          .eq('id', user.id)
+        if (error) throw new Error(error.message)
+        updateProfile({ name })
+      }
+
+      // Update athlete_profiles record
+      const definedFields = Object.fromEntries(
+        Object.entries(athleteFields).filter(([, v]) => v !== undefined)
+      )
+      if (Object.keys(definedFields).length > 0) {
+        // Try updating by id (shared PK pattern common in Supabase)
+        const { error } = await supabase
+          .from('athletes')
+          .update(definedFields)
+          .eq('id', user.id)
+        if (error) throw new Error(error.message)
+      }
+    },
+
+    onSuccess: () => {
+      if (!user) return
+      queryClient.invalidateQueries({ queryKey: ['athletes'] })
+      queryClient.invalidateQueries({ queryKey: ['teamAthletes'] })
     },
   })
 }

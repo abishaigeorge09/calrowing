@@ -1,9 +1,11 @@
 import React, { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { ChevronLeft } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
+import { IS_SUPABASE, supabase } from '@/lib/db'
 import { MOCK_SESSIONS } from '@/lib/mock-data'
+import type { Session } from '@/types/database'
 import LoginPage from '@/features/auth/LoginPage'
 import RegisterCoachPage from '@/features/auth/RegisterCoachPage'
 import RegisterAthletePage from '@/features/auth/RegisterAthletePage'
@@ -75,8 +77,47 @@ function ForgotPasswordPage() {
 function SessionDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const session = MOCK_SESSIONS.find(s => s.id === id)
-  if (!session) return <div className="p-6 text-center text-slate-500">Session not found</div>
+
+  // Fetch from Supabase in production; fall back to mock in demo mode
+  const { data: session, isLoading } = useQuery({
+    queryKey: ['session', id],
+    queryFn: async (): Promise<Session | null> => {
+      if (!IS_SUPABASE) {
+        return (MOCK_SESSIONS.find(s => s.id === id) ?? null) as Session | null
+      }
+      const { data, error } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('id', id!)
+        .single()
+      if (error) return null
+      return data as Session
+    },
+    enabled: !!id,
+  })
+
+  if (isLoading) {
+    return (
+      <div className="px-4 py-5 max-w-lg mx-auto">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
+          <ChevronLeft className="h-5 w-5" /> Back
+        </button>
+        <div className="text-center text-slate-400 py-12">Loading session…</div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return (
+      <div className="px-4 py-5 max-w-lg mx-auto">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4">
+          <ChevronLeft className="h-5 w-5" /> Back
+        </button>
+        <div className="text-center text-slate-500 py-12">Session not found</div>
+      </div>
+    )
+  }
+
   return (
     <div className="px-4 py-5 max-w-lg mx-auto space-y-4">
       <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-600 hover:text-slate-900">

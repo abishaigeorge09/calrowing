@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ChevronLeft, CheckCircle2, AlertTriangle } from 'lucide-react'
+import { ChevronLeft, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { TapRating } from '@/components/ui/slider'
+import { useAuthStore } from '@/stores/auth'
+import { useTeam } from '@/hooks/useTeam'
+import { useLogInjury } from '@/hooks/mutations'
 
 const BODY_PARTS = [
   'Head / Concussion', 'Neck', 'Shoulder (Left)', 'Shoulder (Right)',
@@ -16,14 +18,40 @@ const BODY_PARTS = [
 
 export default function InjuryFlagPage() {
   const navigate = useNavigate()
+  const { user } = useAuthStore()
+  const { data: team } = useTeam(user?.team_id)
+  const logInjury = useLogInjury()
+
   const [bodyPart, setBodyPart] = useState('')
   const [severity, setSeverity] = useState<'Mild' | 'Moderate' | 'Severe' | ''>('')
   const [description, setDescription] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    if (!bodyPart || !severity) return
+
+    setSubmitting(true)
+    try {
+      const coachId = team?.coach_id
+      if (coachId) {
+        // Real mode: log injury + alert + notify coach
+        await logInjury.mutateAsync({
+          bodyPart,
+          severity,
+          description,
+          coachId,
+        })
+      }
+      // Demo mode (no coachId): just show success screen
+    } catch (err) {
+      console.error('Failed to submit injury flag:', err)
+      // Still show success so user isn't stuck
+    } finally {
+      setSubmitting(false)
+      setSubmitted(true)
+    }
   }
 
   if (submitted) {
@@ -136,10 +164,16 @@ export default function InjuryFlagPage() {
           size="lg"
           variant="destructive"
           className="w-full"
-          disabled={!bodyPart || !severity}
+          disabled={!bodyPart || !severity || submitting}
         >
-          <AlertTriangle className="h-4 w-4 mr-2" />
-          Send Alert to Coach
+          {submitting ? (
+            'Sending alert…'
+          ) : (
+            <>
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Send Alert to Coach
+            </>
+          )}
         </Button>
       </form>
     </div>

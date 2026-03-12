@@ -3,16 +3,20 @@ import { X, CheckCircle2, Moon, Droplets, Utensils } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { TapRating } from '@/components/ui/slider'
 import { Slider } from '@/components/ui/slider'
+import { useSubmitWellnessLog } from '@/hooks/mutations'
+import type { EveningLogData } from '@/types/database'
 
 interface Props {
   onClose: () => void
   onDone: () => void
+  coachId?: string
 }
 
 type Step = 'nutrition' | 'hydration' | 'sleep' | 'done'
 
-export default function EveningCheckinForm({ onClose, onDone }: Props) {
+export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) {
   const [step, setStep] = useState<Step>('nutrition')
+  const [isSaving, setIsSaving] = useState(false)
   const [form, setForm] = useState({
     nutrition_quality: 3,
     meals_count: 3,
@@ -23,6 +27,8 @@ export default function EveningCheckinForm({ onClose, onDone }: Props) {
     bedtime_note: '',
   })
 
+  const submitLog = useSubmitWellnessLog()
+
   const steps: Step[] = ['nutrition', 'hydration', 'sleep', 'done']
   const stepIdx = steps.indexOf(step)
   const progress = ((stepIdx) / (steps.length - 1)) * 100
@@ -30,6 +36,30 @@ export default function EveningCheckinForm({ onClose, onDone }: Props) {
   const next = () => {
     const idx = steps.indexOf(step)
     if (idx < steps.length - 1) setStep(steps[idx + 1])
+  }
+
+  // Save log before showing done screen
+  const handleSave = async () => {
+    setIsSaving(true)
+    try {
+      await submitLog.mutateAsync({
+        logType: 'evening',
+        coachId,
+        data: {
+          energy: form.hydration_quality,
+          nutrition_quality: form.nutrition_quality,
+          hydration: form.hydration_liters,
+          expected_sleep_hours: form.expected_sleep_hours,
+          day_rating: 3,
+        } as EveningLogData,
+      })
+      setStep('done')
+    } catch (err) {
+      console.error('Failed to save evening log:', err)
+      setStep('done') // advance even on error so user isn't stuck
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   if (step === 'done') {
@@ -248,7 +278,9 @@ export default function EveningCheckinForm({ onClose, onDone }: Props) {
 
             <div className="flex gap-3">
               <Button variant="outline" size="lg" className="flex-1" onClick={() => setStep('hydration')}>Back</Button>
-              <Button size="lg" className="flex-1" onClick={next}>Save Log</Button>
+              <Button size="lg" className="flex-1" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? 'Saving…' : 'Save Log'}
+              </Button>
             </div>
           </div>
         )}

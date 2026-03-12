@@ -5,11 +5,15 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useAuthStore } from '@/stores/auth'
+import { useCreateSession } from '@/hooks/mutations'
 import type { SessionType, Intensity } from '@/types/database'
 
 interface Props { open: boolean; onClose: () => void }
 
 export default function CreateSessionDialog({ open, onClose }: Props) {
+  const { user } = useAuthStore()
+  const createSession = useCreateSession()
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -27,13 +31,52 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
     is_notes_public: true,
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSaved(true)
-    setTimeout(() => {
-      setSaved(false)
-      onClose()
-    }, 1500)
+    if (!user?.team_id) return
+
+    try {
+      await createSession.mutateAsync({
+        team_id: user.team_id,
+        date: form.date,
+        type: form.type,
+        duration: parseInt(form.duration) || 90,
+        intensity: form.intensity,
+        warmup: form.warmup || undefined,
+        main_set: form.main_set,
+        cooldown: form.cooldown || undefined,
+        target_split: form.target_split || undefined,
+        stroke_rate: form.stroke_rate || undefined,
+        hr_zone: form.hr_zone || undefined,
+        assigned_to: form.assigned_to,
+        coach_notes: form.coach_notes || undefined,
+        is_notes_public: form.is_notes_public,
+      })
+
+      setSaved(true)
+      setTimeout(() => {
+        setSaved(false)
+        // Reset form for next use
+        setForm({
+          date: new Date().toISOString().split('T')[0],
+          type: 'Erg',
+          duration: '90',
+          intensity: 'Moderate',
+          warmup: '',
+          main_set: '',
+          cooldown: '',
+          target_split: '',
+          stroke_rate: '',
+          hr_zone: '',
+          assigned_to: 'whole_team',
+          coach_notes: '',
+          is_notes_public: true,
+        })
+        onClose()
+      }, 1200)
+    } catch (err) {
+      console.error('Failed to create session:', err)
+    }
   }
 
   return (
@@ -157,9 +200,15 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-            <Button type="submit" variant={saved ? 'success' : 'default'}>
-              {saved ? <><Check className="h-4 w-4" /> Published!</> : 'Publish Session'}
+            <Button type="button" variant="outline" onClick={onClose}
+              disabled={createSession.isPending}>
+              Cancel
+            </Button>
+            <Button type="submit" variant={saved ? 'success' : 'default'}
+              disabled={createSession.isPending || saved}>
+              {saved
+                ? <><Check className="h-4 w-4 mr-1" /> Published!</>
+                : createSession.isPending ? 'Publishing…' : 'Publish Session'}
             </Button>
           </DialogFooter>
         </form>

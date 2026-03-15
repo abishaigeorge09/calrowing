@@ -18,20 +18,67 @@ export const MOCK_COACH: Profile = {
   email: 'coach@rowiq.demo',
   name: 'Mike Teti',
   role: 'coach',
+  status: 'active',
   team_id: 'team-cal-2026',
   avatar_url: null,
   created_at: '2026-01-10T00:00:00Z',
 }
 
+export const MOCK_SUPERADMIN: Profile = {
+  id: 'superadmin-1',
+  email: 'admin@rowiq.demo',
+  name: 'RowIQ Admin',
+  role: 'superadmin',
+  status: 'active',
+  team_id: null,
+  avatar_url: null,
+  created_at: '2025-01-01T00:00:00Z',
+}
+
+export const MOCK_PENDING_COACHES: Array<{
+  profile: Profile
+  teamName: string
+  division: string
+}> = [
+  {
+    profile: {
+      id: 'pending-1',
+      email: 'schen@stanford.edu',
+      name: 'Coach Sarah Chen',
+      role: 'coach',
+      status: 'pending',
+      team_id: null,
+      avatar_url: null,
+      created_at: '2026-03-10T14:30:00Z',
+    },
+    teamName: "Stanford Women's Rowing",
+    division: 'NCAA D1',
+  },
+  {
+    profile: {
+      id: 'pending-2',
+      email: 'jsmith@mit.edu',
+      name: 'Coach James Smith',
+      role: 'coach',
+      status: 'pending',
+      team_id: null,
+      avatar_url: null,
+      created_at: '2026-03-12T09:15:00Z',
+    },
+    teamName: 'MIT Lightweight Crew',
+    division: 'Club',
+  },
+]
+
 export const MOCK_ATHLETES: Profile[] = [
-  { id: 'athlete-1', email: 'alex@rowiq.demo',    name: 'Alex Chen',     role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-15T00:00:00Z' },
-  { id: 'athlete-2', email: 'jordan@rowiq.demo',  name: 'Jordan Rivera', role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-15T00:00:00Z' },
-  { id: 'athlete-3', email: 'sam@rowiq.demo',     name: 'Sam Park',      role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-15T00:00:00Z' },
-  { id: 'athlete-4', email: 'taylor@rowiq.demo',  name: 'Taylor Kim',    role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-16T00:00:00Z' },
-  { id: 'athlete-5', email: 'morgan@rowiq.demo',  name: 'Morgan Walsh',  role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-16T00:00:00Z' },
-  { id: 'athlete-6', email: 'casey@rowiq.demo',   name: 'Casey Liu',     role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-17T00:00:00Z' },
-  { id: 'athlete-7', email: 'riley@rowiq.demo',   name: 'Riley Torres',  role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-17T00:00:00Z' },
-  { id: 'athlete-8', email: 'jamie@rowiq.demo',   name: 'Jamie Scott',   role: 'athlete', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-18T00:00:00Z' },
+  { id: 'athlete-1', email: 'alex@rowiq.demo',    name: 'Alex Chen',     role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-15T00:00:00Z' },
+  { id: 'athlete-2', email: 'jordan@rowiq.demo',  name: 'Jordan Rivera', role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-15T00:00:00Z' },
+  { id: 'athlete-3', email: 'sam@rowiq.demo',     name: 'Sam Park',      role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-15T00:00:00Z' },
+  { id: 'athlete-4', email: 'taylor@rowiq.demo',  name: 'Taylor Kim',    role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-16T00:00:00Z' },
+  { id: 'athlete-5', email: 'morgan@rowiq.demo',  name: 'Morgan Walsh',  role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-16T00:00:00Z' },
+  { id: 'athlete-6', email: 'casey@rowiq.demo',   name: 'Casey Liu',     role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-17T00:00:00Z' },
+  { id: 'athlete-7', email: 'riley@rowiq.demo',   name: 'Riley Torres',  role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-17T00:00:00Z' },
+  { id: 'athlete-8', email: 'jamie@rowiq.demo',   name: 'Jamie Scott',   role: 'athlete', status: 'active', team_id: 'team-cal-2026', avatar_url: null, created_at: '2026-01-18T00:00:00Z' },
 ]
 
 const MOCK_CREATED = '2026-01-01T00:00:00.000Z'
@@ -363,4 +410,5 @@ export const DEMO_ACCOUNTS: Record<string, { profile: Profile; password: string 
   'casey@rowiq.demo':  { profile: MOCK_ATHLETES[5], password: 'Demo1234!' },
   'riley@rowiq.demo':  { profile: MOCK_ATHLETES[6], password: 'Demo1234!' },
   'jamie@rowiq.demo':  { profile: MOCK_ATHLETES[7], password: 'Demo1234!' },
+  'admin@rowiq.demo':  { profile: MOCK_SUPERADMIN,  password: 'Demo1234!' },
 }

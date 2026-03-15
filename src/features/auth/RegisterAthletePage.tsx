@@ -74,6 +74,7 @@ export default function RegisterAthletePage() {
         email: form.email,
         name: form.name,
         role: 'athlete',
+        status: 'active',
         team_id: resolvedTeamId || MOCK_TEAM.id,
         avatar_url: null,
         created_at: new Date().toISOString(),

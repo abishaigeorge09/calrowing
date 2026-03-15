@@ -1,4 +1,5 @@
-export type UserRole = 'coach' | 'athlete'
+export type UserRole = 'coach' | 'athlete' | 'superadmin'
+export type AccountStatus = 'pending' | 'active'
 export type SessionType = 'Erg' | 'Water' | 'Weights' | 'Cross Training' | 'Rest'
 export type Intensity = 'Low' | 'Moderate' | 'High' | 'Race Pace'
 export type AlertType = 'soreness_streak' | 'low_sleep' | 'injury' | 'exam_tomorrow' | 'missed_session'
@@ -10,6 +11,7 @@ export interface Profile {
   email: string
   name: string
   role: UserRole
+  status: AccountStatus
   team_id: string | null
   avatar_url: string | null
   created_at: string

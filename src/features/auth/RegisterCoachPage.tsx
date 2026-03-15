@@ -1,26 +1,22 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, Hexagon, Copy, Check } from 'lucide-react'
+import { ChevronLeft, Hexagon, Clock, Mail } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useAuthStore } from '@/stores/auth'
 import { IS_SUPABASE, supabase } from '@/lib/db'
-import { generateInviteCode } from '@/lib/utils'
-import type { Profile } from '@/types/database'
 import { motion } from 'framer-motion'
 
-type Step = 'account' | 'team' | 'done'
+type Step = 'account' | 'team' | 'pending'
 type ProgressStep = 'account' | 'team'
 
 export default function RegisterCoachPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('account')
-  const [copied, setCopied] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [inviteCode, setInviteCode] = useState('')
 
   const [form, setForm] = useState({
     name: '', email: '', password: '',
@@ -38,22 +34,10 @@ export default function RegisterCoachPage() {
     setLoading(true)
     setError('')
 
-    const code = generateInviteCode(form.teamName)
-    setInviteCode(code)
-
     if (!IS_SUPABASE) {
-      const mockProfile: Profile = {
-        id: `coach-${Date.now()}`,
-        email: form.email,
-        name: form.name,
-        role: 'coach',
-        team_id: `team-${Date.now()}`,
-        avatar_url: null,
-        created_at: new Date().toISOString(),
-      }
-      useAuthStore.setState({ user: mockProfile })
+      // Demo: do NOT log in — show pending approval screen
       setLoading(false)
-      setStep('done')
+      setStep('pending')
       return
     }
 
@@ -78,34 +62,15 @@ export default function RegisterCoachPage() {
         }
       }
 
-      const { data: team, error: teamError } = await supabase
-        .from('teams')
-        .insert({
-          name: form.teamName,
-          invite_code: code,
-          sport: 'Rowing',
-          division: form.division || null,
-          season_start: form.seasonStart || null,
-          season_end: form.seasonEnd || null,
-          coach_id: authData.user.id,
-        })
-        .select()
-        .single()
-      if (teamError) throw new Error(teamError.message)
-
       await supabase
         .from('profiles')
-        .update({ team_id: team.id })
+        .update({ status: 'pending' })
         .eq('id', authData.user.id)
 
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single()
-      if (profile) useAuthStore.setState({ user: profile as Profile })
+      // Sign out — coach cannot access dashboard until approved
+      await supabase.auth.signOut()
 
-      setStep('done')
+      setStep('pending')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed. Please try again.')
     } finally {
@@ -113,48 +78,61 @@ export default function RegisterCoachPage() {
     }
   }
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(inviteCode)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
   // Custom UI components
   const darkInputClasses = "bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-11"
   const darkLabelClasses = "text-[10px] uppercase tracking-widest text-gray-400 font-bold"
 
-  if (step === 'done') {
+  if (step === 'pending') {
     return (
       <div className="relative min-h-dvh bg-black flex flex-col font-sans text-white overflow-hidden">
         <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 blur-[150px] rounded-full mix-blend-screen" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/[0.03] blur-[150px] rounded-full" />
+          <div className="absolute inset-0 opacity-[0.02]" style={{
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)',
+            backgroundSize: '60px 60px'
+          }} />
         </div>
         <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-10 max-w-md shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-            <div className="bg-white/10 rounded-full p-5 mb-6 inline-flex border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-              <Check className="h-10 w-10 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-white mb-2 tracking-wide uppercase">Team Created!</h1>
-            <p className="text-gray-400 mb-8 font-light text-sm">
-              Share this code with your athletes so they can join your team.
-            </p>
-
-            <div className="bg-black/60 border border-white/10 rounded-2xl p-6 mb-8 w-full shadow-inner relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[30px] rounded-full" />
-              <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-2">Invite Code</p>
-              <p className="text-3xl font-black text-white tracking-widest mb-6 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{inviteCode}</p>
-              <Button onClick={copyCode} className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 uppercase tracking-widest text-xs font-bold transition-all h-10">
-                {copied ? <><Check className="h-4 w-4 mr-2" /> Copied</> : <><Copy className="h-4 w-4 mr-2" /> Copy to Clipboard</>}
-              </Button>
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-sm">
+            <div className="relative mb-8 inline-block">
+              <div className="absolute inset-0 bg-amber-500/15 blur-[40px] rounded-full" />
+              <div className="relative bg-amber-950/30 border border-amber-500/30 rounded-full w-20 h-20 flex items-center justify-center mx-auto">
+                <Clock className="h-9 w-9 text-amber-400" />
+              </div>
             </div>
 
-            <p className="text-sm font-light text-gray-400 mb-8 border-t border-white/10 pt-6">
-              Team: <strong className="text-white uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded">{form.teamName}</strong>
+            <h1 className="text-2xl font-black text-white tracking-tight mb-2">Request Submitted!</h1>
+            <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-xs mx-auto">
+              Your coach account is pending approval. We'll review your request and reach out shortly.
             </p>
 
-            <Button size="lg" className="w-full bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-sm font-bold shadow-[0_0_20px_rgba(255,255,255,0.2)] h-12" onClick={() => navigate('/coach')}>
-              Go to Dashboard
-            </Button>
+            <div className="bg-white/[0.04] border border-white/8 rounded-2xl p-5 text-left space-y-4 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-amber-500/15 border border-amber-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <Clock className="h-3.5 w-3.5 text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white mb-0.5">Usually within 24 hours</p>
+                  <p className="text-[11px] text-gray-500 leading-relaxed">Our team reviews every coach request to keep RowIQ a trusted platform.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <Mail className="h-3.5 w-3.5 text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white mb-0.5">We'll email {form.email}</p>
+                  <p className="text-[11px] text-gray-500 leading-relaxed">Once approved, sign in with your credentials to set up your team.</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full py-3 rounded-xl bg-white text-black text-[11px] font-bold uppercase tracking-widest hover:bg-gray-100 transition-all"
+            >
+              Back to Sign In
+            </button>
           </motion.div>
         </div>
       </div>

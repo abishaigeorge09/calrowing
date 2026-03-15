@@ -13,6 +13,8 @@ import type { Session, PostSessionLogData } from '@/types/database'
 import LoginPage from '@/features/auth/LoginPage'
 import RegisterCoachPage from '@/features/auth/RegisterCoachPage'
 import RegisterAthletePage from '@/features/auth/RegisterAthletePage'
+import PendingApprovalPage from '@/features/auth/PendingApprovalPage'
+import SuperadminDashboard from '@/features/superadmin/SuperadminDashboard'
 import LandingPage from '@/features/landing/LandingPage'
 import EarlyAccessPage from '@/features/landing/EarlyAccessPage'
 import AppShell from '@/components/layout/AppShell'
@@ -46,10 +48,15 @@ const queryClient = new QueryClient({
   },
 })
 
-function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'coach' | 'athlete' }) {
+function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'coach' | 'athlete' | 'superadmin' }) {
   const { user } = useAuthStore()
   if (!user) return <Navigate to="/login" replace />
+  // Pending coaches can only see the pending approval page
+  if (user.role === 'coach' && user.status === 'pending') {
+    return <Navigate to="/pending-approval" replace />
+  }
   if (requiredRole && user.role !== requiredRole) {
+    if (user.role === 'superadmin') return <Navigate to="/superadmin" replace />
     return <Navigate to={user.role === 'coach' ? '/coach' : '/athlete'} replace />
   }
   return <>{children}</>
@@ -399,7 +406,11 @@ export default function App() {
         <Routes>
           <Route path="/" element={
             user
-              ? <Navigate to={user.role === 'coach' ? '/coach' : '/athlete'} replace />
+              ? <Navigate to={
+                  user.role === 'superadmin' ? '/superadmin' :
+                  user.role === 'coach' && user.status === 'pending' ? '/pending-approval' :
+                  user.role === 'coach' ? '/coach' : '/athlete'
+                } replace />
               : <LandingPage />
           } />
           <Route path="/early-access" element={<EarlyAccessPage />} />
@@ -407,6 +418,8 @@ export default function App() {
           <Route path="/register/coach" element={<RegisterCoachPage />} />
           <Route path="/register/athlete" element={<RegisterAthletePage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/pending-approval" element={<PendingApprovalPage />} />
+          <Route path="/superadmin" element={<ProtectedRoute requiredRole="superadmin"><SuperadminDashboard /></ProtectedRoute>} />
           <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><AppShell /></ProtectedRoute>}>
             <Route index element={<CoachDashboard />} />
             <Route path="roster" element={<RosterPage />} />

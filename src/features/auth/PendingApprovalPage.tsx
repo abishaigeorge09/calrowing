@@ -171,7 +171,7 @@ export default function PendingApprovalPage() {
               {isRejected ? 'Register Again' : 'Back to Sign In'}
             </button>
             <button
-              onClick={() => navigate('/')}
+              onClick={handleGoHome}
               className="w-full py-3 rounded-xl border border-white/10 bg-white/5 text-[11px] font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/10 transition-all"
             >
               Go to Home

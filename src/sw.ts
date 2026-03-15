@@ -2,8 +2,13 @@
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
 import { registerRoute } from 'workbox-routing'
 import { NetworkFirst } from 'workbox-strategies'
+import { skipWaiting, clientsClaim } from 'workbox-core'
 
 declare let self: ServiceWorkerGlobalScope
+
+// Take over immediately when a new SW is available — no waiting for tabs to close
+skipWaiting()
+clientsClaim()
 
 // Precache all assets injected by vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST)

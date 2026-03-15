@@ -44,6 +44,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
   const { user } = useAuthStore()
   const createSession = useCreateSession()
   const [saved, setSaved] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const [form, setForm] = useState(defaultForm)
   const [step, setStep] = useState(0)
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
@@ -65,7 +66,11 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!user?.team_id) return
+    setSubmitError('')
+    if (!user?.team_id) {
+      setSubmitError('Your account is not linked to a team yet. Please contact support.')
+      return
+    }
 
     const duration = timeToMinutes(form.end_time) - timeToMinutes(form.start_time)
     try {
@@ -98,6 +103,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
         onClose()
       }, 1200)
     } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to create session. Please try again.')
       console.error('Failed to create session:', err)
     }
   }
@@ -289,6 +295,11 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
           )}
           </div>
 
+          {submitError && (
+            <div className="mt-3 px-4 py-3 rounded-xl bg-red-950/40 border border-red-500/30 text-red-300 text-xs">
+              {submitError}
+            </div>
+          )}
           <DialogFooter className="pt-4 border-t border-white/5 mt-auto flex flex-row gap-3 sm:justify-between w-full">
             {step > 0 ? (
               <Button type="button" variant="outline" onClick={() => setStep(step - 1)}

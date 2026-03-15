@@ -62,9 +62,30 @@ export default function RegisterCoachPage() {
         }
       }
 
+      // Generate a random invite code
+      const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase() +
+        Math.random().toString(36).substring(2, 5).toUpperCase()
+
+      // Create the team
+      const { data: teamData, error: teamError } = await supabase
+        .from('teams')
+        .insert({
+          name: form.teamName,
+          division: form.division || null,
+          season_start: form.seasonStart || null,
+          season_end: form.seasonEnd || null,
+          sport: 'Rowing',
+          invite_code: inviteCode,
+          coach_id: authData.user.id,
+        })
+        .select()
+        .single()
+      if (teamError) throw new Error(teamError.message)
+
+      // Link team to profile and mark pending
       await supabase
         .from('profiles')
-        .update({ status: 'pending' })
+        .update({ status: 'pending', team_id: teamData.id })
         .eq('id', authData.user.id)
 
       // Sign out — coach cannot access dashboard until approved

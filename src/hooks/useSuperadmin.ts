@@ -1,7 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { IS_SUPABASE, supabase } from '@/lib/db'
-import { MOCK_PENDING_COACHES, MOCK_ATHLETES, MOCK_TEAM } from '@/lib/mock-data'
+import { MOCK_PENDING_COACHES, MOCK_ATHLETES, MOCK_TEAM, MOCK_COACH } from '@/lib/mock-data'
 import type { Profile } from '@/types/database'
+
+export interface AdminTeam {
+  id: string
+  name: string
+  division: string
+  sport?: string
+  coachName: string
+  athleteCount?: number
+}
+
+export interface AdminAthlete {
+  id: string
+  name: string
+  email: string
+  team_id: string | null
+}
 
 // Mutable demo state — shared across hook calls
 const demoPendingCoaches = [...MOCK_PENDING_COACHES]
@@ -99,14 +115,66 @@ export function useRejectCoach() {
         if (idx !== -1) demoPendingCoaches.splice(idx, 1)
         return
       }
-      // In Supabase: delete the profile (auth user remains, can re-register)
-      const { error } = await supabase.from('profiles').delete().eq('id', coachId)
+      const { error } = await supabase
+        .from('profiles')
+        .update({ status: 'rejected' })
+        .eq('id', coachId)
       if (error) throw new Error(error.message)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending_coaches'] })
       queryClient.invalidateQueries({ queryKey: ['admin_stats'] })
     },
+  })
+}
+
+export function useAllTeams() {
+  return useQuery<AdminTeam[]>({
+    queryKey: ['admin_teams'],
+    queryFn: async () => {
+      if (!IS_SUPABASE) {
+        return [{
+          id: MOCK_TEAM.id,
+          name: MOCK_TEAM.name,
+          division: MOCK_TEAM.division,
+          sport: MOCK_TEAM.sport,
+          coachName: MOCK_COACH.name,
+          athleteCount: MOCK_ATHLETES.length,
+        }]
+      }
+      const { data, error } = await supabase
+        .from('teams')
+        .select('id, name, division, sport')
+        .order('created_at', { ascending: false })
+      if (error) throw new Error(error.message)
+      return (data ?? []).map((t: any) => ({
+        id: t.id,
+        name: t.name,
+        division: t.division ?? '',
+        sport: t.sport ?? '',
+        coachName: '—',
+      }))
+    },
+    staleTime: 30_000,
+  })
+}
+
+export function useAllAthletes() {
+  return useQuery<AdminAthlete[]>({
+    queryKey: ['admin_athletes'],
+    queryFn: async () => {
+      if (!IS_SUPABASE) {
+        return MOCK_ATHLETES.map(a => ({ id: a.id, name: a.name, email: a.email, team_id: a.team_id }))
+      }
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, name, email, team_id')
+        .eq('role', 'athlete')
+        .order('name')
+      if (error) throw new Error(error.message)
+      return (data ?? []) as AdminAthlete[]
+    },
+    staleTime: 30_000,
   })
 }
 

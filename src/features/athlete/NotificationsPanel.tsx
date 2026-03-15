@@ -53,7 +53,7 @@ export default function NotificationsPanel({ open, onClose }: Props) {
       />
 
       {/* Slide-up panel */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 border-t border-white/10 rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom duration-300">
+      <div className="fixed bottom-0 left-0 right-0 bg-black/90 border-t border-white/10 rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] max-h-[85dvh] flex flex-col animate-in slide-in-from-bottom duration-300" style={{ zIndex: 10000 }}>
         <div className="absolute top-0 right-1/4 w-32 h-32 bg-white/5 blur-[40px] rounded-full pointer-events-none" />
 
         {/* Header */}

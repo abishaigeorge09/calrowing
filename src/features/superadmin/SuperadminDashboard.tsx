@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Hexagon, Users, Building2, Clock, CheckCircle2, XCircle, LogOut, ChevronRight } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
-import { usePendingCoaches, useAdminStats, useApproveCoach, useRejectCoach } from '@/hooks/useSuperadmin'
+import { usePendingCoaches, useAdminStats, useApproveCoach, useRejectCoach, useAllTeams, useAllAthletes } from '@/hooks/useSuperadmin'
+import { getInitials } from '@/lib/utils'
 
 export default function SuperadminDashboard() {
   const { signOut } = useAuthStore()
   const navigate = useNavigate()
   const { data: stats } = useAdminStats()
   const { data: pending = [], isLoading } = usePendingCoaches()
+  const { data: teams = [], isLoading: teamsLoading } = useAllTeams()
+  const { data: athletes = [], isLoading: athletesLoading } = useAllAthletes()
   const approveCoach = useApproveCoach()
   const rejectCoach = useRejectCoach()
   const [actionId, setActionId] = useState<string | null>(null)
@@ -157,8 +160,67 @@ export default function SuperadminDashboard() {
           )}
         </div>
 
+        {/* Teams list */}
+        <div>
+          <h2 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-4">
+            Teams <span className="text-gray-600">({teams.length})</span>
+          </h2>
+          {teamsLoading ? (
+            <div className="text-center py-8 text-gray-600 text-[10px] uppercase tracking-widest font-bold">Loading…</div>
+          ) : teams.length === 0 ? (
+            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6 text-center">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-gray-600">No teams yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {teams.map(team => (
+                <div key={team.id} className="bg-white/[0.04] border border-white/8 rounded-xl px-4 py-3 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500/15 border border-blue-500/20 flex items-center justify-center shrink-0">
+                    <Building2 className="h-4 w-4 text-blue-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-white truncate">{team.name}</div>
+                    <div className="text-[10px] text-gray-500">Coach: {team.coachName}{team.division ? ` · ${team.division}` : ''}</div>
+                  </div>
+                  {team.athleteCount !== undefined && (
+                    <div className="text-[10px] font-bold text-gray-500 shrink-0">{team.athleteCount} athletes</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Athletes list */}
+        <div>
+          <h2 className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mb-4">
+            Athletes <span className="text-gray-600">({athletes.length})</span>
+          </h2>
+          {athletesLoading ? (
+            <div className="text-center py-8 text-gray-600 text-[10px] uppercase tracking-widest font-bold">Loading…</div>
+          ) : athletes.length === 0 ? (
+            <div className="bg-white/[0.03] border border-white/8 rounded-2xl p-6 text-center">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-gray-600">No athletes yet</p>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {athletes.map(athlete => (
+                <div key={athlete.id} className="bg-white/[0.04] border border-white/8 rounded-xl px-4 py-3 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-white/10 border border-white/15 flex items-center justify-center shrink-0 text-[10px] font-black text-gray-300">
+                    {getInitials(athlete.name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-white truncate">{athlete.name}</div>
+                    <div className="text-[10px] text-gray-500 truncate">{athlete.email}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Footer note */}
-        <p className="text-center text-[10px] text-gray-700 uppercase tracking-widest font-bold">
+        <p className="text-center text-[10px] text-gray-700 uppercase tracking-widest font-bold pb-8">
           RowIQ Superadmin · Access restricted
         </p>
       </div>

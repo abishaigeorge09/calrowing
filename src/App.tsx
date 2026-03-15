@@ -51,8 +51,8 @@ const queryClient = new QueryClient({
 function ProtectedRoute({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'coach' | 'athlete' | 'superadmin' }) {
   const { user } = useAuthStore()
   if (!user) return <Navigate to="/login" replace />
-  // Pending coaches can only see the pending approval page
-  if (user.role === 'coach' && user.status === 'pending') {
+  // Pending/rejected coaches can only see the pending-approval page
+  if (user.role === 'coach' && (user.status === 'pending' || user.status === 'rejected')) {
     return <Navigate to="/pending-approval" replace />
   }
   if (requiredRole && user.role !== requiredRole) {
@@ -408,7 +408,7 @@ export default function App() {
             user
               ? <Navigate to={
                   user.role === 'superadmin' ? '/superadmin' :
-                  user.role === 'coach' && user.status === 'pending' ? '/pending-approval' :
+                  user.role === 'coach' && (user.status === 'pending' || user.status === 'rejected') ? '/pending-approval' :
                   user.role === 'coach' ? '/coach' : '/athlete'
                 } replace />
               : <LandingPage />

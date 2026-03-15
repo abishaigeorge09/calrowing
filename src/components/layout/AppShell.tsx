@@ -126,7 +126,7 @@ export default function AppShell() {
                       </span>
                     )}
                   </span>
-                  <span className={isActive ? 'opacity-100' : 'opacity-70'}>{label}</span>
+                  <span className={cn('truncate max-w-full', isActive ? 'opacity-100' : 'opacity-70')}>{label}</span>
                 </>
               )}
             </NavLink>

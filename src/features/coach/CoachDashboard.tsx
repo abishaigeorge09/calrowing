@@ -62,12 +62,13 @@ export default function CoachDashboard() {
     <div className="px-4 py-8 space-y-6 max-w-3xl mx-auto font-sans text-white">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
-        <div>
+        <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <Hexagon className="h-5 w-5 text-gray-400" /> Hey, {user?.name?.split(' ')[0]}
+            <Hexagon className="h-5 w-5 text-gray-400 shrink-0" />
+            <span className="truncate">Hey, {user?.name?.split(' ')[0]}</span>
           </h1>
-          <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
-            {formatDate(today)} · {team?.name}
+          <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1 truncate">
+            {formatDate(today)}{team?.name ? ` · ${team.name}` : ''}
           </p>
         </div>
         <button

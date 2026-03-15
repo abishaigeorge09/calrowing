@@ -119,10 +119,11 @@ export default function MessagesPage() {
                 </button>
               </div>
             ) : (
-              <div className="flex gap-1">
+              <div className="flex items-center gap-2">
                 <button onClick={() => setShowSearch(true)} className="p-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 text-gray-500 hover:text-white transition-colors">
                   <Search className="h-4 w-4" />
                 </button>
+                <span className="w-px h-4 bg-white/15 self-center" />
                 <button onClick={() => setShowCreateGroup(true)} className="p-2 rounded-xl border border-transparent hover:border-white/10 hover:bg-white/5 text-gray-500 hover:text-white transition-colors">
                   <Plus className="h-4 w-4" />
                 </button>

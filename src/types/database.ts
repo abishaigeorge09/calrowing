@@ -1,5 +1,5 @@
 export type UserRole = 'coach' | 'athlete' | 'superadmin'
-export type AccountStatus = 'pending' | 'active'
+export type AccountStatus = 'pending' | 'active' | 'rejected'
 export type SessionType = 'Erg' | 'Water' | 'Weights' | 'Cross Training' | 'Rest'
 export type Intensity = 'Low' | 'Moderate' | 'High' | 'Race Pace'
 export type AlertType = 'soreness_streak' | 'low_sleep' | 'injury' | 'exam_tomorrow' | 'missed_session'

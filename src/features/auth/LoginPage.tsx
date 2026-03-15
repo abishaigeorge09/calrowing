@@ -24,7 +24,7 @@ export default function LoginPage() {
     } else {
       const user = useAuthStore.getState().user
       if (user?.role === 'superadmin') navigate('/superadmin')
-      else if (user?.role === 'coach' && user.status === 'pending') navigate('/pending-approval')
+      else if (user?.role === 'coach' && (user.status === 'pending' || user.status === 'rejected')) navigate('/pending-approval')
       else navigate(user?.role === 'coach' ? '/coach' : '/athlete')
     }
   }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { ChevronLeft, Hexagon, Clock, Mail } from 'lucide-react'
+import { ChevronLeft, Hexagon, Clock, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -103,7 +103,7 @@ export default function RegisterCoachPage() {
 
             <h1 className="text-2xl font-black text-white tracking-tight mb-2">Request Submitted!</h1>
             <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-xs mx-auto">
-              Your coach account is pending approval. We'll review your request and reach out shortly.
+              Your coach account is pending approval. Check back in 24 hours to sign in.
             </p>
 
             <div className="bg-white/[0.04] border border-white/8 rounded-2xl p-5 text-left space-y-4 mb-8">
@@ -118,21 +118,29 @@ export default function RegisterCoachPage() {
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-7 h-7 rounded-lg bg-blue-500/15 border border-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <Mail className="h-3.5 w-3.5 text-blue-400" />
+                  <RefreshCw className="h-3.5 w-3.5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-white mb-0.5">We'll email {form.email}</p>
-                  <p className="text-[11px] text-gray-500 leading-relaxed">Once approved, sign in with your credentials to set up your team.</p>
+                  <p className="text-xs font-bold text-white mb-0.5">Check back to sign in</p>
+                  <p className="text-[11px] text-gray-500 leading-relaxed">Once approved, sign in at {form.email} to set up your team.</p>
                 </div>
               </div>
             </div>
 
-            <button
-              onClick={() => navigate('/login')}
-              className="w-full py-3 rounded-xl bg-white text-black text-[11px] font-bold uppercase tracking-widest hover:bg-gray-100 transition-all"
-            >
-              Back to Sign In
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => navigate('/login')}
+                className="w-full py-3 rounded-xl bg-white text-black text-[11px] font-bold uppercase tracking-widest hover:bg-gray-100 transition-all"
+              >
+                Back to Sign In
+              </button>
+              <button
+                onClick={() => navigate('/')}
+                className="w-full py-3 rounded-xl border border-white/10 bg-white/5 text-[11px] font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+              >
+                Go to Home
+              </button>
+            </div>
           </motion.div>
         </div>
       </div>

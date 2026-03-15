@@ -48,7 +48,7 @@ export default function NotificationsPanel({ open, onClose }: Props) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 animate-in fade-in duration-200"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200" style={{ zIndex: 9999 }}
         onClick={onClose}
       />
 

@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Eye, EyeOff, Hexagon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Eye, EyeOff, Hexagon, ArrowRight } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/stores/auth'
 
 export default function LoginPage() {
@@ -33,66 +31,78 @@ export default function LoginPage() {
     setEmail(demoEmail)
     setPassword('Demo1234!')
     setError('')
-  }  
+  }
 
   return (
-    <div className="relative min-h-dvh bg-black flex flex-col font-sans overflow-hidden text-white">
-      {/* Background ambient light */}
+    <div className="relative min-h-dvh bg-black flex flex-col text-white overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-white/5 blur-[120px] rounded-full mix-blend-screen" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-white/5 blur-[150px] rounded-full mix-blend-screen" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-white/[0.04] blur-[100px] rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-white/[0.03] blur-[120px] rounded-full" />
+        {/* Subtle grid */}
+        <div className="absolute inset-0 opacity-[0.025]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px)',
+          backgroundSize: '60px 60px'
+        }} />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-6">
-        {/* Header */}
-        <div className="flex flex-col items-center mb-8">
-          <Link to="/" className="flex items-center gap-3 mb-2 group">
-            <div className="bg-white/10 rounded-2xl p-3 border border-white/20 group-hover:bg-white/20 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-              <Hexagon className="h-8 w-8 text-white" strokeWidth={1.5} />
-            </div>
-            <span className="text-4xl font-black text-white tracking-widest uppercase">RowIQ</span>
-          </Link>
-          <p className="text-gray-400 text-sm tracking-widest uppercase font-semibold">Sign in to your account</p>
-        </div>
+      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 py-12">
 
-        {/* Card */}
-        <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-          <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">Welcome back</h1>
-          <p className="text-gray-400 text-sm mb-6 font-light">Sign in to continue to RowIQ</p>
+        <div className="w-full max-w-sm">
+          {/* Header — logo + heading as one unit */}
+          <div className="text-center mb-7">
+            <Link to="/" className="inline-flex items-center gap-2 mb-5 opacity-60 hover:opacity-100 transition-opacity">
+              <Hexagon className="h-4 w-4 text-white" strokeWidth={1.5} />
+              <span className="text-xs font-bold text-white tracking-widest uppercase">RowIQ</span>
+            </Link>
+            <h1 className="text-2xl font-black text-white tracking-tight mb-1">Sign in</h1>
+            <p className="text-gray-500 text-sm">Enter your credentials to continue</p>
+          </div>
 
-          {/* Demo Section */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 shadow-inner">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></span>
-              <p className="text-gray-200 text-sm font-bold uppercase tracking-widest">Try a Demo</p>
+          {/* Demo quick-access */}
+          <div className="mb-6 p-4 rounded-2xl border border-white/8 bg-white/[0.03]">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300">Try a Demo</p>
             </div>
-            <p className="text-gray-400 text-xs mb-4 font-light">Explore the platform instantly — no registration needed.</p>
-            <div className="grid grid-cols-2 gap-3 mb-3">
+            <div className="grid grid-cols-2 gap-2 mb-3">
               <button
                 type="button"
                 onClick={() => fillDemo('coach@rowiq.demo')}
-                className="bg-white/10 border border-white/10 hover:bg-white/20 text-white rounded-xl py-2 px-3 text-xs font-semibold tracking-wider transition-all"
+                className="py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition-all bg-white/8 border border-white/10 hover:bg-white/15 text-white"
               >
                 Coach Demo
               </button>
               <button
                 type="button"
                 onClick={() => fillDemo('alex@rowiq.demo')}
-                className="bg-white text-black rounded-xl py-2 px-3 text-xs font-bold tracking-wider hover:bg-gray-200 transition-all shadow-[0_0_10px_rgba(255,255,255,0.3)]"
+                className="py-2.5 px-3 rounded-xl text-xs font-bold tracking-wide transition-all bg-white text-black hover:bg-gray-100"
               >
                 Athlete Demo
               </button>
             </div>
-            <div className="flex gap-3 flex-wrap">
-              <button type="button" onClick={() => fillDemo('jordan@rowiq.demo')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Jordan</button>
-              <button type="button" onClick={() => fillDemo('sam@rowiq.demo')}    className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Sam</button>
-              <button type="button" onClick={() => fillDemo('taylor@rowiq.demo')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Taylor</button>
+            <div className="flex gap-3">
+              {[['Jordan', 'jordan@rowiq.demo'], ['Sam', 'sam@rowiq.demo'], ['Taylor', 'taylor@rowiq.demo']].map(([name, demoEmail]) => (
+                <button key={name} type="button" onClick={() => fillDemo(demoEmail)}
+                  className="text-[10px] text-gray-500 hover:text-gray-200 uppercase tracking-wider transition-colors"
+                >
+                  {name}
+                </button>
+              ))}
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs uppercase tracking-widest text-gray-400 font-bold">Email</Label>
+          {/* Divider */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 h-px bg-white/8" />
+            <span className="text-[10px] text-gray-600 uppercase tracking-widest font-bold">or sign in</span>
+            <div className="flex-1 h-px bg-white/8" />
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-[10px] uppercase tracking-widest text-gray-400 font-bold block">Email</label>
               <Input
                 id="email"
                 type="email"
@@ -100,16 +110,16 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
-                className="bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-12 px-4 shadow-inner"
+                className="bg-black/40 border-white/10 focus:border-white/40 text-white placeholder:text-gray-600 rounded-xl h-11 px-4"
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <Label htmlFor="password" className="text-xs uppercase tracking-widest text-gray-400 font-bold">Password</Label>
-                <Link to="/forgot-password" className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
-                  Forgot password?
+                <label htmlFor="password" className="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Password</label>
+                <Link to="/forgot-password" className="text-[10px] text-gray-500 hover:text-gray-200 uppercase tracking-wider transition-colors">
+                  Forgot?
                 </Link>
               </div>
               <div className="relative">
@@ -120,40 +130,48 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
-                  className="bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-12 px-4 shadow-inner"
+                  className="bg-black/40 border-white/10 focus:border-white/40 text-white placeholder:text-gray-600 rounded-xl h-11 px-4"
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-200 transition-colors"
                   onClick={() => setShowPassword(!showPassword)}
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
             {error && (
-              <div className="bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-red-200 text-sm shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+              <div className="bg-red-950/40 border border-red-500/25 rounded-xl px-4 py-3 text-red-300 text-xs leading-relaxed">
                 {error}
               </div>
             )}
 
-            <Button type="submit" className="w-full bg-white text-black hover:bg-gray-200 hover:scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all font-bold tracking-widest uppercase rounded-xl h-12 mt-2" disabled={loading}>
-              {loading ? 'Signing in…' : 'Sign In'}
-            </Button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-white text-black hover:bg-gray-100 disabled:opacity-50 font-bold tracking-widest uppercase rounded-xl h-11 text-xs transition-all flex items-center justify-center gap-2 group mt-1"
+            >
+              {loading ? 'Signing in…' : (
+                <>
+                  Sign In
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                </>
+              )}
+            </button>
           </form>
 
-          <div className="mt-8 text-center border-t border-white/10 pt-6">
-            <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">
-              New to RowIQ?
-            </p>
-            <div className="flex justify-center gap-4 text-sm">
-              <Link to="/register/coach" className="text-gray-300 hover:text-white font-bold transition-colors">
+          {/* Footer */}
+          <div className="mt-8 pt-6 border-t border-white/8 text-center space-y-3">
+            <p className="text-xs text-gray-500">New to RowIQ?</p>
+            <div className="flex justify-center gap-6 text-xs">
+              <Link to="/register/coach" className="text-gray-300 hover:text-white font-semibold transition-colors">
                 Register as Coach
               </Link>
-              <span className="text-white/20">|</span>
-              <Link to="/register/athlete" className="text-gray-300 hover:text-white font-bold transition-colors">
+              <span className="text-white/15">|</span>
+              <Link to="/register/athlete" className="text-gray-300 hover:text-white font-semibold transition-colors">
                 Join as Athlete
               </Link>
             </div>

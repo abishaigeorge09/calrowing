@@ -76,7 +76,7 @@ export default function MorningCheckinForm({ onClose, onDone, coachId, recentLog
   const motivationLabels = ['', 'Dread', 'Low', 'OK', 'Motivated', 'Pumped']
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex flex-col justify-end" style={{ zIndex: 9999 }}>
       <div className="bg-black/95 border-t border-white/10 w-full rounded-t-[2.5rem] flex flex-col safe-bottom max-h-[92dvh] shadow-[0_-20px_50px_rgba(0,0,0,0.8)] relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
 
@@ -94,7 +94,7 @@ export default function MorningCheckinForm({ onClose, onDone, coachId, recentLog
         </div>
 
         {/* Progress */}
-        <div className="flex gap-2 mb-8 relative z-10 w-full max-w-sm mx-auto">
+        <div className="flex gap-2 mb-8 relative z-10 w-full max-w-sm mx-auto px-6">
           {steps.map((_, i) => (
             <div key={i} className={cn(
               'flex-1 h-1.5 rounded-full transition-colors',
@@ -103,7 +103,8 @@ export default function MorningCheckinForm({ onClose, onDone, coachId, recentLog
           ))}
         </div>
 
-        <div className="relative z-10 w-full max-w-sm mx-auto min-h-[40vh] flex flex-col pt-4">
+        <div className="flex-1 overflow-y-auto px-6">
+        <div className="relative z-10 w-full max-w-sm mx-auto flex flex-col pt-4">
           {step === 0 && (
             <div className="space-y-8 flex-1 pb-4">
               <div className="space-y-4">
@@ -293,10 +294,14 @@ export default function MorningCheckinForm({ onClose, onDone, coachId, recentLog
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="flex gap-3 mt-10">
+        </div>
+        </div>
+
+        {/* Sticky navigation — always visible */}
+        <div className="px-6 pt-4 pb-8 border-t border-white/5 relative z-10">
+          <div className="flex gap-3 w-full max-w-sm mx-auto">
             {step > 0 && step < 4 && (
-              <button 
+              <button
                 className="flex-1 bg-transparent border border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all"
                 onClick={back}
               >
@@ -304,7 +309,7 @@ export default function MorningCheckinForm({ onClose, onDone, coachId, recentLog
               </button>
             )}
             {step < 3 && (
-              <button 
+              <button
                 className="flex-[2] bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                 onClick={next}
               >
@@ -312,16 +317,16 @@ export default function MorningCheckinForm({ onClose, onDone, coachId, recentLog
               </button>
             )}
             {step === 3 && (
-              <button 
-                 className="flex-[2] bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)] flex justify-center items-center gap-2 disabled:opacity-50"
-                onClick={handleSubmit} 
+              <button
+                className="flex-[2] bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)] flex justify-center items-center gap-2 disabled:opacity-50"
+                onClick={handleSubmit}
                 disabled={submitLog.isPending}
               >
                 {submitLog.isPending ? 'Sending...' : 'Complete Check-in'}
               </button>
             )}
             {step === 4 && (
-              <button 
+              <button
                 className="w-full bg-green-500 text-white uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:bg-green-400"
                 onClick={onDone}
               >

@@ -87,7 +87,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
   ]
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex flex-col justify-end">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex flex-col justify-end" style={{ zIndex: 9999 }}>
       <div className="bg-black/95 border-t border-white/10 w-full rounded-t-[2.5rem] px-6 pt-8 pb-10 safe-bottom max-h-[92dvh] overflow-y-auto shadow-[0_-20px_50px_rgba(0,0,0,0.8)] relative">
         <div className="absolute top-0 left-3/4 -translate-y-1/2 w-32 h-32 bg-yellow-500/20 blur-[50px] rounded-full pointer-events-none" />
 

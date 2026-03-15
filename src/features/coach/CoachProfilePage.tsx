@@ -42,10 +42,10 @@ export default function CoachProfilePage() {
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
           <h1 className="text-2xl font-black tracking-tight flex items-center gap-2 text-white">
-            <Hexagon className="h-5 w-5 text-gray-400" /> Director Node
+            <Hexagon className="h-5 w-5 text-gray-400" /> My Profile
           </h1>
           <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
-            System Identity
+            Coach profile
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -61,7 +61,7 @@ export default function CoachProfilePage() {
             onClick={handleSignOut} 
             className="p-2 border border-red-500/30 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-400 transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.1)]"
           >
-            <LogOut className="h-3.5 w-3.5" /> Abort
+            <LogOut className="h-3.5 w-3.5" /> Sign Out
           </button>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function CoachProfilePage() {
             type="text"
             value={editName}
             onChange={e => setEditName(e.target.value)}
-            placeholder="Director Designation"
+            placeholder="Full Name"
             className="relative z-10 text-2xl font-black text-white text-center border-b border-white/30 focus:border-white focus:outline-none bg-transparent w-64 pb-1 mb-2 placeholder:text-gray-600 block"
             autoFocus
           />
@@ -92,7 +92,7 @@ export default function CoachProfilePage() {
         <p className="relative z-10 text-gray-400 text-sm font-light tracking-wide">{user?.email}</p>
         
         <div className="relative z-10 mt-4">
-          <span className="bg-white/10 border border-white/20 px-3 py-1 rounded text-[10px] uppercase font-black tracking-widest text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]">Command Level</span>
+          <span className="bg-white/10 border border-white/20 px-3 py-1 rounded text-[10px] uppercase font-black tracking-widest text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]">Coach</span>
         </div>
 
         {/* Save / Cancel in edit mode */}
@@ -118,22 +118,22 @@ export default function CoachProfilePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Team Info */}
         <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/10">
-          <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Array Specs</h2>
-          
+          <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Team Info</h2>
+
           <div className="space-y-4">
             <div>
               <p className="font-bold text-lg text-white tracking-wide">{team?.name}</p>
               <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mt-1">{team?.division} · {team?.sport}</p>
             </div>
-            
+
             <div className="flex items-center gap-6 pt-2">
               <div className="bg-black/40 border border-white/5 rounded-xl p-3 flex-1">
-                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Nodes</p>
+                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Athletes</p>
                 <p className="font-black text-xl text-white">{athletes.length}</p>
               </div>
               <div className="bg-black/40 border border-white/5 rounded-xl p-3 flex-1 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 blur-[20px] rounded-full" />
-                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1 relative z-10">Access Key</p>
+                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1 relative z-10">Invite Code</p>
                 <p className="font-black text-lg text-white tracking-widest relative z-10 drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]">{team?.invite_code}</p>
               </div>
             </div>
@@ -142,11 +142,11 @@ export default function CoachProfilePage() {
 
         {/* Season */}
         <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/10">
-          <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Operational Window</h2>
-          
+          <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Season</h2>
+
           <div className="grid grid-cols-2 gap-4 h-[calc(100%-3rem)] content-center text-center">
             <div className="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-center shadow-inner">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">T-Zero (Start)</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Season Start</p>
               <p className="font-black text-white text-sm">
                 {team?.season_start
                   ? new Date(team.season_start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -154,7 +154,7 @@ export default function CoachProfilePage() {
               </p>
             </div>
             <div className="bg-black/40 border border-white/5 rounded-2xl p-4 flex flex-col justify-center shadow-inner">
-              <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">T-End (End)</p>
+              <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500 mb-2">Season End</p>
               <p className="font-black text-white text-sm">
                 {team?.season_end
                   ? new Date(team.season_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -169,8 +169,8 @@ export default function CoachProfilePage() {
       {!isEditing && (
         <div className="grid gap-3 pt-2">
           {[
-            { icon: Users,    label: 'View Array Roster',       path: '/coach/roster' },
-            { icon: Calendar, label: 'Temporal Schedule', path: '/coach/calendar' },
+            { icon: Users,    label: 'View Roster',     path: '/coach/roster' },
+            { icon: Calendar, label: 'Schedule',         path: '/coach/calendar' },
           ].map(({ icon: Icon, label, path }) => (
             <button key={path}
               onClick={() => navigate(path)}

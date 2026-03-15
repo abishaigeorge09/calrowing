@@ -271,21 +271,21 @@ export const MOCK_ALERTS: Alert[] = [
 
 export const MOCK_MESSAGES: Message[] = [
   {
-    id: 'msg-1', sender_id: 'athlete-1', receiver_id: 'coach-1',
+    id: 'msg-1', sender_id: 'athlete-1', receiver_id: 'coach-1', group_id: null,
     content: 'Coach, my lower back is really bothering me today. Should I modify the erg pieces?',
     is_urgent: false, read_at: null,
     created_at: `${d(0)}T06:45:00Z`,
     sender: MOCK_ATHLETES[0], receiver: MOCK_COACH,
   },
   {
-    id: 'msg-2', sender_id: 'coach-1', receiver_id: 'athlete-1',
+    id: 'msg-2', sender_id: 'coach-1', receiver_id: 'athlete-1', group_id: null,
     content: 'Thanks for flagging. Let\'s do 2 pieces at low intensity and see how it feels. Stop if it sharpens.',
     is_urgent: false, read_at: `${d(0)}T08:00:00Z`,
     created_at: `${d(0)}T07:55:00Z`,
     sender: MOCK_COACH, receiver: MOCK_ATHLETES[0],
   },
   {
-    id: 'msg-3', sender_id: 'athlete-3', receiver_id: 'coach-1',
+    id: 'msg-3', sender_id: 'athlete-3', receiver_id: 'coach-1', group_id: null,
     content: 'I have a thermo exam Friday. Can we talk about training intensity this week?',
     is_urgent: false, read_at: null,
     created_at: `${d(-1)}T21:00:00Z`,

@@ -4,8 +4,9 @@ import {
   Check, Users, X, GripVertical,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
-import { useSurveys, useTeamSurveyAssignments } from '@/hooks/useSurveys'
+import { useSurveys, useTeamSurveyAssignments, useSurveyResponses } from '@/hooks/useSurveys'
 import { useCreateSurvey } from '@/hooks/mutations'
+import { useTeamAthletes } from '@/hooks/useTeamAthletes'
 import { SURVEY_TEMPLATES } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 import type { SurveyQuestion } from '@/types/database'
@@ -22,6 +23,46 @@ const QUESTION_TYPES = [
 
 function newQ(): SurveyQuestion {
   return { id: `q-${Date.now()}`, type: 'scale_1_5', text: '' }
+}
+
+function SurveyResponseViewer({ surveyId, surveyQuestions }: { surveyId: string, surveyQuestions: SurveyQuestion[] }) {
+  const { user } = useAuthStore()
+  const { data: responses = [], isLoading } = useSurveyResponses(surveyId)
+  const { data: athletes = [] } = useTeamAthletes(user?.team_id)
+
+  if (isLoading) return <div className="p-4 text-xs text-gray-500 animate-pulse text-center">Loading responses...</div>
+  if (responses.length === 0) return <div className="p-4 text-xs text-gray-500 text-center">No responses yet.</div>
+
+  // Group responses by athlete
+  const byAthlete = responses.reduce((acc, r) => {
+    if (!acc[r.athlete_id]) {
+      const dbAthlete = athletes.find(a => a.id === r.athlete_id)
+      acc[r.athlete_id] = { athleteName: dbAthlete?.name || 'Unknown Athlete', answers: [] }
+    }
+    acc[r.athlete_id].answers.push(r)
+    return acc
+  }, {} as Record<string, { athleteName: string, answers: any[] }>)
+
+  return (
+    <div className="bg-black/40 border-t border-white/10 p-4 space-y-4 max-h-[300px] overflow-y-auto">
+      {Object.entries(byAthlete).map(([aId, data]) => (
+        <div key={aId} className="space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 border-b border-white/5 pb-1">{data.athleteName}</p>
+          <div className="space-y-1">
+            {surveyQuestions.map(q => {
+              const ans = data.answers.find(a => a.question_id === q.id)
+              return (
+                <div key={q.id} className="flex gap-2 text-xs">
+                  <span className="text-gray-500 min-w-[120px] truncate" title={q.text}>• {q.text}</span>
+                  <span className="text-white font-bold">{ans ? ans.answer_value : '—'}</span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }
 
 export default function SurveysPage() {
@@ -128,10 +169,10 @@ export default function SurveysPage() {
               {mySurveys.map(survey => {
                 const rate = responseRate(survey.id)
                 return (
+                  <div key={survey.id} className="w-full bg-white/5 border border-white/10 rounded-2xl overflow-hidden transition-all">
                   <button
-                    key={survey.id}
                     onClick={() => { setViewSurveyId(survey.id === viewSurveyId ? null : survey.id) }}
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-left hover:bg-white/10 transition-colors"
+                    className="w-full p-4 text-left hover:bg-white/10 transition-colors"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
@@ -154,6 +195,10 @@ export default function SurveysPage() {
                       )}
                     </div>
                   </button>
+                  {survey.id === viewSurveyId && (
+                    <SurveyResponseViewer surveyId={survey.id} surveyQuestions={survey.questions} />
+                  )}
+                  </div>
                 )
               })}
             </div>

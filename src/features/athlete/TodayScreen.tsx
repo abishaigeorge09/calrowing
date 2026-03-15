@@ -91,7 +91,7 @@ export default function TodayScreen() {
             <Flame className="h-6 w-6 text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)]" />
             <div>
               <p className="text-2xl font-black text-white tracking-widest leading-none drop-shadow-[0_0_5px_currentColor]">{streak}</p>
-              <p className="text-[9px] uppercase font-bold tracking-widest text-orange-300">Sync Streak</p>
+              <p className="text-[9px] uppercase font-bold tracking-widest text-orange-300">Day Streak</p>
             </div>
           </div>
         )}
@@ -106,8 +106,8 @@ export default function TodayScreen() {
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[20px] rounded-full pointer-events-none group-hover:bg-white/10 transition-colors" />
           <div className="flex items-center justify-between relative z-10">
             <div>
-              <p className="text-lg font-black text-white uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Boot Sequence</p>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Diagnostic Run ~90s</p>
+              <p className="text-lg font-black text-white uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Morning Check-in</p>
+              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">~90 seconds</p>
             </div>
             <div className="bg-white/10 rounded-full p-4 border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_25px_rgba(255,255,255,0.3)] transition-shadow">
               <Activity className="h-6 w-6 text-white" />
@@ -115,7 +115,7 @@ export default function TodayScreen() {
           </div>
           <div className="mt-6 relative z-10">
             <button className="bg-white text-black text-xs font-bold uppercase tracking-widest px-6 py-2.5 rounded-xl hover:bg-gray-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)] w-w-auto">
-              Initialize Sync
+              Start Check-in
             </button>
           </div>
         </div>
@@ -126,20 +126,20 @@ export default function TodayScreen() {
         <div className="bg-green-950/20 border border-green-500/30 rounded-3xl p-5 shadow-inner backdrop-blur-xl">
           <div className="flex items-center gap-3 mb-4 border-b border-green-500/20 pb-3">
             <CheckCircle2 className="h-5 w-5 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
-            <p className="font-black text-green-400 uppercase tracking-widest text-sm drop-shadow-[0_0_5px_rgba(74,222,128,0.2)]">Boot Sequence Complete</p>
+            <p className="font-black text-green-400 uppercase tracking-widest text-sm drop-shadow-[0_0_5px_rgba(74,222,128,0.2)]">Morning Check-in Done</p>
           </div>
           <div className="flex gap-6 justify-center">
             <div className="flex items-center gap-2">
               <Moon className="h-4 w-4 text-blue-400" />
-              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">{Number(morningData.sleep_hours).toFixed(1)}H Pwr</span>
+              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">{Number(morningData.sleep_hours).toFixed(1)}h sleep</span>
             </div>
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4 text-yellow-400" />
-              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">Lvl {morningData.energy}/5</span>
+              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">Energy {morningData.energy}/5</span>
             </div>
             <div className="flex items-center gap-2">
               <Brain className="h-4 w-4 text-purple-400" />
-              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">Str {morningData.stress}/5</span>
+              <span className="text-[11px] uppercase font-bold tracking-widest text-gray-300">Stress {morningData.stress}/5</span>
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function TodayScreen() {
       {todaySession ? (
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
           <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
-            <h2 className="text-sm font-black text-white uppercase tracking-widest drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Active Protocol</h2>
+            <h2 className="text-sm font-black text-white uppercase tracking-widest drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Today's Session</h2>
             <div className="flex gap-2">
               <span className={cn('px-2.5 py-0.5 rounded-sm text-[10px] font-black uppercase tracking-widest text-white shadow-[0_0_10px_currentColor]', sessionTypeColor(todaySession.type).replace('bg-','text-').replace('shadow-','drop-shadow-'))}>
                 {todaySession.type}
@@ -178,27 +178,27 @@ export default function TodayScreen() {
 
             {todaySession.warmup && (
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-inner">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><Flame className="w-3.5 h-3.5 text-orange-400"/> Startup Seq</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><Flame className="w-3.5 h-3.5 text-orange-400"/> Warmup</p>
                 <p className="text-sm text-gray-300 leading-relaxed font-light">{todaySession.warmup}</p>
               </div>
             )}
             
             <div className="bg-black/60 border border-white/20 rounded-2xl p-5 shadow-[0_0_20px_rgba(0,0,0,0.8)_inset] relative overflow-hidden">
                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[30px] rounded-full pointer-events-none" />
-              <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2 relative z-10 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] flex items-center gap-2"><Activity className="w-4 h-4"/> Main Execution Loop</p>
+              <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2 relative z-10 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] flex items-center gap-2"><Activity className="w-4 h-4"/> Main Set</p>
               <p className="text-lg text-white font-medium leading-relaxed relative z-10">{todaySession.main_set}</p>
             </div>
             
             {todaySession.cooldown && (
               <div className="bg-white/5 border border-white/10 rounded-2xl p-4 shadow-inner">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><Moon className="w-3.5 h-3.5 text-blue-400"/> Shutdown Seq</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><Moon className="w-3.5 h-3.5 text-blue-400"/> Cooldown</p>
                 <p className="text-sm text-gray-300 leading-relaxed font-light">{todaySession.cooldown}</p>
               </div>
             )}
             
             {todaySession.is_notes_public && todaySession.coach_notes && (
               <div className="bg-blue-950/30 border border-blue-500/30 rounded-2xl p-4 shadow-inner">
-                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5"/> Director Note</p>
+                <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1.5 flex items-center gap-2"><MessageSquare className="w-3.5 h-3.5"/> Coach Note</p>
                 <p className="text-sm text-blue-200 italic font-light">"{todaySession.coach_notes}"</p>
               </div>
             )}
@@ -210,12 +210,12 @@ export default function TodayScreen() {
                   className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white uppercase tracking-widest text-xs font-bold py-3.5 rounded-xl transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                   onClick={() => setShowPost(true)}
                 >
-                  Log Telemetry (Post-Session)
+                  Log Post-Session
                 </button>
               ) : (
                 <div className="flex justify-center items-center gap-2 text-green-400 text-xs uppercase font-black tracking-widest bg-green-950/20 border border-green-500/30 py-3 rounded-xl shadow-[0_0_10px_rgba(74,222,128,0.1)]">
                   <CheckCircle2 className="h-4 w-4 drop-shadow-[0_0_5px_rgba(74,222,128,0.5)]" />
-                  Telemetry Logged
+                  Post-Session Logged ✓
                 </div>
               )}
             </div>
@@ -224,8 +224,8 @@ export default function TodayScreen() {
       ) : (
         <div className="text-center py-12 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-[0_0_30px_rgba(0,0,0,0.5)]">
           <Hexagon className="h-10 w-10 text-white/20 mx-auto mb-4" />
-          <p className="text-white text-lg font-black uppercase tracking-widest drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">No Active Protocol</p>
-          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mt-2">Check schedule for future cycles</p>
+          <p className="text-white text-lg font-black uppercase tracking-widest drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">No Session Today</p>
+          <p className="text-xs text-gray-500 uppercase tracking-widest font-bold mt-2">Check your calendar for upcoming sessions</p>
         </div>
       )}
 
@@ -242,7 +242,7 @@ export default function TodayScreen() {
               </div>
               <div>
                 <p className="font-black text-white text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
-                  {unreadMessages.length} Comms Detected
+                  {unreadMessages.length} New Message{unreadMessages.length !== 1 ? 's' : ''}
                 </p>
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest line-clamp-1">{unreadMessages[0]?.content}</p>
               </div>
@@ -282,8 +282,8 @@ export default function TodayScreen() {
           <div className="bg-yellow-950/30 border border-yellow-500/40 rounded-3xl p-5 shadow-inner flex items-start gap-4">
             <BookOpen className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5 drop-shadow-[0_0_5px_rgba(234,179,8,0.5)]" />
             <div>
-              <p className="font-black text-yellow-500 text-sm uppercase tracking-widest mb-1">Evaluation Cycle Active</p>
-              <p className="text-[10px] text-yellow-200/70 font-bold uppercase tracking-widest leading-relaxed">Director notified of academic load.</p>
+              <p className="font-black text-yellow-500 text-sm uppercase tracking-widest mb-1">Exam Week Active</p>
+              <p className="text-[10px] text-yellow-200/70 font-bold uppercase tracking-widest leading-relaxed">Your coach has been notified.</p>
             </div>
           </div>
         )}
@@ -297,8 +297,8 @@ export default function TodayScreen() {
             onClick={() => setShowEvening(true)}
           >
             <div>
-              <p className="text-white font-black text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Shutdown Sequence</p>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Regen Log ~60s</p>
+              <p className="text-white font-black text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">Evening Log</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">~60 seconds</p>
             </div>
             <div className="bg-white/10 rounded-full p-3 border border-white/20 group-hover:border-white/40 transition-colors shadow-[0_0_10px_rgba(255,255,255,0.05)] text-white group-hover:text-black group-hover:bg-white">
               <Moon className="h-5 w-5 transition-colors" />
@@ -309,8 +309,8 @@ export default function TodayScreen() {
         {eveningDone && (
           <div className="bg-indigo-950/30 border border-indigo-500/40 rounded-3xl p-5 flex items-center justify-between shadow-inner">
              <div>
-              <p className="text-indigo-300 font-black text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(165,180,252,0.3)]">Shutdown Complete</p>
-              <p className="text-[10px] text-indigo-400/60 font-bold uppercase tracking-widest">Regen Active</p>
+              <p className="text-indigo-300 font-black text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(165,180,252,0.3)]">Evening Log Done</p>
+              <p className="text-[10px] text-indigo-400/60 font-bold uppercase tracking-widest">Rest well tonight</p>
             </div>
             <CheckCircle2 className="h-6 w-6 text-indigo-400 drop-shadow-[0_0_5px_rgba(129,140,248,0.5)]" />
           </div>
@@ -325,8 +325,8 @@ export default function TodayScreen() {
             <AlertTriangle className="h-5 w-5 text-red-400" />
           </div>
           <div className="flex-1">
-            <p className="font-black text-red-500 text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(239,68,68,0.3)]">Hardware Damage</p>
-            <p className="text-[10px] text-red-300/70 font-bold uppercase tracking-widest">Alert Director Immediately</p>
+            <p className="font-black text-red-500 text-sm uppercase tracking-widest mb-1 drop-shadow-[0_0_5px_rgba(239,68,68,0.3)]">Report Injury</p>
+            <p className="text-[10px] text-red-300/70 font-bold uppercase tracking-widest">Flag immediately for your coach</p>
           </div>
           <ChevronRight className="h-5 w-5 text-red-900 group-hover:text-red-400 transition-colors" />
         </button>

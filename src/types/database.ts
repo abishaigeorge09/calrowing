@@ -185,16 +185,32 @@ export interface WellnessLog {
   created_at: string
 }
 
+export interface ChatGroup {
+  id: string
+  team_id: string
+  name: string
+  created_by: string | null
+  created_at: string
+}
+
+export interface ChatGroupMember {
+  group_id: string
+  profile_id: string
+  joined_at: string
+}
+
 export interface Message {
   id: string
   sender_id: string
-  receiver_id: string
+  receiver_id: string | null
+  group_id: string | null
   content: string
   is_urgent: boolean
   read_at: string | null
   created_at: string
   sender?: Profile
   receiver?: Profile
+  group?: ChatGroup
 }
 
 export interface Alert {
@@ -229,9 +245,11 @@ export interface Database {
       academic_schedules: { Row: AcademicSchedule; Insert: Omit<AcademicSchedule, 'id'>; Update: Partial<AcademicSchedule>; Relationships: [] }
       sessions: { Row: Session; Insert: Omit<Session, 'id' | 'created_at' | 'updated_at'>; Update: Partial<Session>; Relationships: [] }
       wellness_logs: { Row: WellnessLog; Insert: Omit<WellnessLog, 'id' | 'created_at'>; Update: Partial<WellnessLog>; Relationships: [] }
-      messages: { Row: Message; Insert: Omit<Message, 'id' | 'created_at' | 'sender' | 'receiver'>; Update: Partial<Message>; Relationships: [] }
+      messages: { Row: Message; Insert: Omit<Message, 'id' | 'created_at' | 'sender' | 'receiver' | 'group'>; Update: Partial<Message>; Relationships: [] }
       alerts: { Row: Alert; Insert: Omit<Alert, 'id' | 'created_at' | 'athlete'>; Update: Partial<Alert>; Relationships: [] }
       injuries: { Row: Injury; Insert: Omit<Injury, 'id' | 'created_at'>; Update: Partial<Injury>; Relationships: [] }
+      chat_groups: { Row: ChatGroup; Insert: Omit<ChatGroup, 'id' | 'created_at'>; Update: Partial<ChatGroup>; Relationships: [] }
+      chat_group_members: { Row: ChatGroupMember; Insert: Omit<ChatGroupMember, 'joined_at'>; Update: Partial<ChatGroupMember>; Relationships: [] }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

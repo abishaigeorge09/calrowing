@@ -16,6 +16,8 @@ function typeToColor(type: string): string {
     case 'Water': return 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.6)]'
     case 'Weights': return 'bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.6)]'
     case 'Cross Training': return 'bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.6)]'
+    case 'Assessment':
+    case 'Assessments': return 'bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)]'
     default: return 'bg-gray-400'
   }
 }
@@ -60,8 +62,13 @@ export default function CalendarPage() {
   }
 
   const todayStr = localDateStr(today)
-  const upcomingSessions = sessions
-    .filter(s => s.date >= todayStr)
+  const futureDate = new Date()
+  futureDate.setDate(futureDate.getDate() + 30) // next 30 days
+  const futureTo = localDateStr(futureDate)
+
+  const { data: allUpcoming = [] } = useSessions(user?.team_id, { from: todayStr, to: futureTo })
+
+  const upcomingSessions = allUpcoming
     .sort((a, b) => a.date.localeCompare(b.date))
     .slice(0, 5)
 
@@ -71,10 +78,10 @@ export default function CalendarPage() {
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <Hexagon className="h-5 w-5 text-gray-400" /> Array Schedule
+            <Hexagon className="h-5 w-5 text-gray-400" /> Team Schedule
           </h1>
           <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
-            Temporal Synchronization
+            Monthly Overview
           </p>
         </div>
       </div>
@@ -157,15 +164,20 @@ export default function CalendarPage() {
               </div>
             )
           })}
+          
+          {/* Fill remaining cells */}
+          {Array.from({ length: (7 - ((firstDay + daysInMonth) % 7)) % 7 }).map((_, i) => (
+            <div key={`empty-end-${i}`} className="h-16 border-b border-r border-white/5" />
+          ))}
         </div>
       </div>
 
       {/* Upcoming Sessions */}
       <div className="space-y-4 pt-4">
-        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-4 pl-1">Approaching Cycles</h2>
-        
+        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-4 pl-1">Upcoming Sessions</h2>
+
         {upcomingSessions.length === 0 ? (
-          <p className="text-xs text-gray-500 italic px-4">No upcoming cycles scheduled.</p>
+          <p className="text-xs text-gray-500 italic px-4">No upcoming sessions scheduled.</p>
         ) : upcomingSessions.map(session => (
           <div 
             key={session.id} 

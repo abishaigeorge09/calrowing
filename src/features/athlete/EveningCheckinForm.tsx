@@ -78,7 +78,7 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
         {/* Header */}
         <div className="flex items-center justify-between mb-6 relative z-10 w-full max-w-sm mx-auto">
           <div>
-             <p className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-1">Regen Log</p>
+             <p className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-1">Evening Check-in</p>
              <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-3 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
               {step !== 'done' ? (
                 <>
@@ -87,7 +87,7 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
                   </span>
                   {steps[stepIdx].charAt(0).toUpperCase() + steps[stepIdx].slice(1)}
                 </>
-              ) : 'Sequence Complete'}
+              ) : 'All Done!'}
             </h2>
           </div>
           <button onClick={onClose} className="p-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/20 text-white transition-colors shadow-inner">
@@ -100,10 +100,10 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
           <div className="bg-indigo-500 h-full rounded-full transition-all shadow-[0_0_10px_rgba(99,102,241,0.8)]" style={{ width: `${progress}%` }} />
         </div>
 
-        <div className="relative z-10 w-full max-w-sm mx-auto min-h-[50vh] flex flex-col pt-4">
+        <div className="relative z-10 w-full max-w-sm mx-auto min-h-[40vh] flex flex-col pt-4">
           {/* Step: Nutrition */}
           {step === 'nutrition' && (
-            <div className="space-y-8 flex-1">
+            <div className="space-y-8 flex-1 pb-4">
               <div>
                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-4 flex"><Utensils className="w-3.5 h-3.5"/>Fuel Quality</p>
                 <TapRating
@@ -111,7 +111,6 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
                   max={5}
                   onChange={(v) => setForm({ ...form, nutrition_quality: v })}
                   labels={['Poor', 'Fair', 'OK', 'Good', 'Peak'].map(l => l.toUpperCase())}
-                  colorClass="bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.4)]"
                 />
               </div>
 
@@ -136,11 +135,11 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
               </div>
 
               <div className="pt-4 border-t border-white/5">
-                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Nutrition Notes (Opt)</p>
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Nutrition Notes (Optional)</p>
                 <textarea
                   className="w-full bg-black/60 border border-white/10 text-white placeholder:text-gray-600 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-white focus:bg-white/5 transition-all shadow-inner resize-none min-h-[80px]"
                   rows={2}
-                  placeholder="e.g. Skipped cycle..."
+                  placeholder="e.g. Had a great meal..."
                   value={form.nutrition_note}
                   onChange={(e) => setForm({ ...form, nutrition_note: e.target.value })}
                 />
@@ -150,7 +149,7 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
 
           {/* Step: Hydration */}
           {step === 'hydration' && (
-            <div className="space-y-8 flex-1">
+            <div className="space-y-8 flex-1 pb-4">
               <div>
                  <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-4 flex"><Droplets className="w-3.5 h-3.5"/>Volume Intake</p>
                 <div className="flex items-end justify-center gap-2 mb-6 bg-black/40 border border-white/5 rounded-3xl py-6 shadow-inner">
@@ -182,8 +181,7 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
                   value={form.hydration_quality}
                   max={5}
                   onChange={(v) => setForm({ ...form, hydration_quality: v })}
-                  labels={['Dry', '', 'Nominal', '', 'Fluid'].map(l => l.toUpperCase())}
-                  colorClass="bg-blue-500 text-white shadow-[0_0_15px_rgba(59,130,246,0.4)]"
+                  labels={['Dry', '', 'Ok', '', 'Great'].map(l => l.toUpperCase())}
                 />
               </div>
             </div>
@@ -191,7 +189,7 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
 
           {/* Step: Sleep plan */}
           {step === 'sleep' && (
-            <div className="space-y-8 flex-1">
+            <div className="space-y-8 flex-1 pb-4">
               <div>
                  <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-4 flex"><Moon className="w-3.5 h-3.5"/>Power Target</p>
                 <div className="flex items-end justify-center gap-2 mb-6 bg-black/40 border border-white/5 rounded-3xl py-6 shadow-inner">
@@ -212,8 +210,8 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
                   <span>12H</span>
                 </div>
                 <p className="text-[10px] tracking-widest font-bold uppercase text-gray-500 mt-4 text-center">
-                  {form.expected_sleep_hours < 7 ? '⚠️ Below nominal capacity' :
-                   form.expected_sleep_hours >= 8 ? '✓ Optimal regen sequence' : '✓ Acceptable'}
+                  {form.expected_sleep_hours < 7 ? '⚠️ Below goal' :
+                   form.expected_sleep_hours >= 8 ? '✓ Great target' : '✓ Good'}
                 </p>
               </div>
 
@@ -237,9 +235,10 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
                 <CheckCircle2 className="h-10 w-10 text-indigo-400 drop-shadow-[0_0_10px_currentColor]" />
               </div>
               
-              <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] relative z-10">Sync Established</h2>
+              
+              <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] relative z-10">Synced</h2>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-8 relative z-10 text-center max-w-[200px]">
-                Regen protocol parameterized for {form.expected_sleep_hours}H.
+                Rest well. Target set for {form.expected_sleep_hours}H.
               </p>
               
                <div className="grid grid-cols-3 gap-3 w-full max-w-[300px] mb-8 relative z-10">
@@ -291,7 +290,7 @@ export default function EveningCheckinForm({ onClose, onDone, coachId }: Props) 
                       onClick={handleSave} 
                       disabled={isSaving}
                     >
-                      {isSaving ? 'Synchronizing...' : 'Transmit Sequence'}
+                      {isSaving ? 'Saving...' : 'Submit Evening Log'}
                     </button>
                   )}
                 </>

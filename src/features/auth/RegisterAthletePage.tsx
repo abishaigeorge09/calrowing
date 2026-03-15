@@ -193,12 +193,12 @@ export default function RegisterAthletePage() {
           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
             {step === 'invite' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Join Synchronization</h1>
-                <p className="text-gray-400 text-sm mb-8 font-light text-center">Verify operational node via invite code</p>
-                
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Join Your Team</h1>
+                <p className="text-gray-400 text-sm mb-8 font-light text-center">Enter the invite code from your coach</p>
+
                 <form onSubmit={handleInviteCheck} className="space-y-6">
                   <div className="space-y-2">
-                    <Label className={darkLabelClasses}>Access Identifier Code</Label>
+                    <Label className={darkLabelClasses}>Team Invite Code</Label>
                     <Input
                       placeholder="e.g. CAL-ROW-2026"
                       value={inviteCode}
@@ -212,7 +212,7 @@ export default function RegisterAthletePage() {
                     )}
                   </div>
                   <Button type="submit" size="lg" className="w-full bg-white text-black hover:bg-gray-200 uppercase tracking-widest font-bold mt-4 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                    Verify Link
+                    Verify Code
                   </Button>
                 </form>
               </motion.div>
@@ -220,28 +220,28 @@ export default function RegisterAthletePage() {
 
             {step === 'account' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Establish Identity</h1>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Create Your Account</h1>
                 <p className="text-gray-400 text-sm mb-6 font-light text-center">
-                  Aligning with array: <strong className="text-white bg-white/10 px-2 py-0.5 rounded ml-1">{resolvedTeamName || MOCK_TEAM.name}</strong>
+                  Joining team: <strong className="text-white bg-white/10 px-2 py-0.5 rounded ml-1">{resolvedTeamName || MOCK_TEAM.name}</strong>
                 </p>
                 <form onSubmit={(e) => { e.preventDefault(); setStep('profile') }} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Operative Designation (Name)</Label>
+                    <Label className={darkLabelClasses}>Your Name</Label>
                     <Input placeholder="Alex Chen" value={form.name} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Communication Link (Email)</Label>
+                    <Label className={darkLabelClasses}>Email</Label>
                     <Input type="email" placeholder="alex@berkeley.edu" value={form.email} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, email: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Security Cipher (Password)</Label>
+                    <Label className={darkLabelClasses}>Password</Label>
                     <Input type="password" placeholder="Min 8 characters" value={form.password} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, password: e.target.value })} minLength={8} required />
                   </div>
                   <div className="flex gap-3 pt-4">
-                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('invite')}>Abort</Button>
+                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('invite')}>Back</Button>
                     <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]">Proceed</Button>
                   </div>
                 </form>
@@ -250,8 +250,8 @@ export default function RegisterAthletePage() {
 
             {step === 'profile' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Biometric Alignment</h1>
-                <p className="text-gray-400 text-sm mb-6 font-light text-center">Define physiological parameters</p>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Your Profile</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Tell us about yourself</p>
                 <form onSubmit={(e) => { e.preventDefault(); setStep('academic') }} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
@@ -266,7 +266,7 @@ export default function RegisterAthletePage() {
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label className={darkLabelClasses}>Vessel Class</Label>
+                      <Label className={darkLabelClasses}>Boat Class</Label>
                       <Select value={form.boat_class} onValueChange={(v) => setForm({ ...form, boat_class: v })}>
                         <SelectTrigger className={darkInputClasses}><SelectValue placeholder="Boat" /></SelectTrigger>
                         <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
@@ -278,7 +278,7 @@ export default function RegisterAthletePage() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Vector Position (Seat)</Label>
+                    <Label className={darkLabelClasses}>Seat Position</Label>
                     <Select value={form.seat_position} onValueChange={(v) => setForm({ ...form, seat_position: v })}>
                       <SelectTrigger className={darkInputClasses}><SelectValue placeholder="Assignment" /></SelectTrigger>
                       <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
@@ -290,18 +290,18 @@ export default function RegisterAthletePage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className={darkLabelClasses}>Y-Axis (cm)</Label>
+                      <Label className={darkLabelClasses}>Height (cm)</Label>
                       <Input type="number" placeholder="190" value={form.height} className={darkInputClasses}
                         onChange={(e) => setForm({ ...form, height: e.target.value })} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className={darkLabelClasses}>Mass (kg)</Label>
+                      <Label className={darkLabelClasses}>Weight (kg)</Label>
                       <Input type="number" placeholder="85" value={form.weight} className={darkInputClasses}
                         onChange={(e) => setForm({ ...form, weight: e.target.value })} />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Regeneration Goal (HRS)</Label>
+                    <Label className={darkLabelClasses}>Sleep Goal (hrs)</Label>
                     <Select value={form.sleep_goal} onValueChange={(v) => setForm({ ...form, sleep_goal: v })}>
                       <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
@@ -312,12 +312,12 @@ export default function RegisterAthletePage() {
                     </Select>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Hardware Damage (Injuries)</Label>
+                    <Label className={darkLabelClasses}>Known Injuries</Label>
                     <Input placeholder="e.g. L4-L5 disc" value={form.injuries} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, injuries: e.target.value })} />
                   </div>
                   <div className="flex gap-3 pt-4">
-                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('account')}>Abort</Button>
+                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('account')}>Back</Button>
                     <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]">Proceed</Button>
                   </div>
                 </form>
@@ -326,11 +326,11 @@ export default function RegisterAthletePage() {
 
             {step === 'academic' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">External Load</h1>
-                <p className="text-gray-400 text-sm mb-6 font-light text-center">Input academic strain metrics</p>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Academic Schedule</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Help us understand your academic workload</p>
                 <form onSubmit={handleFinish} className="space-y-6">
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Daily Cognitive Load (Classes/Day)</Label>
+                    <Label className={darkLabelClasses}>Classes Per Day</Label>
                     <Select value={form.classes_per_day} onValueChange={(v) => setForm({ ...form, classes_per_day: v })}>
                       <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
@@ -341,7 +341,7 @@ export default function RegisterAthletePage() {
                     </Select>
                   </div>
                   <div className="space-y-3">
-                    <Label className={darkLabelClasses}>High Strain Cycles (Select Days)</Label>
+                    <Label className={darkLabelClasses}>Heavy Academic Days</Label>
                     <div className="flex gap-2 flex-wrap justify-center">
                       {days.map(day => {
                         const isSelected = form.hard_days.includes(day)
@@ -363,7 +363,7 @@ export default function RegisterAthletePage() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Critical Evaluation Windows (Exams)</Label>
+                    <Label className={darkLabelClasses}>Upcoming Exam Period</Label>
                     <Input placeholder="e.g. October 10-14" value={form.exam_weeks} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, exam_weeks: e.target.value })} />
                   </div>
@@ -375,9 +375,9 @@ export default function RegisterAthletePage() {
                   )}
 
                   <div className="flex gap-3 pt-4">
-                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('profile')}>Abort</Button>
+                    <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('profile')}>Back</Button>
                     <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]" disabled={loading}>
-                      {loading ? 'Initializing…' : <><Check className="h-4 w-4 mr-2" /> Finalize Link</>}
+                      {loading ? 'Joining…' : <><Check className="h-4 w-4 mr-2" /> Join Team</>}
                     </Button>
                   </div>
                 </form>

@@ -45,6 +45,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
   const createSession = useCreateSession()
   const [saved, setSaved] = useState(false)
   const [form, setForm] = useState(defaultForm)
+  const [step, setStep] = useState(0)
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [linkUrl, setLinkUrl] = useState('')
   const [linkTitle, setLinkTitle] = useState('')
@@ -62,8 +63,8 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
 
   const removeMedia = (i: number) => setMediaItems(prev => prev.filter((_, idx) => idx !== i))
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (!user?.team_id) return
 
     const duration = timeToMinutes(form.end_time) - timeToMinutes(form.start_time)
@@ -93,6 +94,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
         setSaved(false)
         setForm(defaultForm)
         setMediaItems([])
+        setStep(0)
         onClose()
       }, 1200)
     } catch (err) {
@@ -110,14 +112,28 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 blur-[50px] rounded-full pointer-events-none" />
 
         <DialogHeader className="relative z-10 space-y-3">
-          <DialogTitle className="text-xl font-black tracking-widest uppercase flex items-center gap-3 border-b border-white/5 pb-4">
-            <Hexagon className="h-6 w-6 text-white" /> Compiler Interface
+          <DialogTitle className="text-xl font-black tracking-widest uppercase flex flex-col gap-3 border-b border-white/5 pb-4">
+            <div className="flex items-center gap-3">
+              <Hexagon className="h-6 w-6 text-white" /> Create Session
+            </div>
+            {/* Progress Indicator */}
+            <div className="flex items-center gap-2">
+              {[0, 1, 2].map(s => (
+                <div key={s} className={cn(
+                  "h-1.5 rounded-full transition-all",
+                  s === step ? "w-8 bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" :
+                  s < step ? "w-4 bg-white/50" : "w-4 bg-white/10"
+                )} />
+              ))}
+            </div>
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-5 relative z-10 pt-2">
-
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-[420px] relative z-10 pt-2">
+          <div className="flex-1 space-y-5">
+            {step === 0 && (
+              <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 flex flex-col">
               <Label className={darkLabelClasses}>Date Parameter</Label>
               <Input type="date" value={form.date} className={darkInputClasses} style={{ colorScheme: 'dark' }}
@@ -125,7 +141,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
             </div>
 
             <div className="space-y-1.5 flex flex-col">
-              <Label className={darkLabelClasses}>Protocol Type</Label>
+              <Label className={darkLabelClasses}>Session Type</Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as SessionType })}>
                 <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
@@ -167,15 +183,19 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
               </SelectContent>
             </Select>
           </div>
-
-          <div className="space-y-1.5">
-            <Label className={darkLabelClasses}>Startup Sequence (Warmup)</Label>
-            <Input placeholder="Define parameters..." value={form.warmup} className={darkInputClasses}
-              onChange={(e) => setForm({ ...form, warmup: e.target.value })} />
           </div>
+          )}
 
-          <div className="space-y-1.5">
-            <Label className={darkLabelClasses}>Main Execution Loop *</Label>
+          {step === 1 && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="space-y-1.5">
+                <Label className={darkLabelClasses}>Warmup</Label>
+                <Input placeholder="Define warmup..." value={form.warmup} className={darkInputClasses}
+                  onChange={(e) => setForm({ ...form, warmup: e.target.value })} />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className={darkLabelClasses}>Workout Details (Main Set) *</Label>
             <textarea
               className="w-full bg-black/50 border border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm resize-none transition-colors shadow-inner min-h-[100px]"
               placeholder="e.g. 4x2000m @ 2:05/500m, r20..."
@@ -185,13 +205,17 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label className={darkLabelClasses}>Shutdown Sequence (Cooldown)</Label>
-            <Input placeholder="Define parameters..." value={form.cooldown} className={darkInputClasses}
-              onChange={(e) => setForm({ ...form, cooldown: e.target.value })} />
-          </div>
+              <div className="space-y-1.5">
+                <Label className={darkLabelClasses}>Cooldown</Label>
+                <Input placeholder="Cooldown instructions..." value={form.cooldown} className={darkInputClasses}
+                  onChange={(e) => setForm({ ...form, cooldown: e.target.value })} />
+              </div>
+            </div>
+          )}
 
-          <div className="grid grid-cols-3 gap-3 pt-2 pb-2 border-y border-white/5">
+          {step === 2 && (
+            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="grid grid-cols-3 gap-3">
             <div className="space-y-1.5 flex flex-col">
               <Label className={cn(darkLabelClasses, 'truncate')} title="Target Split">Split</Label>
               <Input placeholder="2:02" value={form.target_split} className={darkInputClasses}
@@ -207,36 +231,35 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
               <Input placeholder="Z4" value={form.hr_zone} className={darkInputClasses}
                 onChange={(e) => setForm({ ...form, hr_zone: e.target.value })} />
             </div>
-          </div>
+              </div>
 
-          <div className="space-y-1.5">
-            <Label className={darkLabelClasses}>Target Array (Assign)</Label>
+              <div className="space-y-1.5">
+                <Label className={darkLabelClasses}>Assign To</Label>
             <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
               <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
-                <SelectItem value="whole_team" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Base Array (All)</SelectItem>
+                  <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
+                    <SelectItem value="whole_team" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Base Array (All)</SelectItem>
                 <SelectItem value="Varsity 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Varsity 8</SelectItem>
                 <SelectItem value="JV 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">JV 8</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className={darkLabelClasses}>Director Embedded Data (Notes)</Label>
-            <Input placeholder="Secret params..." value={form.coach_notes} className={darkInputClasses}
-              onChange={(e) => setForm({ ...form, coach_notes: e.target.value })} />
-            <div className="flex items-center gap-2 mt-2 px-1">
-              <input type="checkbox" id="notes-public" checked={form.is_notes_public}
-                onChange={(e) => setForm({ ...form, is_notes_public: e.target.checked })}
-                className="w-4 h-4 rounded border-gray-300 text-white focus:ring-slate-500 accent-white/20 bg-black/50"
-              />
-              <label htmlFor="notes-public" className="text-[10px] uppercase font-bold tracking-widest text-gray-500 cursor-pointer">Unmask to Nodes (Public)</label>
-            </div>
-          </div>
+              <div className="space-y-1.5">
+                <Label className={darkLabelClasses}>Coach Notes</Label>
+                <Input placeholder="Secret params..." value={form.coach_notes} className={darkInputClasses}
+                  onChange={(e) => setForm({ ...form, coach_notes: e.target.value })} />
+                <div className="flex items-center gap-2 mt-2 px-1">
+                  <input type="checkbox" id="notes-public" checked={form.is_notes_public}
+                    onChange={(e) => setForm({ ...form, is_notes_public: e.target.checked })}
+                    className="w-4 h-4 rounded border-gray-300 text-white focus:ring-slate-500 accent-white/20 bg-black/50"
+                  />
+                  <label htmlFor="notes-public" className="text-[10px] uppercase font-bold tracking-widest text-gray-500 cursor-pointer">Visible to Athletes</label>
+                </div>
+              </div>
 
-          {/* Media / Resource Links */}
-          <div className="space-y-2 pt-1 pb-2 border-t border-white/5">
-            <Label className={darkLabelClasses}>Resource Links (Optional)</Label>
+              <div className="space-y-2 pt-1 pb-2 border-t border-white/5">
+                <Label className={darkLabelClasses}>Resource Links (Optional)</Label>
             <div className="flex gap-2">
               <Input placeholder="Paste URL (YouTube, image, article...)" value={linkUrl} className={cn(darkInputClasses, 'flex-1 text-xs')}
                 onChange={(e) => setLinkUrl(e.target.value)}
@@ -251,34 +274,54 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
             {mediaItems.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-1">
                 {mediaItems.map((m, i) => (
-                  <div key={i} className="flex items-center gap-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-xs">
-                    <span>{m.type === 'video' ? '▶' : m.type === 'image' ? '🖼' : '🔗'}</span>
-                    <span className="max-w-[120px] truncate text-gray-300">{m.title || m.url}</span>
-                    <button type="button" onClick={() => removeMedia(i)} className="text-gray-500 hover:text-white ml-1">
-                      <X className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                    <div key={i} className="flex items-center gap-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-xs">
+                      <span>{m.type === 'video' ? '▶' : m.type === 'image' ? '🖼' : '🔗'}</span>
+                      <span className="max-w-[120px] truncate text-gray-300">{m.title || m.url}</span>
+                      <button type="button" onClick={() => removeMedia(i)} className="text-gray-500 hover:text-white ml-1">
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            </div>
+          )}
           </div>
 
-          <DialogFooter className="pt-4 border-t border-white/5 flex gap-3 sm:justify-between w-full">
-            <DialogClose asChild>
-              <Button type="button" variant="outline"
+          <DialogFooter className="pt-4 border-t border-white/5 mt-auto flex flex-row gap-3 sm:justify-between w-full">
+            {step > 0 ? (
+              <Button type="button" variant="outline" onClick={() => setStep(step - 1)}
                 className="bg-transparent border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-1/3"
                 disabled={createSession.isPending}>
-                Abort
+                Back
               </Button>
-            </DialogClose>
-            <Button type="submit"
-              className={cn('uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-2/3 transition-all',
-                saved ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)]')}
-              disabled={createSession.isPending || saved}>
-              {saved
-                ? <><Check className="h-4 w-4 mr-2" /> Deployed</>
-                : createSession.isPending ? 'Compiling…' : 'Compile To Array'}
-            </Button>
+            ) : (
+              <DialogClose asChild>
+                <Button type="button" variant="outline"
+                  className="bg-transparent border-white/20 text-white hover:bg-white/10 uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-1/3"
+                  disabled={createSession.isPending}>
+                  Cancel
+                </Button>
+              </DialogClose>
+            )}
+
+            {step < 2 ? (
+              <Button type="button" onClick={() => setStep(step + 1)}
+                className="bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)] uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-2/3 transition-all"
+                disabled={!form.date || !form.type}>
+                Next Step
+              </Button>
+            ) : (
+              <Button type="button" onClick={() => handleSubmit()}
+                className={cn('uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-2/3 transition-all',
+                  saved ? 'bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]' : 'bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)]')}
+                disabled={createSession.isPending || saved}>
+                {saved
+                  ? <><Check className="h-4 w-4 mr-2" /> Created!</>
+                  : createSession.isPending ? 'Saving…' : 'Create Session'}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>

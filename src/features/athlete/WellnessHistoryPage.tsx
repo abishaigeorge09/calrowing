@@ -60,10 +60,10 @@ export default function WellnessHistoryPage() {
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <Hexagon className="h-5 w-5 text-gray-400" /> System Diagnostics
+            <Hexagon className="h-5 w-5 text-gray-400" /> Wellness History
           </h1>
           <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
-            Historical Telemetry
+            Recent Trends
           </p>
         </div>
         
@@ -86,10 +86,10 @@ export default function WellnessHistoryPage() {
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Avg Pwr (H)', value: String(avgSleep), icon: Moon, color: 'text-blue-400', shadow: 'rgba(96,165,250,0.5)' },
-          { label: 'Integrity', value: `${completionRate}%`, icon: Activity, color: 'text-green-400', shadow: 'rgba(74,222,128,0.5)' },
-          { label: 'Avg Strain', value: String(avgRPE), icon: Zap, color: 'text-orange-400', shadow: 'rgba(251,146,60,0.5)' },
-          { label: 'Dmg Cycles', value: String(sorenessDays), icon: Brain, color: 'text-purple-400', shadow: 'rgba(192,132,252,0.5)' },
+          { label: 'Avg Sleep (H)', value: String(avgSleep), icon: Moon, color: 'text-blue-400', shadow: 'rgba(96,165,250,0.5)' },
+          { label: 'Completion', value: `${completionRate}%`, icon: Activity, color: 'text-green-400', shadow: 'rgba(74,222,128,0.5)' },
+          { label: 'Avg RPE', value: String(avgRPE), icon: Zap, color: 'text-orange-400', shadow: 'rgba(251,146,60,0.5)' },
+          { label: 'Soreness Days', value: String(sorenessDays), icon: Brain, color: 'text-purple-400', shadow: 'rgba(192,132,252,0.5)' },
         ].map(({ label, value, icon: Icon, color, shadow }) => (
           <div key={label} className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-5 text-center shadow-[0_0_20px_rgba(0,0,0,0.5)] group hover:bg-white/10 transition-colors">
             <div className={cn(
@@ -112,9 +112,9 @@ export default function WellnessHistoryPage() {
         {/* Custom Tabs */}
         <div className="flex gap-2 mb-8 bg-black/40 p-1 rounded-2xl border border-white/5 shadow-inner w-full md:w-fit">
           {[
-            { id: 'sleep', label: 'Power (Sleep)' },
-            { id: 'energy', label: 'Lvl & Str (En/St)' },
-            { id: 'rpe', label: 'Strain (RPE)' }
+            { id: 'sleep', label: 'Sleep' },
+            { id: 'energy', label: 'Energy & Stress' },
+            { id: 'rpe', label: 'RPE' }
           ].map(tab => (
             <button
               key={tab.id}
@@ -141,7 +141,7 @@ export default function WellnessHistoryPage() {
                 <YAxis domain={[4, 10]} stroke="rgba(255,255,255,0.2)" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} dx={-10} />
                 <Tooltip 
                   contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
-                  formatter={(v) => [`${v}H`, 'Power']}
+                  formatter={(v: any) => [`${v}H`, 'Sleep']}
                   labelStyle={{ color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', fontSize: '10px', letterSpacing: '0.1em' }}
                 />
                 <ReferenceLine y={8} stroke="rgba(255,255,255,0.2)" strokeDasharray="4 4" label={{ value: 'Target', position: 'insideTopLeft', fill: 'rgba(255,255,255,0.4)', fontSize: 10, textAnchor: 'start', dy: 15 }} />
@@ -186,12 +186,12 @@ export default function WellnessHistoryPage() {
          {activeTab === 'energy' && (
           <div className="flex gap-6 justify-center mt-6">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-1 bg-yellow-400 rounded-full shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Level (Energy)</span>
+               <div className="w-3 h-1 bg-yellow-400 rounded-full shadow-[0_0_8px_rgba(250,204,21,0.8)]" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Energy</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-0.5 bg-purple-400 border-dashed border-purple-400 border-t-2" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Str (Stress)</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Stress</span>
             </div>
           </div>
         )}
@@ -199,12 +199,12 @@ export default function WellnessHistoryPage() {
 
        {/* Recent logs */}
        <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/10 mt-6">
-        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Recent Execution Cycles</h2>
+        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Recent Sessions</h2>
         
         <div className="space-y-2">
            {postLogs.length === 0 ? (
              <div className="text-center py-6 bg-black/20 rounded-2xl border border-white/5 shadow-inner">
-               <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">No telemetry recorded</p>
+               <p className="text-gray-500 text-[10px] uppercase tracking-widest font-bold">No recent sessions</p>
              </div>
            ) : (
             postLogs.slice(0, 7).map(log => {
@@ -235,7 +235,7 @@ export default function WellnessHistoryPage() {
                     )}>
                       {d.completion === 'full' ? 'Done' : d.completion === 'partial' ? 'Partial' : 'DNF'}
                     </span>
-                    {d.has_pain && <p className="text-[9px] text-red-400 uppercase font-black tracking-widest drop-shadow-[0_0_5px_rgba(248,113,113,0.5)] mt-0.5">Dmg Flag</p>}
+                    {d.has_pain && <p className="text-[9px] text-red-400 uppercase font-black tracking-widest drop-shadow-[0_0_5px_rgba(248,113,113,0.5)] mt-0.5">Pain</p>}
                   </div>
                 </div>
               )

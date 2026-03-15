@@ -16,7 +16,7 @@ export function useAlerts(coachId: string | null | undefined) {
 
       const { data, error } = await supabase
         .from('alerts')
-        .select('*, athlete:profiles!athlete_id(id, name, email, role, team_id, avatar_url, created_at)')
+        .select('*')
         .eq('coach_id', coachId)
         .is('reviewed_at', null)
         .order('created_at', { ascending: false })

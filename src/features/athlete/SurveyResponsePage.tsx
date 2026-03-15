@@ -151,17 +151,6 @@ export default function SurveyResponsePage() {
     )
   }
 
-  if (!assignment || !survey) {
-    return (
-      <div className="px-4 py-8 max-w-lg mx-auto space-y-4">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-400 text-sm">
-          <ChevronLeft className="h-4 w-4" /> Back
-        </button>
-        <p className="text-center text-gray-400 py-12">Survey not found or already completed.</p>
-      </div>
-    )
-  }
-
   if (done) {
     return (
       <div className="px-4 py-12 max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center">
@@ -170,15 +159,26 @@ export default function SurveyResponsePage() {
           <CheckCircle2 className="h-16 w-16 text-green-400 relative z-10 drop-shadow-[0_0_15px_rgba(74,222,128,0.8)]" />
         </div>
         <div>
-          <p className="text-2xl font-black text-white uppercase tracking-widest mb-2">Transmitted</p>
-          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Response received by director</p>
+          <p className="text-2xl font-black text-white uppercase tracking-widest mb-2">Submitted!</p>
+          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Your response has been sent to your coach</p>
         </div>
         <button
           onClick={() => navigate('/athlete')}
           className="mt-4 bg-white text-black text-xs font-black uppercase tracking-widest px-8 py-3 rounded-xl hover:bg-gray-200 transition-colors"
         >
-          Return to Base
+          Back to Home
         </button>
+      </div>
+    )
+  }
+
+  if (!assignment || !survey) {
+    return (
+      <div className="px-4 py-8 max-w-lg mx-auto space-y-4">
+        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-400 text-sm">
+          <ChevronLeft className="h-4 w-4" /> Back
+        </button>
+        <p className="text-center text-gray-400 py-12">Survey not found or already completed.</p>
       </div>
     )
   }
@@ -196,7 +196,7 @@ export default function SurveyResponsePage() {
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-0.5">
             <ClipboardList className="h-4 w-4 text-gray-400" />
-            <p className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Survey Protocol</p>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-gray-500">Survey</p>
           </div>
           <h1 className="text-base font-black tracking-wider text-white">{survey.title}</h1>
         </div>
@@ -271,7 +271,7 @@ export default function SurveyResponsePage() {
                 : 'bg-white/5 border border-white/10 text-gray-600 cursor-not-allowed'
             )}
           >
-            {submitResponse.isPending ? 'Transmitting…' : 'Submit Response'}
+            {submitResponse.isPending ? 'Submitting…' : 'Submit Response'}
           </button>
         )}
       </div>

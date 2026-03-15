@@ -64,7 +64,7 @@ export default function CoachDashboard() {
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <Hexagon className="h-5 w-5 text-gray-400" /> Greetings, Dir. {user?.name?.split(' ')[0]}
+            <Hexagon className="h-5 w-5 text-gray-400" /> Hey, {user?.name?.split(' ')[0]}
           </h1>
           <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
             {formatDate(today)} · {team?.name}
@@ -74,7 +74,7 @@ export default function CoachDashboard() {
           onClick={() => setShowCreate(true)}
           className="bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl px-4 py-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]"
         >
-          <Plus className="h-4 w-4" /> Initialize
+          <Plus className="h-4 w-4" /> New Session
         </button>
       </div>
 
@@ -104,7 +104,7 @@ export default function CoachDashboard() {
                 {alert.type === 'injury' && <AlertTriangle className="h-4 w-4 text-red-400" />}
               </div>
               <div className="flex-1 min-w-0 pt-0.5">
-                <p className="font-bold text-white text-sm tracking-wide">{alert.athlete?.name}</p>
+                <p className="font-bold text-white text-sm tracking-wide">{athletes.find(a => a.id === alert.athlete_id)?.name ?? 'Athlete'}</p>
                 <p className="text-xs text-gray-400 font-light mt-1 leading-relaxed">
                   {alert.type === 'soreness_streak' && `Soreness flagged ${(alert.data as {streak_days: number}).streak_days} days in a row (${(alert.data as {body_part: string}).body_part})`}
                   {alert.type === 'low_sleep' && `Slept ${(alert.data as {sleep_hours: number}).sleep_hours}h before today's ${(alert.data as {session_intensity: string}).session_intensity} session`}
@@ -129,7 +129,7 @@ export default function CoachDashboard() {
         {/* Today's Session */}
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400">Current Directive</h2>
+            <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400">Today's Session</h2>
             {todaySession && (
               <div className="flex gap-2">
                  <span className={cn('px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-white', sessionTypeColor(todaySession.type))}>
@@ -155,7 +155,7 @@ export default function CoachDashboard() {
                 </div>
               </div>
               <div className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Main Sequence</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Main Set</p>
                 <p className="text-sm text-gray-200 font-light leading-relaxed">{todaySession.main_set}</p>
               </div>
               <button
@@ -168,12 +168,12 @@ export default function CoachDashboard() {
           ) : (
             <div className="text-center py-10 bg-black/20 rounded-2xl border border-white/5 shadow-inner">
               <Hexagon className="h-8 w-8 text-white/20 mx-auto mb-3" />
-              <p className="text-gray-500 text-xs tracking-widest uppercase font-bold mb-4">No active protocol detected</p>
-              <button 
+              <p className="text-gray-500 text-xs tracking-widest uppercase font-bold mb-4">No session scheduled today</p>
+              <button
                 className="bg-white text-black text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors shadow-[0_0_15px_rgba(255,255,255,0.2)]"
                 onClick={() => setShowCreate(true)}
               >
-                Compile New Schema
+                Create Session
               </button>
             </div>
           )}
@@ -182,7 +182,7 @@ export default function CoachDashboard() {
         {/* Team Wellness Summary */}
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400">Fleet Telemetry</h2>
+            <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400">Team Wellness</h2>
             {totalAthletes > 0 && (
               <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase bg-white/5 px-2 py-1 rounded-full border border-white/10">
                 {checkedInCount}/{totalAthletes} Active
@@ -192,7 +192,7 @@ export default function CoachDashboard() {
           
           <div className="flex-1 flex flex-col justify-center">
             {totalAthletes === 0 ? (
-              <p className="text-xs text-gray-500 text-center py-4 tracking-widest uppercase font-bold bg-black/20 rounded-2xl border border-white/5">No array registered</p>
+              <p className="text-xs text-gray-500 text-center py-4 tracking-widest uppercase font-bold bg-black/20 rounded-2xl border border-white/5">No athletes yet</p>
             ) : (
               <>
                 <div className="w-full bg-white/10 rounded-full h-1.5 mb-6 overflow-hidden">
@@ -223,26 +223,26 @@ export default function CoachDashboard() {
 
       {/* Athlete Check-in Status */}
       <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Node Operations Center</h2>
+        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Athlete Check-ins Today</h2>
         
         <div className="space-y-3">
           {athletes.length === 0 ? (
             <div className="py-8 text-center bg-black/20 rounded-2xl border border-white/5">
               <Users className="h-8 w-8 mx-auto text-white/20 mb-3" />
               <div>
-                <p className="font-bold text-gray-300 text-sm uppercase tracking-widest">Array Empty</p>
-                <p className="text-xs text-gray-500 mt-1 font-light">Distribute network key to expand capacity.</p>
+                <p className="font-bold text-gray-300 text-sm uppercase tracking-widest">No athletes yet</p>
+                <p className="text-xs text-gray-500 mt-1 font-light">Share your invite code to add athletes to your roster.</p>
               </div>
               {team?.invite_code && (
                 <div className="mt-6">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Network Key</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-2">Invite Code</p>
                   <p className="text-2xl font-black text-white tracking-widest mb-4 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{team.invite_code}</p>
                   <button 
                     onClick={copyInviteCode} 
                     className="bg-white/10 hover:bg-white/20 text-white border border-white/20 uppercase tracking-widest text-xs font-bold px-4 py-2 rounded-xl transition-all inline-flex items-center gap-2"
                   >
                     <Copy className="h-3.5 w-3.5" />
-                    {copied ? 'Copied Sequence' : 'Copy Sequence'}
+                    {copied ? 'Copied!' : 'Copy Code'}
                   </button>
                 </div>
               )}
@@ -273,10 +273,10 @@ export default function CoachDashboard() {
                           <Moon className="h-3 w-3 text-blue-400" /> {Number(data.sleep_hours).toFixed(1)}H
                         </span>
                         <span className="text-[10px] uppercase font-bold tracking-widest text-gray-500 flex items-center gap-1">
-                          <Zap className="h-3 w-3 text-yellow-400" /> Lvl {data.energy}
+                          <Zap className="h-3 w-3 text-yellow-400" /> Energy {data.energy}/5
                         </span>
                         {data.has_soreness && (
-                          <span className="text-[10px] text-red-400 uppercase font-black tracking-widest bg-red-950/40 px-1.5 py-0.5 rounded border border-red-500/30">Warn</span>
+                          <span className="text-[10px] text-red-400 uppercase font-black tracking-widest bg-red-950/40 px-1.5 py-0.5 rounded border border-red-500/30">Sore</span>
                         )}
                       </div>
                     )}

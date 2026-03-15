@@ -45,7 +45,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
     { title: 'Damage', emoji: '⚠️' },
     { title: 'Target', emoji: '🎯' },
     { title: 'Regen', emoji: '🔋' },
-    { title: 'Transmitted', emoji: '✅' },
+    { title: 'Submitted', emoji: '✅' },
   ]
 
   const handleSubmit = async () => {
@@ -94,7 +94,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
         {/* Header */}
          <div className="flex items-center justify-between mb-6 relative z-10 w-full max-w-sm mx-auto">
           <div>
-            <p className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-1">Post-Cycle Telemetry</p>
+            <p className="text-[10px] uppercase font-black tracking-widest text-gray-500 mb-1">Post-Session Check-in</p>
              <h2 className="text-xl font-black text-white uppercase tracking-widest flex items-center gap-3 drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">
               {step !== steps.length - 1 ? (
                 <>
@@ -103,7 +103,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                   </span>
                   {steps[step].title}
                 </>
-              ) : 'End Transmission'}
+              ) : 'All Done!'}
             </h2>
           </div>
           <button onClick={onClose} className="p-2 rounded-full border border-white/10 bg-white/5 hover:bg-white/20 text-white transition-colors shadow-inner">
@@ -122,16 +122,16 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
           ))}
         </div>
 
-        <div className="relative z-10 w-full max-w-sm mx-auto min-h-[50vh] flex flex-col pt-2">
+        <div className="relative z-10 w-full max-w-sm mx-auto min-h-[40vh] flex flex-col pt-2">
           {step === 0 && (
-            <div className="space-y-6 flex-1">
+            <div className="space-y-6 flex-1 pb-4">
               <div className="space-y-4">
-                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-4 flex"><Hexagon className="w-3.5 h-3.5"/>Cycle Completion Status</p>
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-4 flex"><Hexagon className="w-3.5 h-3.5"/>Session Completion</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {([
-                    { value: 'full', label: '100% Exec', emoji: '✅', color: 'green' },
+                    { value: 'full', label: '100% Done', emoji: '✅', color: 'green' },
                     { value: 'partial', label: 'Partial', emoji: '⚠️', color: 'yellow' },
-                    { value: 'dnf', label: 'Abort', emoji: '❌', color: 'red' },
+                    { value: 'dnf', label: 'Did Not Finish', emoji: '❌', color: 'red' },
                   ] as const).map(opt => (
                     <button key={opt.value} type="button"
                       onClick={() => setForm({ ...form, completion: opt.value })}
@@ -154,9 +154,9 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
 
                {(form.completion === 'partial' || form.completion === 'dnf') && (
                 <div className="space-y-4 pt-4 border-t border-white/5">
-                   <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Abort Reason</p>
+                   <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Reason</p>
                   <div className="flex flex-wrap gap-2">
-                    {['Dmg/Pain', 'Sys Limit', 'Time Sync', 'Viral Payload', 'Other'].map(r => (
+                    {['Pain/Injury', 'Too Hard', 'Time Constraint', 'Illness', 'Other'].map(r => (
                       <button key={r} type="button"
                         onClick={() => setForm({ ...form, dnf_reason: r })}
                         className={cn(
@@ -174,10 +174,10 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
           )}
 
           {step === 1 && (
-            <div className="space-y-8 flex-1">
+            <div className="space-y-8 flex-1 pb-4">
               {/* RPE */}
               <div className="space-y-4">
-                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-yellow-500">⚡</span> System Strain (RPE)</p>
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-yellow-500">⚡</span> Effort Level (RPE)</p>
                 <div className="flex flex-col items-center mb-6 bg-black/40 border border-white/5 rounded-3xl py-6 shadow-inner relative overflow-hidden">
                    <div 
                     className="absolute inset-0 opacity-20 transition-colors duration-300" 
@@ -188,7 +188,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                      <span className="text-xl font-bold uppercase tracking-widest text-gray-500 mb-2 border-b-2 border-gray-600 pb-1 w-10 text-center">/10</span>
                   </div>
                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-2 relative z-10">
-                    {form.rpe <= 3 ? 'Idle Load' : form.rpe <= 5 ? 'Nominal Load' : form.rpe <= 7 ? 'Heavy Load' : form.rpe <= 9 ? 'Critical Load' : 'Max Output'}
+                    {form.rpe <= 3 ? 'Light Effort' : form.rpe <= 5 ? 'Moderate Effort' : form.rpe <= 7 ? 'Hard Effort' : form.rpe <= 9 ? 'Very Hard Effort' : 'Max Effort'}
                   </p>
                 </div>
                 <Slider min={1} max={10} value={form.rpe} onChange={v => setForm({ ...form, rpe: v })} showValue={false} 
@@ -203,33 +203,33 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
               </div>
 
                <div className="space-y-4 pt-4 border-t border-white/5">
-                <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Leg Actuator Fatigue</p>
+                <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Leg Fatigue</p>
                 <TapRating min={1} max={5} value={form.legs_fatigue}
                   onChange={v => setForm({ ...form, legs_fatigue: v })}
                   labels={['Fresh', 'Light', 'Nom', 'Heavy', 'Dead'].map(l => l.toUpperCase())}
-                  colorClass="bg-yellow-500 text-yellow-950 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+                />
               </div>
               <div className="space-y-4 pt-4 border-t border-white/5">
-                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Core/Back Array Fatigue</p>
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Core/Back Fatigue</p>
                 <TapRating min={1} max={5} value={form.back_core_fatigue}
                   onChange={v => setForm({ ...form, back_core_fatigue: v })}
                   labels={['Fresh', 'Light', 'Nom', 'Heavy', 'Spent'].map(l => l.toUpperCase())}
-                   colorClass="bg-yellow-500 text-yellow-950 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+                />
               </div>
                <div className="space-y-4 pt-4 border-t border-white/5">
-                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Respiratory Load</p>
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Breathing Difficulty</p>
                 <TapRating min={1} max={5} value={form.breathing_difficulty}
                   onChange={v => setForm({ ...form, breathing_difficulty: v })}
-                  labels={['Idle', 'Light', 'Nom', 'Hard', 'Max'].map(l => l.toUpperCase())}
-                   colorClass="bg-yellow-500 text-yellow-950 shadow-[0_0_10px_rgba(234,179,8,0.5)]" />
+                  labels={['Easy', 'Light', 'Mod', 'Hard', 'Max'].map(l => l.toUpperCase())}
+                />
               </div>
             </div>
           )}
 
            {step === 2 && (
-            <div className="space-y-6 flex-1">
+            <div className="space-y-6 flex-1 pb-4">
               <div className="space-y-4">
-                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-red-500">⚠️</span> Hardware Damage Detected?</p>
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-red-500">⚠️</span> Any pain or injury?</p>
                 <div className="flex gap-3">
                   {(['No', 'Yes'] as const).map(opt => (
                     <button key={opt} type="button"
@@ -253,11 +253,11 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                   
                   <div className="flex items-center gap-3 relative z-10 border-b border-red-500/20 pb-4">
                     <AlertTriangle className="h-5 w-5 text-red-500 drop-shadow-[0_0_8px_currentColor] flex-shrink-0" />
-                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400">Alert will be broadcast to director node.</p>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-red-400">Alert will be reported to coach.</p>
                   </div>
 
                   <div className="space-y-4 relative z-10">
-                    <p className="text-[10px] uppercase font-black tracking-widest text-red-400">Target Component</p>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-red-400">Body Part</p>
                     <div className="flex flex-wrap gap-2">
                       {BODY_PARTS.map(part => (
                         <button key={part} type="button"
@@ -276,11 +276,11 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                   </div>
 
                   <div className="space-y-4 pt-2 relative z-10">
-                     <p className="text-[10px] uppercase font-black tracking-widest text-red-400">Damage Severity</p>
+                     <p className="text-[10px] uppercase font-black tracking-widest text-red-400">Pain Severity</p>
                     <TapRating min={1} max={5} value={form.pain_level}
                       onChange={v => setForm({ ...form, pain_level: v })}
                       labels={['Mild', 'Minor', 'Mod', 'Sig', 'Crit'].map(l => l.toUpperCase())}
-                      colorClass="bg-red-500 text-white shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                    />
                   </div>
                 </div>
               )}
@@ -288,9 +288,9 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
           )}
 
            {step === 3 && (
-            <div className="space-y-8 flex-1">
+            <div className="space-y-8 flex-1 pb-4">
               <div className="space-y-4">
-                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-blue-500">🎯</span> Variance from Parameter Target?</p>
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-3 flex"><span className="text-blue-500">🎯</span> Variance from Target Splits?</p>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {([
                     { value: 'yes', label: 'In Spec', emoji: '🎯', color: 'blue' },
@@ -317,20 +317,20 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
               </div>
               
               <div className="space-y-4 pt-4 border-t border-white/5">
-                <p className="text-[10px] uppercase font-black tracking-widest text-green-500 block mb-3">Optimal Variables (Opt)</p>
+                <p className="text-[10px] uppercase font-black tracking-widest text-green-500 block mb-3">What went well? (Optional)</p>
                 <input
                    className="w-full bg-black/60 border border-green-500/20 text-white placeholder:text-gray-600 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-green-500 focus:bg-white/5 transition-all shadow-inner"
-                  placeholder="e.g. Kinetic transfer nominal..."
+                  placeholder="e.g. Felt powerful on the drive..."
                   value={form.felt_good}
                   onChange={e => setForm({ ...form, felt_good: e.target.value })}
                 />
               </div>
 
                <div className="space-y-4 pt-4 border-t border-white/5">
-                <p className="text-[10px] uppercase font-black tracking-widest text-red-500/70 block mb-3">Suboptimal Variables (Opt)</p>
+                <p className="text-[10px] uppercase font-black tracking-widest text-red-500/70 block mb-3">What felt off? (Optional)</p>
                  <input
                    className="w-full bg-black/60 border border-red-500/20 text-white placeholder:text-gray-600 rounded-xl px-5 py-4 text-sm focus:outline-none focus:border-red-500/50 focus:bg-white/5 transition-all shadow-inner"
-                  placeholder="e.g. Lag in actuator response..."
+                  placeholder="e.g. Catch felt slow..."
                   value={form.felt_off}
                   onChange={e => setForm({ ...form, felt_off: e.target.value })}
                 />
@@ -339,13 +339,13 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
           )}
 
            {step === 4 && (
-            <div className="space-y-8 flex-1">
+            <div className="space-y-8 flex-1 pb-4">
               <div className="space-y-4">
-                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-2 flex"><span className="text-purple-500">🔋</span> Current Regen Capacity</p>
+                 <p className="text-[10px] items-center gap-2 uppercase font-black tracking-widest text-gray-400 block mb-2 flex"><span className="text-purple-500">🔋</span> Current Recovery Status</p>
                 <TapRating min={1} max={5} value={form.recovery_status}
                   onChange={v => setForm({ ...form, recovery_status: v })}
                   labels={['Depleted', 'Low', 'Nominal', 'Good', 'Peak'].map(l => l.toUpperCase())}
-                  colorClass="bg-purple-500 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
+                />
               </div>
               
               <div className="space-y-4 pt-4 border-t border-white/5">
@@ -388,11 +388,11 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
               </div>
 
                <div className="space-y-4 pt-4 border-t border-white/5">
-                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Log Override Notes (Opt)</p>
+                 <p className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-3">Notes for Coach (Optional)</p>
                  <textarea
                   className="w-full bg-black/60 border border-white/10 text-white placeholder:text-gray-600 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:border-white focus:bg-white/5 transition-all shadow-inner resize-none min-h-[80px]"
                   rows={2}
-                  placeholder="Additional parameters..."
+                  placeholder="Additional context..."
                   value={form.note}
                   onChange={e => setForm({ ...form, note: e.target.value })}
                 />
@@ -407,9 +407,9 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                 <CheckCircle2 className="h-10 w-10 text-green-400 drop-shadow-[0_0_10px_currentColor]" />
               </div>
               
-               <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] relative z-10">Transmission Secure</h2>
+               <h2 className="text-xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)] relative z-10">Check-in Complete</h2>
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-8 relative z-10 text-center max-w-[200px]">
-                Telemetry data routed to director node array.
+                Post-session data shared with coach.
               </p>
 
               {form.has_pain && (
@@ -419,7 +419,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                   </div>
                   <div>
                     <p className="text-[9px] uppercase font-black tracking-widest text-red-400 mb-0.5">Alert Flagged</p>
-                    <p className="text-[10px] text-red-200 uppercase font-bold tracking-widest">Dmg priority packet sent.</p>
+                    <p className="text-[10px] text-red-200 uppercase font-bold tracking-widest">Pain report sent.</p>
                   </div>
                 </div>
               )}
@@ -453,7 +453,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                   onClick={handleSubmit} 
                   disabled={submitLog.isPending}
                >
-                 {submitLog.isPending ? 'Syncing...' : 'Commit Sequence'}
+                 {submitLog.isPending ? 'Syncing...' : 'Submit Session'}
                </button>
             )}
             {step === steps.length - 1 && (
@@ -461,7 +461,7 @@ export default function PostSessionForm({ session, onClose, onDone, coachId }: P
                   className="w-full bg-green-500 text-white uppercase tracking-widest text-xs font-bold rounded-xl py-4 transition-all shadow-[0_0_20px_rgba(34,197,94,0.5)] hover:bg-green-400"
                   onClick={onDone}
                 >
-                  Terminate Output
+                  Acknowledge
                 </button>
             )}
           </div>

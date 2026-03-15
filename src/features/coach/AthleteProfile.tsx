@@ -50,7 +50,7 @@ export default function AthleteProfile() {
   const alerts = allAlerts.filter(a => a.athlete_id === id && !a.reviewed_at)
 
   if (!profile) return (
-    <div className="p-6 text-center text-gray-500 bg-black min-h-dvh flex items-center justify-center font-bold tracking-widest uppercase">Node not found</div>
+    <div className="p-6 text-center text-gray-500 bg-black min-h-dvh flex items-center justify-center font-bold tracking-widest uppercase">Athlete not found</div>
   )
 
   // ── Data prep ────────────────────────────────────────────────────────────────
@@ -58,6 +58,8 @@ export default function AthleteProfile() {
     .filter(l => l.log_type === 'morning')
     .sort((a, b) => a.created_at.localeCompare(b.created_at))
     .slice(-14)
+
+  const morningLogsRecent = [...morningLogs].reverse().slice(0, 7)
 
   const postLogs14 = athleteLogs
     .filter(l => l.log_type === 'post')
@@ -210,14 +212,14 @@ export default function AthleteProfile() {
             <Hexagon className="h-5 w-5 text-gray-400" /> {profile.name}
           </h1>
           <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
-            {[athlete?.boat_class, athlete?.seat_position, athlete?.year].filter(Boolean).join(' · ') || 'Unclassified Node'}
+            {[athlete?.boat_class, athlete?.seat_position, athlete?.year].filter(Boolean).join(' · ') || 'Unassigned Athlete'}
           </p>
         </div>
         <button
           onClick={() => navigate(`/coach/messages?to=${id}`)}
           className="bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl px-4 py-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all"
         >
-          <MessageSquare className="h-4 w-4" /> Comms
+          <MessageSquare className="h-4 w-4" /> Message
         </button>
       </div>
 
@@ -312,7 +314,7 @@ export default function AthleteProfile() {
               {/* Physical specs */}
               {athlete && (
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-3">Node Specs</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-3">Athlete Specs</p>
                   <div className="grid grid-cols-3 gap-2 text-[11px]">
                     {[
                       ['Height', athlete.height_cm ? `${athlete.height_cm}cm` : '—'],
@@ -334,7 +336,7 @@ export default function AthleteProfile() {
               {/* Session telemetry */}
               {postLogsRecent.length > 0 && (
                 <div>
-                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-3">Recent Sessions</p>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-3">Recent Training Logs</p>
                   <div className="space-y-1">
                     {postLogsRecent.map(log => {
                       const p = log.data as PostSessionLogData
@@ -351,6 +353,42 @@ export default function AthleteProfile() {
                             p.ready_tomorrow === 'yes' ? 'text-green-400' : p.ready_tomorrow === 'maybe' ? 'text-orange-400' : 'text-red-400')}>
                             {p.ready_tomorrow === 'yes' ? '✓' : p.ready_tomorrow === 'maybe' ? '~' : '✗'}
                           </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Morning checkin telemetry */}
+              {morningLogsRecent.length > 0 && (
+                <div>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mb-3">Recent Check-ins (Morning Logs)</p>
+                  <div className="space-y-1 bg-black/40 border border-white/5 rounded-xl p-2 shadow-inner">
+                    <div className="flex text-[9px] font-black uppercase tracking-widest text-gray-400 px-2 pb-2 mb-1 border-b border-white/5">
+                      <span className="w-12">Date</span>
+                      <span className="flex-1 text-center">Sleep</span>
+                      <span className="flex-1 text-center">Energy</span>
+                      <span className="flex-1 text-right">Status</span>
+                    </div>
+                    {morningLogsRecent.map(log => {
+                      const m = log.data as MorningLogData
+                      return (
+                        <div key={log.id} className="flex items-center gap-2 py-1.5 px-2 hover:bg-white/10 rounded-lg transition-colors cursor-default">
+                          <span className="text-[10px] text-gray-500 font-bold w-12 flex-shrink-0">{shortDate(log.created_at)}</span>
+                          <span className="flex-1 text-[10px] font-black text-blue-400 text-center flex items-center justify-center gap-1">
+                            <Moon className="h-3 w-3" /> {m.sleep_hours}h
+                          </span>
+                          <span className="flex-1 text-[10px] font-black text-yellow-400 text-center">
+                            {m.energy}/5
+                          </span>
+                          <div className="flex-1 flex justify-end">
+                            {m.has_soreness ? (
+                              <span className="text-[9px] text-red-400 border border-red-500/50 bg-red-950/40 px-1.5 py-0.5 rounded uppercase font-black">Soreness</span>
+                            ) : (
+                              <span className="text-[9px] text-green-400 px-1.5 py-0.5 uppercase font-black tracking-widest">Optimal</span>
+                            )}
+                          </div>
                         </div>
                       )
                     })}

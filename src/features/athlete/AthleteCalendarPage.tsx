@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Plus, X, Check, Calendar } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { useSessions } from '@/hooks/useSessions'
 import { usePersonalEvents, usePersonalEventsRange } from '@/hooks/usePersonalEvents'
@@ -15,6 +16,8 @@ function typeToColor(type: string) {
     case 'Weights':       return { bg: 'bg-purple-500/20',border: 'border-purple-500/50',text: 'text-purple-300',dot: 'bg-purple-400' }
     case 'Cross Training':return { bg: 'bg-green-500/20', border: 'border-green-500/50', text: 'text-green-300', dot: 'bg-green-400' }
     case 'Rest':          return { bg: 'bg-gray-500/10',  border: 'border-gray-500/30',  text: 'text-gray-400',  dot: 'bg-gray-400' }
+    case 'Assessments':
+    case 'Assessment':    return { bg: 'bg-yellow-500/20',border: 'border-yellow-500/50',text: 'text-yellow-300',dot: 'bg-yellow-400' }
     default:              return { bg: 'bg-white/5',      border: 'border-white/10',     text: 'text-gray-300',  dot: 'bg-gray-400' }
   }
 }
@@ -45,7 +48,7 @@ function formatTime(t: string): string {
 const GRID_START = 5    // 5 AM
 const GRID_END   = 23   // 11 PM
 const HOUR_HEIGHT = 56  // px per hour
-const HOURS = Array.from({ length: GRID_END - GRID_START }, (_, i) => i + GRID_START)
+const HOURS = Array.from({ length: GRID_END - GRID_START + 1 }, (_, i) => i + GRID_START)
 const EVENT_COLORS = ['purple', 'cyan', 'blue', 'green', 'orange'] as const
 
 interface AddEventState {
@@ -54,6 +57,7 @@ interface AddEventState {
 
 export default function AthleteCalendarPage() {
   const { user } = useAuthStore()
+  const navigate = useNavigate()
   const [viewMode, setViewMode] = useState<'month' | 'day'>('month')
 
   const [current, setCurrent] = useState(new Date())
@@ -92,16 +96,20 @@ export default function AthleteCalendarPage() {
 
   // ── Day helpers ───────────────────────────────────────────────────────────
   const prevDay = () => {
-    const d = new Date(selectedDate + 'T12:00:00'); d.setDate(d.getDate() - 1); setSelectedDate(localDateStr(d))
+    const d = new Date(selectedDate + 'T12:00:00'); d.setDate(d.getDate() - 1); 
+    setSelectedDate(localDateStr(d))
+    setCurrent(d)
   }
   const nextDay = () => {
-    const d = new Date(selectedDate + 'T12:00:00'); d.setDate(d.getDate() + 1); setSelectedDate(localDateStr(d))
+    const d = new Date(selectedDate + 'T12:00:00'); d.setDate(d.getDate() + 1); 
+    setSelectedDate(localDateStr(d))
+    setCurrent(d)
   }
 
   const handleSlotClick = useCallback((hour: number) => {
-    const startH = hour.toString().padStart(2, '0')
-    const endH   = Math.min(hour + 1, 23).toString().padStart(2, '0')
-    setAddEventState({ form: { title: '', start_time: `${startH}:00`, end_time: `${endH}:00`, color: 'purple' } })
+    const startH = hour.toString().padStart(2, '0') + ':00'
+    const endH = hour === 23 ? '23:59' : (hour + 1).toString().padStart(2, '0') + ':00'
+    setAddEventState({ form: { title: '', start_time: startH, end_time: endH, color: 'purple' } })
     setSelectedEventId(null)
   }, [])
 
@@ -194,7 +202,7 @@ export default function AthleteCalendarPage() {
                 const c = typeToColor(s.type)
                 const timeLabel = s.start_time ? `${formatTime(s.start_time)} – ${formatTime(s.end_time ?? '')}` : `${s.duration}min`
                 return (
-                  <button key={s.id} onClick={() => selectDay(parseInt(s.date.slice(8)))}
+                  <button key={s.id} onClick={() => navigate(`/athlete/session/${s.id}`)}
                     className={cn('w-full flex items-center gap-3 rounded-xl px-3 py-2 border text-left', c.bg, c.border)}>
                     <div className={cn('w-2 h-2 rounded-full flex-shrink-0', c.dot)} />
                     <span className={cn('text-[10px] font-bold uppercase tracking-widest w-16 flex-shrink-0', c.text)}>{s.date.slice(5)}</span>
@@ -210,7 +218,7 @@ export default function AthleteCalendarPage() {
 
       {/* ── DAY VIEW ───────────────────────────────────────────────────────── */}
       {viewMode === 'day' && (
-        <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden">
+        <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden relative pb-12">
           {/* Day header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <button onClick={prevDay} className="p-2 rounded-xl bg-white/5 hover:bg-white/20 border border-white/10">
@@ -234,14 +242,16 @@ export default function AthleteCalendarPage() {
               ? `${formatTime(daySession.start_time)} – ${formatTime(daySession.end_time ?? '')}`
               : `${daySession.duration}min`
             return (
-              <div className={cn('mx-3 mt-3 rounded-2xl p-3 border flex items-center gap-3', c.bg, c.border)}>
+              <button
+                onClick={() => navigate(`/athlete/session/${daySession.id}`)}
+                className={cn('mx-3 mt-3 rounded-2xl p-3 border flex items-center gap-3 w-[calc(100%-1.5rem)] hover:brightness-110 transition-all text-left', c.bg, c.border)}>
                 <div className={cn('w-3 h-3 rounded-full flex-shrink-0', c.dot)} />
                 <div className="flex-1 min-w-0">
                   <p className={cn('text-[10px] font-black uppercase tracking-widest', c.text)}>{daySession.type} · {daySession.intensity}</p>
                   <p className="text-xs text-white/80 truncate">{daySession.main_set}</p>
                 </div>
-                <span className="text-[10px] text-gray-400 flex-shrink-0">{timeLabel}</span>
-              </div>
+                <span className="text-[10px] text-gray-400 flex-shrink-0">{timeLabel} →</span>
+              </button>
             )
           })()}
 
@@ -277,13 +287,15 @@ export default function AthleteCalendarPage() {
                 const height = (end - start) * HOUR_HEIGHT
                 const c = typeToColor(daySession.type)
                 return (
-                  <div className={cn('absolute rounded-xl border px-2 py-1 overflow-hidden', c.bg, c.border)}
+                  <button
+                    onClick={() => navigate(`/athlete/session/${daySession.id}`)}
+                    className={cn('absolute rounded-xl border px-2 py-1 overflow-hidden hover:brightness-110 transition-all text-left', c.bg, c.border)}
                     style={{ top: `${top}px`, height: `${Math.max(height, 28)}px`, left: '48px', right: '4px', zIndex: 2 }}>
                     <p className={cn('text-[10px] font-black uppercase tracking-widest truncate', c.text)}>
                       {daySession.type} · {daySession.intensity}
                     </p>
                     {height > 40 && <p className="text-[10px] text-white/70 truncate">{daySession.main_set}</p>}
-                  </div>
+                  </button>
                 )
               })()}
 
@@ -322,72 +334,81 @@ export default function AthleteCalendarPage() {
             </div>
           </div>
 
-          {/* Add event form */}
-          {addEventState && (
-            <div className="mx-3 mb-3 bg-black/60 border border-white/20 rounded-2xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
-                  <Plus className="h-3 w-3" /> Add Event
-                </p>
-                <button onClick={() => setAddEventState(null)} className="text-gray-500 hover:text-white"><X className="h-4 w-4" /></button>
+          {/* Action Overlay */}
+          {(addEventState || selectedEventId) && (
+            <div className="absolute bottom-4 left-0 right-0 z-50 flex justify-center px-2 sm:px-4 animate-in slide-in-from-bottom duration-200 pointer-events-none">
+              <div className="w-full max-w-md pointer-events-auto">
+                {/* Add event form */}
+                {addEventState && (
+                  <div className="bg-black/95 backdrop-blur-xl border border-white/20 rounded-2xl p-4 space-y-3 shadow-[0_0_40px_rgba(0,0,0,0.8)]">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
+                        <Plus className="h-3 w-3" /> Add Event
+                      </p>
+                      <button onClick={() => setAddEventState(null)} className="text-gray-500 hover:text-white"><X className="h-4 w-4" /></button>
+                    </div>
+                    <input autoFocus placeholder="Event title…" value={addEventState.form.title}
+                      onChange={e => setAddEventState(s => s ? { ...s, form: { ...s.form, title: e.target.value } } : s)}
+                      onKeyDown={e => e.key === 'Enter' && handleSaveEvent()}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:border-white/30 focus:outline-none" />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input type="time" value={addEventState.form.start_time}
+                        onChange={e => setAddEventState(s => s ? { ...s, form: { ...s.form, start_time: e.target.value } } : s)}
+                        className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                        style={{ colorScheme: 'dark' }} />
+                      <input type="time" value={addEventState.form.end_time}
+                        onChange={e => setAddEventState(s => s ? { ...s, form: { ...s.form, end_time: e.target.value } } : s)}
+                        className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                        style={{ colorScheme: 'dark' }} />
+                    </div>
+                    <div className="flex gap-2">
+                      {EVENT_COLORS.map(c => (
+                        <button key={c} onClick={() => setAddEventState(s => s ? { ...s, form: { ...s.form, color: c } } : s)}
+                          className={cn('w-6 h-6 rounded-full border-2 transition-transform',
+                            addEventState.form.color === c ? 'scale-125 border-white' : 'border-transparent',
+                            c === 'purple' ? 'bg-purple-500' : c === 'cyan' ? 'bg-cyan-500' : c === 'blue' ? 'bg-blue-500' : c === 'green' ? 'bg-green-500' : 'bg-orange-500')} />
+                      ))}
+                    </div>
+                    <button onClick={handleSaveEvent} disabled={!addEventState.form.title.trim() || createEvent.isPending}
+                      className="w-full bg-white text-black rounded-xl py-2 text-xs font-black uppercase tracking-widest hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center gap-1.5">
+                      <Check className="h-3.5 w-3.5" /> {createEvent.isPending ? 'Saving…' : 'Save Event'}
+                    </button>
+                  </div>
+                )}
+
+                {/* Selected event */}
+                {selectedEventId && (() => {
+                  const event = (dayEvents as PersonalEvent[]).find(e => e.id === selectedEventId)
+                  if (!event) return null
+                  const c = eventColorClass(event.color)
+                  return (
+                    <div className={cn('bg-black/95 backdrop-blur-xl border rounded-2xl p-4 shadow-[0_0_40px_rgba(0,0,0,0.8)]', c.bg, c.border)}>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className={cn('font-black text-sm', c.text)}>{event.title}</p>
+                          <p className="text-[10px] text-white/60 mt-0.5">{formatTime(event.start_time)} – {formatTime(event.end_time)}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => handleDeleteEvent(event.id)} disabled={deleteEvent.isPending}
+                            className="text-red-400 text-[10px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-950/30 px-2 py-1 rounded-lg hover:bg-red-900/40">
+                            Delete
+                          </button>
+                          <button onClick={() => setSelectedEventId(null)} className="text-gray-400 hover:text-white"><X className="h-4 w-4" /></button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })()}
               </div>
-              <input autoFocus placeholder="Event title…" value={addEventState.form.title}
-                onChange={e => setAddEventState(s => s ? { ...s, form: { ...s.form, title: e.target.value } } : s)}
-                onKeyDown={e => e.key === 'Enter' && handleSaveEvent()}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-gray-600 focus:border-white/30 focus:outline-none" />
-              <div className="grid grid-cols-2 gap-2">
-                <input type="time" value={addEventState.form.start_time}
-                  onChange={e => setAddEventState(s => s ? { ...s, form: { ...s.form, start_time: e.target.value } } : s)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                  style={{ colorScheme: 'dark' }} />
-                <input type="time" value={addEventState.form.end_time}
-                  onChange={e => setAddEventState(s => s ? { ...s, form: { ...s.form, end_time: e.target.value } } : s)}
-                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                  style={{ colorScheme: 'dark' }} />
-              </div>
-              <div className="flex gap-2">
-                {EVENT_COLORS.map(c => (
-                  <button key={c} onClick={() => setAddEventState(s => s ? { ...s, form: { ...s.form, color: c } } : s)}
-                    className={cn('w-6 h-6 rounded-full border-2 transition-transform',
-                      addEventState.form.color === c ? 'scale-125 border-white' : 'border-transparent',
-                      c === 'purple' ? 'bg-purple-500' : c === 'cyan' ? 'bg-cyan-500' : c === 'blue' ? 'bg-blue-500' : c === 'green' ? 'bg-green-500' : 'bg-orange-500')} />
-                ))}
-              </div>
-              <button onClick={handleSaveEvent} disabled={!addEventState.form.title.trim() || createEvent.isPending}
-                className="w-full bg-white text-black rounded-xl py-2 text-xs font-black uppercase tracking-widest hover:bg-gray-200 disabled:opacity-50 flex items-center justify-center gap-1.5">
-                <Check className="h-3.5 w-3.5" /> {createEvent.isPending ? 'Saving…' : 'Save Event'}
-              </button>
             </div>
           )}
 
-          {/* Selected event */}
-          {selectedEventId && (() => {
-            const event = (dayEvents as PersonalEvent[]).find(e => e.id === selectedEventId)
-            if (!event) return null
-            const c = eventColorClass(event.color)
-            return (
-              <div className={cn('mx-3 mb-3 border rounded-2xl p-4', c.bg, c.border)}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className={cn('font-black text-sm', c.text)}>{event.title}</p>
-                    <p className="text-[10px] text-white/60 mt-0.5">{formatTime(event.start_time)} – {formatTime(event.end_time)}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => handleDeleteEvent(event.id)} disabled={deleteEvent.isPending}
-                      className="text-red-400 text-[10px] font-bold uppercase tracking-widest border border-red-500/30 bg-red-950/30 px-2 py-1 rounded-lg hover:bg-red-900/40">
-                      Delete
-                    </button>
-                    <button onClick={() => setSelectedEventId(null)} className="text-gray-400 hover:text-white"><X className="h-4 w-4" /></button>
-                  </div>
-                </div>
-              </div>
-            )
-          })()}
-
           {!addEventState && !selectedEventId && (
-            <p className="text-center text-[10px] text-gray-600 font-bold uppercase tracking-widest pb-3">
-              Tap any time slot to add a personal event
-            </p>
+            <div className="absolute bottom-0 left-0 right-0 py-3 bg-gradient-to-t from-black/80 to-transparent pointer-events-none text-center">
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest pt-4 drop-shadow-md">
+                Tap any time slot to add a personal event
+              </p>
+            </div>
           )}
         </div>
       )}

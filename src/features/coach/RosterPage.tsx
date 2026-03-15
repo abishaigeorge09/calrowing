@@ -63,10 +63,10 @@ export default function RosterPage() {
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <Hexagon className="h-5 w-5 text-gray-400" /> Array Roster
+            <Hexagon className="h-5 w-5 text-gray-400" /> Roster
           </h1>
           <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
-            {athletes.length} Nodes · {team?.name}
+            {athletes.length} Athletes · {team?.name}
           </p>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function RosterPage() {
       <div className="bg-black/60 border border-white/10 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-inner relative overflow-hidden text-center md:text-left">
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[30px] rounded-full" />
         <div className="relative z-10 w-full md:w-auto">
-          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Network Access Key</p>
+          <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1">Invite Code</p>
           <p className="text-3xl md:text-2xl font-black text-white tracking-widest drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]">{team?.invite_code ?? '—'}</p>
         </div>
         <button 
@@ -83,7 +83,7 @@ export default function RosterPage() {
           className="relative z-10 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl px-6 py-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)] w-full md:w-auto justify-center"
         >
           <Copy className="h-4 w-4" />
-          {copied ? 'Captured' : 'Capture Key'}
+          {copied ? 'Copied!' : 'Copy Code'}
         </button>
       </div>
 
@@ -93,7 +93,7 @@ export default function RosterPage() {
         {athletes.length > 0 && (
           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 shadow-[0_0_20px_rgba(0,0,0,0.5)]">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Sync Status</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Check-in Status</p>
               <span className="text-[10px] font-black uppercase tracking-widest md:bg-white/10 px-2 py-0.5 rounded md:border border-white/10 text-white">
                 {checkedInCount}/{athletes.length}
               </span>
@@ -106,21 +106,21 @@ export default function RosterPage() {
             </div>
             {/* Legend */}
             <div className="flex gap-3 text-[9px] uppercase font-bold tracking-widest text-gray-500 mt-2">
-              <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="h-3 w-3" /> Sync</span>
-              <span className="flex items-center gap-1 text-white/40"><Clock className="h-3 w-3" /> Idle</span>
-              <span className="flex items-center gap-1 text-red-500"><Activity className="h-3 w-3" /> Warn</span>
-              <span className="flex items-center gap-1 text-orange-400"><AlertTriangle className="h-3 w-3" /> Dmg</span>
+              <span className="flex items-center gap-1 text-green-400"><CheckCircle2 className="h-3 w-3" /> Checked In</span>
+              <span className="flex items-center gap-1 text-white/40"><Clock className="h-3 w-3" /> Pending</span>
+              <span className="flex items-center gap-1 text-red-500"><Activity className="h-3 w-3" /> Alert</span>
+              <span className="flex items-center gap-1 text-orange-400"><AlertTriangle className="h-3 w-3" /> Injured</span>
             </div>
           </div>
         )}
 
         {/* Search */}
         <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl p-5 shadow-[0_0_20px_rgba(0,0,0,0.5)] flex flex-col justify-center">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Search Array</p>
+          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">Search Athletes</p>
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input 
-              placeholder="Query parameters..." 
+            <Input
+              placeholder="Search by name..."
               value={search} 
               onChange={e => setSearch(e.target.value)}
               className="pl-10 bg-black/50 border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl h-11 text-xs shadow-inner" 
@@ -133,9 +133,9 @@ export default function RosterPage() {
       {athletes.length === 0 && (
         <div className="py-16 text-center bg-white/5 border border-white/10 rounded-3xl mt-4">
           <UserPlus className="h-12 w-12 mx-auto text-white/20 mb-4" />
-          <p className="font-bold text-gray-300 uppercase tracking-widest mb-2">Network Empty</p>
+          <p className="font-bold text-gray-300 uppercase tracking-widest mb-2">No athletes yet</p>
           <p className="text-xs text-gray-500 max-w-xs mx-auto font-light leading-relaxed">
-            Operatives can initialize their nodes by entering the access key displayed above.
+            Athletes can join your team by entering the invite code displayed above.
           </p>
         </div>
       )}
@@ -147,7 +147,7 @@ export default function RosterPage() {
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/5">
               <h2 className="text-sm font-black text-white uppercase tracking-widest">{boat}</h2>
               <span className="bg-white/10 border border-white/20 text-white text-[10px] uppercase font-bold px-2 py-0.5 rounded-md">
-                {boatAthletes.length} Unit{boatAthletes.length !== 1 ? 's' : ''}
+                {boatAthletes.length} Athlete{boatAthletes.length !== 1 ? 's' : ''}
               </span>
             </div>
             
@@ -181,7 +181,7 @@ export default function RosterPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-bold text-white text-sm tracking-wide truncate">{a.name}</p>
-                        {hasInjury && <span title="Hardware Damage"><AlertTriangle className="h-3 w-3 text-orange-400 flex-shrink-0 drop-shadow-[0_0_5px_rgba(251,146,60,0.5)]" /></span>}
+                        {hasInjury && <span title="Injured"><AlertTriangle className="h-3 w-3 text-orange-400 flex-shrink-0 drop-shadow-[0_0_5px_rgba(251,146,60,0.5)]" /></span>}
                       </div>
                       <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mt-0.5">
                         {[a.athleteProfile?.seat_position, a.athleteProfile?.year].filter(Boolean).join(' · ') || 'Unclassified'}
@@ -191,13 +191,13 @@ export default function RosterPage() {
                       {morningData && (
                         <div className="flex gap-3 mt-1.5 border-t border-white/5 pt-1.5 w-max">
                           <span className="text-[9px] uppercase tracking-widest text-gray-400 font-bold flex items-center gap-1">
-                            <span className="text-blue-400">Pwr</span> {morningData.sleep_hours}h
+                            <span className="text-blue-400">Sleep</span> {morningData.sleep_hours}h
                           </span>
                           <span className="text-[9px] uppercase tracking-widest text-gray-400 font-bold flex items-center gap-1">
-                            <span className="text-yellow-400">Lvl</span> {morningData.energy}
+                            <span className="text-yellow-400">Energy</span> {morningData.energy}
                           </span>
                           {morningData.has_soreness && (
-                            <span className="text-[9px] text-red-400 uppercase font-black tracking-widest bg-red-950/40 px-1.5 py-0.5 rounded border border-red-500/30">Warn</span>
+                            <span className="text-[9px] text-red-400 uppercase font-black tracking-widest bg-red-950/40 px-1.5 py-0.5 rounded border border-red-500/30">Sore</span>
                           )}
                         </div>
                       )}

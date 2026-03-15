@@ -63,7 +63,7 @@ export default function InjuryFlagPage() {
           </div>
         </div>
         
-        <h1 className="text-3xl font-black text-white uppercase tracking-widest mb-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Alert Transmitted</h1>
+        <h1 className="text-3xl font-black text-white uppercase tracking-widest mb-3 drop-shadow-[0_0_10px_rgba(255,255,255,0.4)]">Injury Reported</h1>
         <p className="text-gray-400 text-sm font-bold uppercase tracking-widest leading-relaxed mb-8 max-w-xs">
           Hardware damage report sent directly to director node.
         </p>
@@ -116,7 +116,7 @@ export default function InjuryFlagPage() {
             Flag Hardware Damage
           </h1>
           <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mt-1">
-            Director receives immediate alert
+            Your coach will be notified immediately
           </p>
         </div>
       </div>
@@ -204,11 +204,11 @@ export default function InjuryFlagPage() {
           )}
         >
           {submitting ? (
-            'Transmitting Data...'
+            'Sending...'
           ) : (
             <>
               <AlertTriangle className={cn("h-4 w-4", !bodyPart || !severity ? 'opacity-30' : '')} />
-              Transmit Alert to Director
+              Report Injury to Coach
             </>
           )}
         </button>

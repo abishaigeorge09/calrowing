@@ -90,10 +90,10 @@ export default function AthleteProfilePage() {
       <div className="flex items-center justify-between pb-4 border-b border-white/10">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
-            <Hexagon className="h-5 w-5 text-gray-400" /> Node Identity
+            <Hexagon className="h-5 w-5 text-gray-400" /> My Profile
           </h1>
           <p className="text-xs uppercase tracking-widest text-gray-500 font-bold mt-1">
-            System Profile
+            Personal Information
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export default function AthleteProfilePage() {
             onClick={handleSignOut} 
             className="p-2 border border-red-500/30 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-400 transition-colors flex items-center gap-2 text-xs font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.1)]"
           >
-            <LogOut className="h-3.5 w-3.5" /> Abort
+            <LogOut className="h-3.5 w-3.5" /> Sign Out
           </button>
         </div>
       </div>
@@ -129,7 +129,7 @@ export default function AthleteProfilePage() {
             type="text"
             value={editForm.name}
             onChange={e => setEditForm({ ...editForm, name: e.target.value })}
-            placeholder="Node Designation"
+            placeholder="Full Name"
             className="relative z-10 text-2xl font-black text-white text-center border-b border-white/30 focus:border-white focus:outline-none bg-transparent w-64 pb-1 mb-2 placeholder:text-gray-600 block"
           />
         ) : (
@@ -150,7 +150,7 @@ export default function AthleteProfilePage() {
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Team */}
         <div className="bg-white/5 backdrop-blur-2xl rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/10 flex flex-col justify-center">
-          <h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">Connected Array</h2>
+          <h2 className="text-[10px] font-bold tracking-widest uppercase text-gray-500 mb-2">My Team</h2>
           <p className="font-black text-xl text-white tracking-wide">{team?.name}</p>
           <p className="text-[10px] uppercase font-bold tracking-widest text-gray-400 mt-2 bg-black/40 inline-block px-3 py-1 rounded-full border border-white/5">{team?.division} · {team?.sport}</p>
         </div>
@@ -159,8 +159,8 @@ export default function AthleteProfilePage() {
          {!isEditing && (
           <div className="flex flex-col gap-3">
             {[
-              { icon: AlertTriangle, label: 'Flag Hardware Damage', path: '/athlete/injury', color: 'text-red-400', border: 'border-red-500/30', hover: 'hover:bg-red-950/20' },
-              { icon: BookOpen, label: 'Update Academic Cycle', path: '/athlete/academic', color: 'text-blue-400', border: 'border-blue-500/30', hover: 'hover:bg-blue-950/20' },
+              { icon: AlertTriangle, label: 'Report Soreness/Injury', path: '/athlete/injury', color: 'text-red-400', border: 'border-red-500/30', hover: 'hover:bg-red-950/20' },
+              { icon: BookOpen, label: 'Update Academic Schedule', path: '/athlete/academic', color: 'text-blue-400', border: 'border-blue-500/30', hover: 'hover:bg-blue-950/20' },
             ].map(({ icon: Icon, label, path, color, border, hover }) => (
               <button key={path}
                 onClick={() => navigate(path)}
@@ -179,14 +179,14 @@ export default function AthleteProfilePage() {
 
       {/* Athlete Details — View or Edit */}
       <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Node Specifications</h2>
+        <h2 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-6 border-b border-white/5 pb-4">Athlete Specs</h2>
         
         <div className="space-y-6">
           {isEditing ? (
             <>
               {/* Boat class chips */}
               <div>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Class Designation</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Boat Class</p>
                 <div className="flex flex-wrap gap-2">
                   {BOAT_CLASSES.map(bc => (
                     <button key={bc} type="button"
@@ -205,7 +205,7 @@ export default function AthleteProfilePage() {
 
                {/* Seat position */}
               <div className="pt-2">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Vector Position</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Seat Position</p>
                 <div className="flex flex-wrap gap-2">
                   {SEAT_POSITIONS.map(sp => (
                      <button key={sp} type="button"
@@ -224,7 +224,7 @@ export default function AthleteProfilePage() {
 
               {/* Year */}
               <div className="pt-2">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Lifecycle Stage</p>
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Year</p>
                 <div className="flex flex-wrap gap-2">
                   {YEARS.map(y => (
                      <button key={y} type="button"
@@ -245,7 +245,7 @@ export default function AthleteProfilePage() {
                <div className="grid grid-cols-3 gap-4 pt-2">
                 <div>
                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">
-                    Y-Axis (cm)
+                    Height (cm)
                   </label>
                   <input
                     type="number"
@@ -257,7 +257,7 @@ export default function AthleteProfilePage() {
                 </div>
                 <div>
                   <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">
-                    Mass (kg)
+                    Weight (kg)
                   </label>
                   <input
                     type="number"
@@ -269,7 +269,7 @@ export default function AthleteProfilePage() {
                 </div>
                 <div>
                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">
-                    Pwr Target (h)
+                    Sleep Goal (h)
                   </label>
                   <input
                     type="number"
@@ -287,7 +287,7 @@ export default function AthleteProfilePage() {
                {/* Known injuries / issues */}
                <div className="pt-2">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">
-                  Hardware Damage Reports
+                  Injury / Soreness History
                 </label>
                 <textarea
                   value={editForm.injuries_text || ''}
@@ -311,7 +311,7 @@ export default function AthleteProfilePage() {
                   onClick={handleSave}
                   disabled={updateProfile.isPending}
                 >
-                  {updateProfile.isPending ? 'Writing…' : <><Check className="h-4 w-4" /> Save</>}
+                  {updateProfile.isPending ? 'Saving...' : <><Check className="h-4 w-4" /> Save</>}
                 </button>
               </div>
             </>
@@ -320,12 +320,12 @@ export default function AthleteProfilePage() {
             <>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-2">
                  {[
-                  ['Y-Axis (cm)', athlete?.height_cm ? `${athlete.height_cm}` : 'Unk'],
-                  ['Mass (kg)', athlete?.weight_kg ? `${athlete.weight_kg}` : 'Unk'],
-                  ['Pwr Target', athlete?.sleep_goal ? `${athlete.sleep_goal}H` : 'Unk'],
-                  ['Class', athlete?.boat_class ?? 'Unk'],
-                  ['Vector', athlete?.seat_position ?? 'Unk'],
-                  ['Cycle', athlete?.year ?? 'Unk'],
+                  ['Height (cm)', athlete?.height_cm ? `${athlete.height_cm}` : '—'],
+                  ['Weight (kg)', athlete?.weight_kg ? `${athlete.weight_kg}` : '—'],
+                  ['Sleep Goal', athlete?.sleep_goal ? `${athlete.sleep_goal}H` : '—'],
+                  ['Class', athlete?.boat_class ?? '—'],
+                  ['Position', athlete?.seat_position ?? '—'],
+                  ['Year', athlete?.year ?? '—'],
                 ].map(([k, v]) => (
                   <div key={k} className="bg-black/40 border border-white/5 rounded-2xl p-4 shadow-inner">
                     <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">{k}</p>
@@ -339,7 +339,7 @@ export default function AthleteProfilePage() {
                    <div className="absolute top-1/2 -right-4 -translate-y-1/2 w-24 h-24 bg-red-500/20 blur-[20px] rounded-full pointer-events-none" />
                    <AlertTriangle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5 drop-shadow-[0_0_8px_rgba(248,113,113,0.8)]" />
                    <div className="relative z-10">
-                     <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Active Hardware Damage</p>
+                     <p className="text-[10px] font-black uppercase tracking-widest text-red-500 mb-1">Active Injury/Soreness</p>
                      <p className="text-sm font-medium text-red-200 leading-relaxed">{athlete.injuries_text}</p>
                    </div>
                  </div>
@@ -348,8 +348,8 @@ export default function AthleteProfilePage() {
               {!athlete && (
                 <div className="flex flex-col items-center justify-center py-8 text-center bg-black/20 rounded-2xl border border-white/5 border-dashed">
                   <User className="h-8 w-8 text-gray-600 mb-3" />
-                  <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Node Data Missing</p>
-                  <p className="text-[10px] uppercase tracking-widest text-gray-600 mt-1">Initialize edit sequence to populate</p>
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-gray-500">Profile Data Missing</p>
+                  <p className="text-[10px] uppercase tracking-widest text-gray-600 mt-1">Edit your profile to add details</p>
                 </div>
               )}
             </>

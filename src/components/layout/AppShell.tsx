@@ -22,6 +22,7 @@ export default function AppShell() {
     { to: '/coach/calendar',  label: 'Calendar',  icon: Calendar },
     { to: '/coach/surveys',   label: 'Surveys',   icon: ClipboardList },
     { to: '/coach/messages',  label: 'Messages',  icon: MessageSquare },
+    { to: '/coach/profile',   label: 'Profile',   icon: User },
   ]
 
   const athleteNav = [

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Waves, CheckCircle2, ChevronLeft } from 'lucide-react'
+import { CheckCircle2, ChevronLeft, Hexagon, Terminal } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { IS_SUPABASE } from '@/lib/db'
+import { cn } from '@/lib/utils'
 
 type Role = 'coach' | 'athlete'
 
@@ -47,176 +48,189 @@ export default function EarlyAccessPage() {
         })
         if (sbError) throw new Error(sbError.message)
       }
-      // In demo mode we skip the DB write and go straight to success
       setSuccess(true)
       setTimeout(() => navigate('/login'), 2500)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
+      setError(err instanceof Error ? err.message : 'Transmission failed. Retrying required.')
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-gradient-to-br from-[#0f2d52] via-[#1e3a5f] to-[#2d5a8e]">
-
-      {/* Header */}
-      <div className="px-5 pt-safe-top pt-4 pb-6 flex items-center gap-3">
-        <button
-          onClick={() => navigate('/')}
-          className="p-2 rounded-xl text-white/70 hover:text-white hover:bg-white/10 transition-colors"
-          aria-label="Back"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <div className="flex items-center gap-2">
-          <Waves className="h-6 w-6 text-orange-400" strokeWidth={2.5} />
-          <span className="text-white font-black text-xl tracking-tight">RowIQ</span>
-        </div>
+    <div className="relative min-h-dvh flex flex-col font-sans bg-black text-white px-4 pb-10 overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/5 blur-[100px] rounded-full mix-blend-screen" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-white/5 blur-[100px] rounded-full mix-blend-screen" />
       </div>
 
-      {/* Card */}
-      <div className="flex-1 bg-white rounded-t-3xl px-6 pt-8 pb-10 overflow-y-auto">
-
-        {success ? (
-          /* ── Success state ── */
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="bg-green-100 rounded-full p-4 mb-5">
-              <CheckCircle2 className="h-10 w-10 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-black text-slate-900 mb-2">You're on the list!</h2>
-            <p className="text-slate-500 text-sm max-w-xs leading-relaxed">
-              Thanks for your interest in RowIQ. We'll reach out when your early access is ready.
-            </p>
-            <p className="text-slate-400 text-xs mt-6">Taking you to sign in…</p>
+      <div className="relative z-10 w-full max-w-md mx-auto flex flex-col pt-safe-top">
+        {/* Header */}
+        <div className="py-6 flex items-center gap-3">
+          <button
+            onClick={() => navigate('/')}
+            className="p-2 border border-white/10 rounded-xl bg-white/5 hover:bg-white/20 text-white transition-colors shadow-[0_0_15px_rgba(255,255,255,0.05)]"
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="flex items-center gap-2 group cursor-pointer justify-center ml-2">
+            <Hexagon className="h-6 w-6 text-white" strokeWidth={1.5} />
+            <span className="text-white font-black text-xl tracking-widest uppercase">RowIQ</span>
           </div>
-        ) : (
-          /* ── Form ── */
-          <>
-            <div className="mb-7">
-              <h1 className="text-2xl font-black text-slate-900 mb-1">Get early access</h1>
-              <p className="text-slate-500 text-sm">Tell us a bit about yourself so we can make RowIQ great for you.</p>
-            </div>
+        </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-
-              {/* Name */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700" htmlFor="name">
-                  Full name <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  required
-                  placeholder="Alex Chen"
-                  value={form.name}
-                  onChange={set('name')}
-                  className="w-full h-12 rounded-xl border-2 border-slate-200 px-4 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1e3a5f] transition-colors"
-                />
+        {/* Card */}
+        <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-6 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+          {success ? (
+            /* ── Success state ── */
+            <div className="flex flex-col items-center justify-center py-12 text-center relative">
+              <div className="absolute inset-0 bg-green-500/20 blur-[40px] rounded-full z-0" />
+              <div className="relative bg-green-950/40 border-2 border-green-500/50 rounded-full w-20 h-20 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(34,197,94,0.3)_inset] z-10">
+                <CheckCircle2 className="h-10 w-10 text-green-400 drop-shadow-[0_0_10px_currentColor]" />
               </div>
-
-              {/* Email */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700" htmlFor="email">
-                  Email <span className="text-red-400">*</span>
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  placeholder="you@university.edu"
-                  value={form.email}
-                  onChange={set('email')}
-                  className="w-full h-12 rounded-xl border-2 border-slate-200 px-4 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1e3a5f] transition-colors"
-                />
-              </div>
-
-              {/* Role toggle */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700">
-                  I am a… <span className="text-red-400">*</span>
-                </label>
-                <div className="grid grid-cols-2 gap-2 bg-slate-100 p-1 rounded-xl">
-                  {(['athlete', 'coach'] as Role[]).map(r => (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => setForm(prev => ({ ...prev, role: r }))}
-                      className={`h-10 rounded-lg text-sm font-bold capitalize transition-all ${
-                        form.role === r
-                          ? 'bg-white text-[#1e3a5f] shadow-sm'
-                          : 'text-slate-500 hover:text-slate-700'
-                      }`}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* School / team */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700" htmlFor="school">
-                  School or team <span className="text-slate-400 font-normal">(optional)</span>
-                </label>
-                <input
-                  id="school"
-                  type="text"
-                  placeholder="UC Berkeley Rowing"
-                  value={form.school_or_team}
-                  onChange={set('school_or_team')}
-                  className="w-full h-12 rounded-xl border-2 border-slate-200 px-4 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1e3a5f] transition-colors"
-                />
-              </div>
-
-              {/* Reason */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-700" htmlFor="reason">
-                  What would you use RowIQ for? <span className="text-slate-400 font-normal">(optional)</span>
-                </label>
-                <textarea
-                  id="reason"
-                  rows={4}
-                  placeholder={
-                    form.role === 'coach'
-                      ? "e.g. Track athlete wellness, manage training loads, get early injury signals\u2026"
-                      : "e.g. Keep my coach updated on how I'm feeling, track my training history\u2026"
-                  }
-                  value={form.reason}
-                  onChange={set('reason')}
-                  className="w-full rounded-xl border-2 border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-[#1e3a5f] transition-colors resize-none leading-relaxed"
-                />
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                  <p className="text-red-700 text-sm">{error}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full h-14 bg-[#1e3a5f] hover:bg-[#162d4a] disabled:opacity-60 text-white font-bold text-base rounded-xl transition-colors mt-2"
-              >
-                {submitting ? 'Submitting…' : "Join the waitlist →"}
-              </button>
-
-              <p className="text-center text-slate-400 text-xs">
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => navigate('/login')}
-                  className="text-[#1e3a5f] font-semibold hover:underline"
-                >
-                  Sign in
-                </button>
+              <h2 className="text-xl font-black text-white uppercase tracking-widest mb-3 relative z-10 drop-shadow-[0_0_5px_rgba(255,255,255,0.4)]">
+                Access Request Logged
+              </h2>
+              <p className="text-gray-400 text-xs font-bold uppercase tracking-widest max-w-[200px] leading-relaxed relative z-10">
+                Awaiting node clearance. Redirecting to access terminal.
               </p>
+            </div>
+          ) : (
+            /* ── Form ── */
+            <>
+              <div className="mb-8 border-b border-white/10 pb-4">
+                <h1 className="text-xl font-black tracking-widest uppercase text-white mb-2 flex items-center gap-2">
+                  <Terminal className="h-5 w-5 text-gray-400" />
+                  Terminal Access
+                </h1>
+                <p className="text-[10px] font-bold tracking-widest uppercase text-gray-500">
+                  Register node identity for early array access.
+                </p>
+              </div>
 
-            </form>
-          </>
-        )}
+              <form onSubmit={handleSubmit} className="space-y-6">
+
+                {/* Name */}
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-gray-400" htmlFor="name">
+                    Identity Sequence <span className="text-white/40">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    required
+                    placeholder="Subject Name"
+                    value={form.name}
+                    onChange={set('name')}
+                    className="w-full bg-black/50 border border-white/10 focus:border-white focus:bg-white/5 text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm transition-all shadow-inner outline-none"
+                  />
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-gray-400" htmlFor="email">
+                    Comlink (Email) <span className="text-white/40">*</span>
+                  </label>
+                  <input
+                    id="email"
+                    type="email"
+                    required
+                    placeholder="subject@node.net"
+                    value={form.email}
+                    onChange={set('email')}
+                    className="w-full bg-black/50 border border-white/10 focus:border-white focus:bg-white/5 text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm transition-all shadow-inner outline-none"
+                  />
+                </div>
+
+                {/* Role toggle */}
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-gray-400 block mb-2">
+                    Node Designation <span className="text-white/40">*</span>
+                  </label>
+                  <div className="flex gap-3">
+                    {(['athlete', 'coach'] as Role[]).map(r => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => setForm(prev => ({ ...prev, role: r }))}
+                        className={cn(
+                          'flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all border',
+                          form.role === r
+                            ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)] scale-[1.02]'
+                            : 'bg-black/50 text-gray-500 border-white/10 hover:border-white/30'
+                        )}
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* School / team */}
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-gray-400" htmlFor="school">
+                    Affiliated Array <span className="text-gray-600 font-bold">(Opt)</span>
+                  </label>
+                  <input
+                    id="school"
+                    type="text"
+                    placeholder="Team/Institution"
+                    value={form.school_or_team}
+                    onChange={set('school_or_team')}
+                    className="w-full bg-black/50 border border-white/10 focus:border-white focus:bg-white/5 text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm transition-all shadow-inner outline-none"
+                  />
+                </div>
+
+                {/* Reason */}
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase font-black tracking-widest text-gray-400" htmlFor="reason">
+                    Operational Intent <span className="text-gray-600 font-bold">(Opt)</span>
+                  </label>
+                  <textarea
+                    id="reason"
+                    rows={3}
+                    placeholder={
+                      form.role === 'coach'
+                        ? "E.g. monitor fleet telemetry, broadcast protocols..."
+                        : "E.g. transmit regen logs, view session data..."
+                    }
+                    value={form.reason}
+                    onChange={set('reason')}
+                    className="w-full bg-black/50 border border-white/10 focus:border-white focus:bg-white/5 text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm transition-all shadow-inner outline-none resize-none leading-relaxed"
+                  />
+                </div>
+
+                {error && (
+                  <div className="bg-red-950/40 border border-red-500/30 rounded-xl px-4 py-3 text-red-200 text-xs uppercase font-bold tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-4 mt-6 bg-white text-black hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed font-black uppercase tracking-widest text-xs rounded-xl transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-[1.02]"
+                >
+                  {submitting ? 'Transmitting Data...' : "Request System Access"}
+                </button>
+
+                <p className="text-center text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-6">
+                  Identity Active?{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/login')}
+                    className="text-white hover:text-gray-300 ml-1 transition-colors drop-shadow-[0_0_2px_rgba(255,255,255,0.5)]"
+                  >
+                    Authenticate
+                  </button>
+                </p>
+
+              </form>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

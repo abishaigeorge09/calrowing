@@ -52,40 +52,40 @@ export default function LoginPage() {
             </div>
             <span className="text-4xl font-black text-white tracking-widest uppercase">RowIQ</span>
           </Link>
-          <p className="text-gray-400 text-sm tracking-widest uppercase font-semibold">System Access Terminal</p>
+          <p className="text-gray-400 text-sm tracking-widest uppercase font-semibold">Sign in to your account</p>
         </div>
 
         {/* Card */}
         <div className="w-full max-w-md bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-          <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">Initialize Session</h1>
-          <p className="text-gray-400 text-sm mb-6 font-light">Enter credentials to authenticate</p>
+          <h1 className="text-2xl font-bold text-white mb-2 tracking-wide">Welcome back</h1>
+          <p className="text-gray-400 text-sm mb-6 font-light">Sign in to continue to RowIQ</p>
 
           {/* Demo Section */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5 mb-6 shadow-inner">
             <div className="flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_10px_rgba(74,222,128,0.8)]"></span>
-              <p className="text-gray-200 text-sm font-bold uppercase tracking-widest">Demo Protocols</p>
+              <p className="text-gray-200 text-sm font-bold uppercase tracking-widest">Try a Demo</p>
             </div>
-            <p className="text-gray-400 text-xs mb-4 font-light">Test the platform instantly without registration.</p>
+            <p className="text-gray-400 text-xs mb-4 font-light">Explore the platform instantly — no registration needed.</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <button
                 type="button"
                 onClick={() => fillDemo('coach@rowiq.demo')}
                 className="bg-white/10 border border-white/10 hover:bg-white/20 text-white rounded-xl py-2 px-3 text-xs font-semibold tracking-wider transition-all"
               >
-                Coach Interface
+                Coach Demo
               </button>
               <button
                 type="button"
                 onClick={() => fillDemo('alex@rowiq.demo')}
                 className="bg-white text-black rounded-xl py-2 px-3 text-xs font-bold tracking-wider hover:bg-gray-200 transition-all shadow-[0_0_10px_rgba(255,255,255,0.3)]"
               >
-                Athlete Interface
+                Athlete Demo
               </button>
             </div>
             <div className="flex gap-3 flex-wrap">
-              <button type="button" onClick={() => fillDemo('jordan@rowiq.demo')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Jordan (Alert)</button>
-              <button type="button" onClick={() => fillDemo('sam@rowiq.demo')}    className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Sam (Exam)</button>
+              <button type="button" onClick={() => fillDemo('jordan@rowiq.demo')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Jordan</button>
+              <button type="button" onClick={() => fillDemo('sam@rowiq.demo')}    className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Sam</button>
               <button type="button" onClick={() => fillDemo('taylor@rowiq.demo')} className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">Taylor</button>
             </div>
           </div>
@@ -96,7 +96,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="operative@rowiq.com"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
@@ -109,7 +109,7 @@ export default function LoginPage() {
               <div className="flex justify-between items-center">
                 <Label htmlFor="password" className="text-xs uppercase tracking-widest text-gray-400 font-bold">Password</Label>
                 <Link to="/forgot-password" className="text-[10px] text-gray-500 hover:text-white uppercase tracking-wider transition-colors">
-                  Lost Access?
+                  Forgot password?
                 </Link>
               </div>
               <div className="relative">
@@ -140,21 +140,21 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" className="w-full bg-white text-black hover:bg-gray-200 hover:scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all font-bold tracking-widest uppercase rounded-xl h-12 mt-2" disabled={loading}>
-              {loading ? 'Authenticating…' : 'Authenticate'}
+              {loading ? 'Signing in…' : 'Sign In'}
             </Button>
           </form>
 
           <div className="mt-8 text-center border-t border-white/10 pt-6">
             <p className="text-xs text-gray-500 uppercase tracking-widest font-semibold mb-3">
-              Unregistered Operative?
+              New to RowIQ?
             </p>
             <div className="flex justify-center gap-4 text-sm">
               <Link to="/register/coach" className="text-gray-300 hover:text-white font-bold transition-colors">
-                Create Protocol (Coach)
+                Register as Coach
               </Link>
               <span className="text-white/20">|</span>
               <Link to="/register/athlete" className="text-gray-300 hover:text-white font-bold transition-colors">
-                Join Roster (Athlete)
+                Join as Athlete
               </Link>
             </div>
           </div>

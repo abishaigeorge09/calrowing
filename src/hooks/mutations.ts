@@ -204,7 +204,8 @@ export function useSendMessage() {
 
   return useMutation({
     mutationFn: async (payload: {
-      receiverId: string
+      receiverId?: string | null
+      groupId?: string | null
       content: string
       isUrgent?: boolean
     }) => {
@@ -214,7 +215,8 @@ export function useSendMessage() {
       }
       const { error } = await supabase.from('messages').insert({
         sender_id: user.id,
-        receiver_id: payload.receiverId,
+        receiver_id: payload.receiverId ?? null,
+        group_id: payload.groupId ?? null,
         content: payload.content,
         is_urgent: payload.isUrgent ?? false,
         read_at: null,
@@ -224,7 +226,9 @@ export function useSendMessage() {
 
     onSuccess: (_, vars) => {
       if (!user) return
-      const key = [user.id, vars.receiverId].sort().join('-')
+      const key = vars.groupId 
+        ? `group-${vars.groupId}` 
+        : [user.id, vars.receiverId].sort().join('-')
       queryClient.invalidateQueries({ queryKey: ['messages', key] })
       queryClient.invalidateQueries({ queryKey: ['allConversations', user.id] })
     },
@@ -407,7 +411,7 @@ export function useMarkMessagesRead() {
     onSuccess: () => {
       if (!user) return
       queryClient.invalidateQueries({ queryKey: ['messages'] })
-      queryClient.invalidateQueries({ queryKey: ['unread_count', user.id] })
+      queryClient.invalidateQueries({ queryKey: ['allConversations', user.id] })
     },
   })
 }
@@ -521,23 +525,23 @@ export function useCreateSurvey() {
       }).select().single()
       if (sErr) throw new Error(sErr.message)
 
-      const athleteIds = payload.assign_to === 'team'
-        ? null  // handled by server/trigger
-        : payload.assign_to
-
-      if (athleteIds) {
-        for (const athleteId of athleteIds) {
-          await supabase.from('survey_assignments').insert({
-            survey_id: survey.id,
-            athlete_id: athleteId,
-            team_id: payload.team_id,
-            due_at: payload.due_at ?? null,
-          })
-        }
+      let athleteIds: string[]
+      if (payload.assign_to === 'team') {
+        // Fan out to every athlete on the team
+        const { data: teamProfiles } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('team_id', payload.team_id)
+          .eq('role', 'athlete')
+        athleteIds = (teamProfiles ?? []).map((p: { id: string }) => p.id)
       } else {
+        athleteIds = payload.assign_to
+      }
+
+      for (const athleteId of athleteIds) {
         await supabase.from('survey_assignments').insert({
           survey_id: survey.id,
-          athlete_id: null,
+          athlete_id: athleteId,
           team_id: payload.team_id,
           due_at: payload.due_at ?? null,
         })

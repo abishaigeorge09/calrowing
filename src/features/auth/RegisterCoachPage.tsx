@@ -134,14 +134,14 @@ export default function RegisterCoachPage() {
             <div className="bg-white/10 rounded-full p-5 mb-6 inline-flex border border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.2)]">
               <Check className="h-10 w-10 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-2 tracking-wide uppercase">Array Initialized</h1>
+            <h1 className="text-2xl font-bold text-white mb-2 tracking-wide uppercase">Team Created!</h1>
             <p className="text-gray-400 mb-8 font-light text-sm">
-              Distribute access key to operatives.
+              Share this code with your athletes so they can join your team.
             </p>
 
             <div className="bg-black/60 border border-white/10 rounded-2xl p-6 mb-8 w-full shadow-inner relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[30px] rounded-full" />
-              <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-2">Network Key</p>
+              <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-2">Invite Code</p>
               <p className="text-3xl font-black text-white tracking-widest mb-6 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{inviteCode}</p>
               <Button onClick={copyCode} className="w-full bg-white/10 hover:bg-white/20 text-white border border-white/20 uppercase tracking-widest text-xs font-bold transition-all h-10">
                 {copied ? <><Check className="h-4 w-4 mr-2" /> Copied</> : <><Copy className="h-4 w-4 mr-2" /> Copy to Clipboard</>}
@@ -149,11 +149,11 @@ export default function RegisterCoachPage() {
             </div>
 
             <p className="text-sm font-light text-gray-400 mb-8 border-t border-white/10 pt-6">
-              Array ID: <strong className="text-white uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded">{form.teamName}</strong>
+              Team: <strong className="text-white uppercase tracking-wider bg-white/10 px-2 py-0.5 rounded">{form.teamName}</strong>
             </p>
 
             <Button size="lg" className="w-full bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-sm font-bold shadow-[0_0_20px_rgba(255,255,255,0.2)] h-12" onClick={() => navigate('/coach')}>
-              Access Command Center
+              Go to Dashboard
             </Button>
           </motion.div>
         </div>
@@ -195,21 +195,21 @@ export default function RegisterCoachPage() {
           <div className="bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)]">
             {step === 'account' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Director Authorization</h1>
-                <p className="text-gray-400 text-sm mb-6 font-light text-center">Define command privileges</p>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Create Coach Account</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Set up your coaching profile</p>
                 <form onSubmit={handleAccountNext} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Commander Designation</Label>
+                    <Label className={darkLabelClasses}>Your Name</Label>
                     <Input placeholder="Coach Mike Teti" value={form.name} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Secure Link (Email)</Label>
+                    <Label className={darkLabelClasses}>Email</Label>
                     <Input type="email" placeholder="coach@berkeley.edu" value={form.email} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, email: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Encryption Cipher (Password)</Label>
+                    <Label className={darkLabelClasses}>Password</Label>
                     <Input type="password" placeholder="Min 8 characters" value={form.password} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, password: e.target.value })} minLength={8} required />
                   </div>
@@ -222,16 +222,16 @@ export default function RegisterCoachPage() {
 
             {step === 'team' && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Initialize Array</h1>
-                <p className="text-gray-400 text-sm mb-6 font-light text-center">Configure team parameters</p>
+                <h1 className="text-2xl font-bold text-white mb-2 tracking-wide text-center">Set Up Your Team</h1>
+                <p className="text-gray-400 text-sm mb-6 font-light text-center">Tell us about your team</p>
                 <form onSubmit={handleTeamSubmit} className="space-y-4">
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Array Identifier (Team Name)</Label>
+                    <Label className={darkLabelClasses}>Team Name</Label>
                     <Input placeholder="UC Berkeley Men's Rowing" value={form.teamName} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, teamName: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className={darkLabelClasses}>Division Parameter</Label>
+                    <Label className={darkLabelClasses}>Division</Label>
                     <Select value={form.division} onValueChange={(v) => setForm({ ...form, division: v })}>
                       <SelectTrigger className={darkInputClasses}><SelectValue placeholder="Select class" /></SelectTrigger>
                       <SelectContent className="bg-black/90 border-white/20 text-white backdrop-blur-xl">
@@ -243,12 +243,12 @@ export default function RegisterCoachPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <Label className={darkLabelClasses}>Cycle T-Zero (Start)</Label>
+                      <Label className={darkLabelClasses}>Season Start</Label>
                       <Input type="date" value={form.seasonStart} className={darkInputClasses} style={{ colorScheme: 'dark' }}
                         onChange={(e) => setForm({ ...form, seasonStart: e.target.value })} />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className={darkLabelClasses}>Cycle T-End (End)</Label>
+                      <Label className={darkLabelClasses}>Season End</Label>
                       <Input type="date" value={form.seasonEnd} className={darkInputClasses} style={{ colorScheme: 'dark' }}
                         onChange={(e) => setForm({ ...form, seasonEnd: e.target.value })} />
                     </div>
@@ -262,10 +262,10 @@ export default function RegisterCoachPage() {
 
                   <div className="flex gap-3 pt-4">
                     <Button type="button" variant="outline" className="flex-1 bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white uppercase tracking-widest text-xs h-12" onClick={() => setStep('account')}>
-                      Abort
+                      Back
                     </Button>
                     <Button type="submit" className="flex-1 bg-white text-black hover:bg-gray-200 uppercase tracking-widest text-xs font-bold h-12 shadow-[0_0_15px_rgba(255,255,255,0.2)]" disabled={loading}>
-                      {loading ? 'Compiling…' : 'Generate Array'}
+                      {loading ? 'Creating…' : 'Create Team'}
                     </Button>
                   </div>
                 </form>
@@ -273,8 +273,8 @@ export default function RegisterCoachPage() {
             )}
 
             <p className="text-center text-[10px] uppercase font-bold tracking-widest text-gray-500 mt-8 border-t border-white/10 pt-6">
-              Existing Director?{' '}
-              <Link to="/login" className="text-white hover:text-gray-300 transition-colors shadow-[0_0_5px_rgba(255,255,255,0.8)]">Establish Link</Link>
+              Already have an account?{' '}
+              <Link to="/login" className="text-white hover:text-gray-300 transition-colors shadow-[0_0_5px_rgba(255,255,255,0.8)]">Sign In</Link>
             </p>
           </div>
         </div>

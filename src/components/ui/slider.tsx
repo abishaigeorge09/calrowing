@@ -59,10 +59,10 @@ export function TapRating({ min = 1, max = 5, value, onChange, labels, className
           type="button"
           onClick={() => onChange(n)}
           className={cn(
-            'flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-all',
+            'flex-1 py-2.5 rounded-xl text-[10px] font-black tracking-widest uppercase transition-all border',
             value === n
-              ? colorClass || 'bg-[#1e3a5f] text-white border-[#1e3a5f]'
-              : 'bg-white text-slate-600 border-slate-200 hover:border-[#1e3a5f]'
+              ? colorClass || 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.4)]'
+              : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30 hover:bg-white/10'
           )}
         >
           {labels ? labels[n - min] : n}

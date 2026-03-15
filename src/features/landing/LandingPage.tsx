@@ -110,7 +110,7 @@ export default function LandingPage() {
             >
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md mb-8">
                 <span className="flex h-2 w-2 rounded-full bg-blue-400 animate-pulse"></span>
-                <span className="text-xs font-semibold tracking-widest text-gray-300 uppercase">System Online</span>
+                <span className="text-xs font-semibold tracking-widest text-gray-300 uppercase">Live Everywhere</span>
               </div>
               
               <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 bg-gradient-to-br from-white via-gray-300 to-gray-600 bg-clip-text text-transparent">
@@ -126,7 +126,7 @@ export default function LandingPage() {
                 className="group relative px-8 py-4 bg-white text-black font-bold uppercase tracking-widest text-sm rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] duration-300"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Initialize Protocol <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  Get Started <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-gray-200 to-white opacity-0 group-hover:opacity-100 transition-opacity"></div>
               </button>
@@ -137,9 +137,9 @@ export default function LandingPage() {
           <section className="px-6 py-12 border-y border-white/5 bg-black/40 backdrop-blur-md z-10 relative">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {[
-                { icon: <TrendingUp className="h-6 w-6" />, label: 'Algorithmic Tracking' },
-                { icon: <Users className="h-6 w-6" />, label: 'Synchronized Rosters' },
-                { icon: <Zap className="h-6 w-6" />, label: 'Real-time Telemetry' },
+                { icon: <TrendingUp className="h-6 w-6" />, label: 'Advanced Tracking' },
+                { icon: <Users className="h-6 w-6" />, label: 'Team Rosters' },
+                { icon: <Zap className="h-6 w-6" />, label: 'Real-time Stats' },
               ].map(({ icon, label }, i) => (
                 <motion.div 
                   key={label}
@@ -167,7 +167,7 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 className="text-center mb-20"
               >
-                <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-3">Core Modules</p>
+                <p className="text-xs font-bold tracking-widest text-white/50 uppercase mb-3">Core Features</p>
                 <h2 className="text-4xl md:text-5xl font-black tracking-tighter mb-6 bg-gradient-to-r from-white to-gray-500 bg-clip-text text-transparent">Everything You Need</h2>
               </motion.div>
 
@@ -175,7 +175,7 @@ export default function LandingPage() {
                 {[
                   {
                     icon: <CalendarDays className="h-6 w-6 text-white" />,
-                    title: 'Quantum Scheduling',
+                    title: 'Smart Scheduling',
                     desc: 'Precision training calendars for athletes. Synchronize erg, water, and recovery effortlessly across your entire roster.',
                   },
                   {
@@ -214,9 +214,9 @@ export default function LandingPage() {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-white/5 blur-[120px] rounded-full pointer-events-none"></div>
             <div className="max-w-4xl mx-auto text-center relative z-10 p-12 md:p-20 rounded-[3rem] border border-white/10 bg-black/60 backdrop-blur-2xl">
               <Hexagon className="h-16 w-16 text-white mx-auto mb-8 opacity-80" strokeWidth={1} />
-              <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter">Ready to Launch?</h2>
+              <h2 className="text-4xl md:text-6xl font-black mb-6 tracking-tighter">Ready to Win?</h2>
               <p className="text-gray-400 text-lg md:text-xl mb-10 max-w-xl mx-auto font-light leading-relaxed">
-                Join the exclusive early access tier to redefine your team's tactical advantage and dominate the competition.
+                Join the exclusive early access tier to give your team a tactical advantage and dominate the competition.
               </p>
               <button
                 onClick={() => navigate('/early-access')}
@@ -234,7 +234,7 @@ export default function LandingPage() {
               <span className="font-bold tracking-widest uppercase text-gray-400">RowIQ © {new Date().getFullYear()}</span>
             </div>
             <div className="flex justify-center gap-8 mb-6 uppercase tracking-widest font-semibold text-[10px]">
-              <button onClick={() => navigate('/login')} className="hover:text-white transition-colors">Airlock (Sign In)</button>
+              <button onClick={() => navigate('/login')} className="hover:text-white transition-colors">Sign In</button>
               <button onClick={() => navigate('/early-access')} className="hover:text-white transition-colors">Early Access</button>
             </div>
             <p className="font-light tracking-wide">Engineered for the future of rowing.</p>

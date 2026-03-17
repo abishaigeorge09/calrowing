@@ -17,6 +17,22 @@ function timeToMinutes(t: string): number {
   return h * 60 + m
 }
 
+// Generate time options in 15-min increments from 05:00 to 22:00
+const TIME_OPTIONS: { value: string; label: string }[] = (() => {
+  const opts = []
+  for (let h = 5; h <= 22; h++) {
+    for (const m of [0, 15, 30, 45]) {
+      if (h === 22 && m > 0) break
+      const value = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+      const hour12 = h % 12 === 0 ? 12 : h % 12
+      const ampm = h < 12 ? 'AM' : 'PM'
+      const label = `${hour12}:${String(m).padStart(2, '0')} ${ampm}`
+      opts.push({ value, label })
+    }
+  }
+  return opts
+})()
+
 function detectMediaType(url: string): 'image' | 'video' | 'link' {
   if (/\.(jpg|jpeg|png|gif|webp|svg)(\?|$)/i.test(url)) return 'image'
   if (/youtube\.com|youtu\.be|vimeo\.com/i.test(url)) return 'video'
@@ -295,13 +311,25 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5 flex flex-col">
                     <Label className={darkLabelClasses}>Start Time</Label>
-                    <Input type="time" value={form.start_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
-                      onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
+                    <Select value={form.start_time} onValueChange={(v) => setForm({ ...form, start_time: v })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl max-h-52">
+                        {TIME_OPTIONS.map(o => (
+                          <SelectItem key={o.value} value={o.value} className="focus:bg-white/10 focus:text-white text-xs font-bold">{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-1.5 flex flex-col">
                     <Label className={darkLabelClasses}>End Time</Label>
-                    <Input type="time" value={form.end_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
-                      onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
+                    <Select value={form.end_time} onValueChange={(v) => setForm({ ...form, end_time: v })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl max-h-52">
+                        {TIME_OPTIONS.map(o => (
+                          <SelectItem key={o.value} value={o.value} className="focus:bg-white/10 focus:text-white text-xs font-bold">{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 {form.start_time && form.end_time && (

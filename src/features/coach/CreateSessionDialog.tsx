@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Check, Hexagon, Plus, X } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Check, ChevronLeft, ChevronRight, Hexagon, Plus, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,8 +23,105 @@ function detectMediaType(url: string): 'image' | 'video' | 'link' {
   return 'link'
 }
 
+function toDateStr(y: number, m: number, d: number): string {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+}
+
+const WEEKDAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+interface MiniCalendarProps {
+  selected: Set<string>
+  onToggle: (date: string) => void
+}
+
+function MiniCalendar({ selected, onToggle }: MiniCalendarProps) {
+  const today = localDateStr()
+  const todayDate = new Date(today + 'T00:00:00')
+  const [viewYear, setViewYear] = useState(todayDate.getFullYear())
+  const [viewMonth, setViewMonth] = useState(todayDate.getMonth())
+
+  const days = useMemo(() => {
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay()
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+    const cells: (number | null)[] = Array(firstDay).fill(null)
+    for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+    return cells
+  }, [viewYear, viewMonth])
+
+  const prev = () => {
+    if (viewMonth === 0) { setViewMonth(11); setViewYear(y => y - 1) }
+    else setViewMonth(m => m - 1)
+  }
+  const next = () => {
+    if (viewMonth === 11) { setViewMonth(0); setViewYear(y => y + 1) }
+    else setViewMonth(m => m + 1)
+  }
+
+  return (
+    <div className="space-y-2">
+      {/* Month nav */}
+      <div className="flex items-center justify-between px-1">
+        <button type="button" onClick={prev}
+          className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <span className="text-xs font-bold uppercase tracking-widest text-gray-200">
+          {MONTHS[viewMonth]} {viewYear}
+        </span>
+        <button type="button" onClick={next}
+          className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Weekday headers */}
+      <div className="grid grid-cols-7 gap-0.5">
+        {WEEKDAYS.map(d => (
+          <div key={d} className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-600 py-0.5">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7 gap-0.5">
+        {days.map((d, i) => {
+          if (!d) return <div key={i} />
+          const dateStr = toDateStr(viewYear, viewMonth, d)
+          const isSelected = selected.has(dateStr)
+          const isToday = dateStr === today
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => onToggle(dateStr)}
+              className={cn(
+                'h-8 w-full rounded-lg text-xs font-bold transition-all',
+                isSelected
+                  ? 'bg-white text-black shadow-[0_0_10px_rgba(255,255,255,0.3)]'
+                  : isToday
+                  ? 'bg-white/10 text-white border border-white/20'
+                  : 'text-gray-400 hover:bg-white/10 hover:text-white'
+              )}
+            >
+              {d}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Selection count badge */}
+      {selected.size > 0 && (
+        <p className="text-[10px] text-gray-400 text-center pt-1">
+          {selected.size} day{selected.size > 1 ? 's' : ''} selected
+        </p>
+      )}
+    </div>
+  )
+}
+
 const defaultForm = {
-  date: localDateStr(),
   type: 'Erg' as SessionType,
   start_time: '09:00',
   end_time: '10:30',
@@ -50,6 +147,16 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([])
   const [linkUrl, setLinkUrl] = useState('')
   const [linkTitle, setLinkTitle] = useState('')
+  const [selectedDates, setSelectedDates] = useState<Set<string>>(new Set())
+
+  const toggleDate = (date: string) => {
+    setSelectedDates(prev => {
+      const next = new Set(prev)
+      if (next.has(date)) next.delete(date)
+      else next.add(date)
+      return next
+    })
+  }
 
   const addLink = () => {
     if (!linkUrl.trim()) return
@@ -67,38 +174,49 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault()
     setSubmitError('')
+
+    if (selectedDates.size === 0) {
+      setSubmitError('Please select at least one date.')
+      return
+    }
     if (!user?.team_id) {
       setSubmitError('Your account is not linked to a team yet. Please contact support.')
       return
     }
 
     const duration = timeToMinutes(form.end_time) - timeToMinutes(form.start_time)
+    const dates = Array.from(selectedDates).sort()
+
     try {
-      await createSession.mutateAsync({
-        team_id: user.team_id,
-        date: form.date,
-        type: form.type,
-        duration: Math.max(duration, 0),
-        start_time: form.start_time,
-        end_time: form.end_time,
-        intensity: form.intensity,
-        warmup: form.warmup || undefined,
-        main_set: form.main_set,
-        cooldown: form.cooldown || undefined,
-        target_split: form.target_split || undefined,
-        stroke_rate: form.stroke_rate || undefined,
-        hr_zone: form.hr_zone || undefined,
-        assigned_to: form.assigned_to,
-        coach_notes: form.coach_notes || undefined,
-        is_notes_public: form.is_notes_public,
-        media_urls: mediaItems,
-      })
+      // Create one session per selected date (in parallel)
+      await Promise.all(dates.map(date =>
+        createSession.mutateAsync({
+          team_id: user.team_id!,
+          date,
+          type: form.type,
+          duration: Math.max(duration, 0),
+          start_time: form.start_time,
+          end_time: form.end_time,
+          intensity: form.intensity,
+          warmup: form.warmup || undefined,
+          main_set: form.main_set,
+          cooldown: form.cooldown || undefined,
+          target_split: form.target_split || undefined,
+          stroke_rate: form.stroke_rate || undefined,
+          hr_zone: form.hr_zone || undefined,
+          assigned_to: form.assigned_to,
+          coach_notes: form.coach_notes || undefined,
+          is_notes_public: form.is_notes_public,
+          media_urls: mediaItems,
+        })
+      ))
 
       setSaved(true)
       setTimeout(() => {
         setSaved(false)
         setForm(defaultForm)
         setMediaItems([])
+        setSelectedDates(new Set())
         setStep(0)
         onClose()
       }, 1200)
@@ -139,160 +257,162 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
           <div className="flex-1 space-y-5">
             {step === 0 && (
               <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {/* Multi-day calendar */}
+                <div className="space-y-2">
+                  <Label className={darkLabelClasses}>Select Date(s) — tap to toggle</Label>
+                  <div className="bg-black/40 border border-white/10 rounded-2xl p-4">
+                    <MiniCalendar selected={selectedDates} onToggle={toggleDate} />
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5 flex flex-col">
-              <Label className={darkLabelClasses}>Date Parameter</Label>
-              <Input type="date" value={form.date} className={darkInputClasses} style={{ colorScheme: 'dark' }}
-                onChange={(e) => setForm({ ...form, date: e.target.value })} required />
-            </div>
+                  <div className="space-y-1.5 flex flex-col">
+                    <Label className={darkLabelClasses}>Session Type</Label>
+                    <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as SessionType })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
+                        {(['Erg', 'Water', 'Weights', 'Cross Training', 'Rest'] as SessionType[]).map(t => (
+                          <SelectItem key={t} value={t} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{t}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-            <div className="space-y-1.5 flex flex-col">
-              <Label className={darkLabelClasses}>Session Type</Label>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as SessionType })}>
-                <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
-                  {(['Erg', 'Water', 'Weights', 'Cross Training', 'Rest'] as SessionType[]).map(t => (
-                    <SelectItem key={t} value={t} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                  <div className="space-y-1.5 flex flex-col">
+                    <Label className={darkLabelClasses}>Intensity Level</Label>
+                    <Select value={form.intensity} onValueChange={(v) => setForm({ ...form, intensity: v as Intensity })}>
+                      <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
+                        {(['Low', 'Moderate', 'High', 'Race Pace'] as Intensity[]).map(i => (
+                          <SelectItem key={i} value={i} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{i}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-          {/* Start / End Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5 flex flex-col">
-              <Label className={darkLabelClasses}>Start Time</Label>
-              <Input type="time" value={form.start_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
-                onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
-            </div>
-            <div className="space-y-1.5 flex flex-col">
-              <Label className={darkLabelClasses}>End Time</Label>
-              <Input type="time" value={form.end_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
-                onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
-            </div>
-          </div>
-          {form.start_time && form.end_time && (
-            <p className="text-[10px] text-gray-500 -mt-3 px-1">
-              Duration: {Math.max(timeToMinutes(form.end_time) - timeToMinutes(form.start_time), 0)} min
-            </p>
-          )}
-
-          <div className="space-y-1.5 flex flex-col">
-            <Label className={darkLabelClasses}>Intensity Level</Label>
-            <Select value={form.intensity} onValueChange={(v) => setForm({ ...form, intensity: v as Intensity })}>
-              <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
-              <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
-                {(['Low', 'Moderate', 'High', 'Race Pace'] as Intensity[]).map(i => (
-                  <SelectItem key={i} value={i} className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">{i}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          </div>
-          )}
-
-          {step === 1 && (
-            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="space-y-1.5">
-                <Label className={darkLabelClasses}>Warmup</Label>
-                <Input placeholder="Define warmup..." value={form.warmup} className={darkInputClasses}
-                  onChange={(e) => setForm({ ...form, warmup: e.target.value })} />
+                {/* Start / End Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5 flex flex-col">
+                    <Label className={darkLabelClasses}>Start Time</Label>
+                    <Input type="time" value={form.start_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
+                      onChange={(e) => setForm({ ...form, start_time: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5 flex flex-col">
+                    <Label className={darkLabelClasses}>End Time</Label>
+                    <Input type="time" value={form.end_time} className={darkInputClasses} style={{ colorScheme: 'dark' }}
+                      onChange={(e) => setForm({ ...form, end_time: e.target.value })} />
+                  </div>
+                </div>
+                {form.start_time && form.end_time && (
+                  <p className="text-[10px] text-gray-500 -mt-3 px-1">
+                    Duration: {Math.max(timeToMinutes(form.end_time) - timeToMinutes(form.start_time), 0)} min
+                  </p>
+                )}
               </div>
+            )}
 
-              <div className="space-y-1.5">
-                <Label className={darkLabelClasses}>Workout Details (Main Set) *</Label>
-            <textarea
-              className="w-full bg-black/50 border border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm resize-none transition-colors shadow-inner min-h-[100px]"
-              placeholder="e.g. 4x2000m @ 2:05/500m, r20..."
-              value={form.main_set}
-              onChange={(e) => setForm({ ...form, main_set: e.target.value })}
-              required
-            />
-          </div>
+            {step === 1 && (
+              <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="space-y-1.5">
+                  <Label className={darkLabelClasses}>Warmup</Label>
+                  <Input placeholder="Define warmup..." value={form.warmup} className={darkInputClasses}
+                    onChange={(e) => setForm({ ...form, warmup: e.target.value })} />
+                </div>
 
-              <div className="space-y-1.5">
-                <Label className={darkLabelClasses}>Cooldown</Label>
-                <Input placeholder="Cooldown instructions..." value={form.cooldown} className={darkInputClasses}
-                  onChange={(e) => setForm({ ...form, cooldown: e.target.value })} />
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
-              <div className="grid grid-cols-3 gap-3">
-            <div className="space-y-1.5 flex flex-col">
-              <Label className={cn(darkLabelClasses, 'truncate')} title="Target Split">Split</Label>
-              <Input placeholder="2:02" value={form.target_split} className={darkInputClasses}
-                onChange={(e) => setForm({ ...form, target_split: e.target.value })} />
-            </div>
-            <div className="space-y-1.5 flex flex-col">
-              <Label className={cn(darkLabelClasses, 'truncate')} title="Stroke Rate">Rate</Label>
-              <Input type="number" placeholder="20" value={form.stroke_rate} className={darkInputClasses}
-                onChange={(e) => setForm({ ...form, stroke_rate: e.target.value })} />
-            </div>
-            <div className="space-y-1.5 flex flex-col">
-              <Label className={cn(darkLabelClasses, 'truncate')} title="HR Zone">HR</Label>
-              <Input placeholder="Z4" value={form.hr_zone} className={darkInputClasses}
-                onChange={(e) => setForm({ ...form, hr_zone: e.target.value })} />
-            </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label className={darkLabelClasses}>Assign To</Label>
-            <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
-              <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
-                    <SelectItem value="whole_team" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Base Array (All)</SelectItem>
-                <SelectItem value="Varsity 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Varsity 8</SelectItem>
-                <SelectItem value="JV 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">JV 8</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-              <div className="space-y-1.5">
-                <Label className={darkLabelClasses}>Coach Notes</Label>
-                <Input placeholder="Secret params..." value={form.coach_notes} className={darkInputClasses}
-                  onChange={(e) => setForm({ ...form, coach_notes: e.target.value })} />
-                <div className="flex items-center gap-2 mt-2 px-1">
-                  <input type="checkbox" id="notes-public" checked={form.is_notes_public}
-                    onChange={(e) => setForm({ ...form, is_notes_public: e.target.checked })}
-                    className="w-4 h-4 rounded border-gray-300 text-white focus:ring-slate-500 accent-white/20 bg-black/50"
+                <div className="space-y-1.5">
+                  <Label className={darkLabelClasses}>Workout Details (Main Set) *</Label>
+                  <textarea
+                    className="w-full bg-black/50 border border-white/10 focus:border-white text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm resize-none transition-colors shadow-inner min-h-[100px]"
+                    placeholder="e.g. 4x2000m @ 2:05/500m, r20..."
+                    value={form.main_set}
+                    onChange={(e) => setForm({ ...form, main_set: e.target.value })}
+                    required
                   />
-                  <label htmlFor="notes-public" className="text-[10px] uppercase font-bold tracking-widest text-gray-500 cursor-pointer">Visible to Athletes</label>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={darkLabelClasses}>Cooldown</Label>
+                  <Input placeholder="Cooldown instructions..." value={form.cooldown} className={darkInputClasses}
+                    onChange={(e) => setForm({ ...form, cooldown: e.target.value })} />
                 </div>
               </div>
+            )}
 
-              <div className="space-y-2 pt-1 pb-2 border-t border-white/5">
-                <Label className={darkLabelClasses}>Resource Links (Optional)</Label>
-            <div className="flex gap-2">
-              <Input placeholder="Paste URL (YouTube, image, article...)" value={linkUrl} className={cn(darkInputClasses, 'flex-1 text-xs')}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLink())} />
-              <Input placeholder="Title" value={linkTitle} className={cn(darkInputClasses, 'w-28 text-xs')}
-                onChange={(e) => setLinkTitle(e.target.value)} />
-              <Button type="button" onClick={addLink}
-                className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-11 px-3 border border-white/10">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            {mediaItems.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-1">
-                {mediaItems.map((m, i) => (
-                    <div key={i} className="flex items-center gap-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-xs">
-                      <span>{m.type === 'video' ? '▶' : m.type === 'image' ? '🖼' : '🔗'}</span>
-                      <span className="max-w-[120px] truncate text-gray-300">{m.title || m.url}</span>
-                      <button type="button" onClick={() => removeMedia(i)} className="text-gray-500 hover:text-white ml-1">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
+            {step === 2 && (
+              <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1.5 flex flex-col">
+                    <Label className={cn(darkLabelClasses, 'truncate')} title="Target Split">Split</Label>
+                    <Input placeholder="2:02" value={form.target_split} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, target_split: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5 flex flex-col">
+                    <Label className={cn(darkLabelClasses, 'truncate')} title="Stroke Rate">Rate</Label>
+                    <Input type="number" placeholder="20" value={form.stroke_rate} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, stroke_rate: e.target.value })} />
+                  </div>
+                  <div className="space-y-1.5 flex flex-col">
+                    <Label className={cn(darkLabelClasses, 'truncate')} title="HR Zone">HR</Label>
+                    <Input placeholder="Z4" value={form.hr_zone} className={darkInputClasses}
+                      onChange={(e) => setForm({ ...form, hr_zone: e.target.value })} />
+                  </div>
                 </div>
-              )}
-            </div>
-            </div>
-          )}
+
+                <div className="space-y-1.5">
+                  <Label className={darkLabelClasses}>Assign To</Label>
+                  <Select value={form.assigned_to} onValueChange={(v) => setForm({ ...form, assigned_to: v })}>
+                    <SelectTrigger className={darkInputClasses}><SelectValue /></SelectTrigger>
+                    <SelectContent className="bg-black/95 border-white/20 text-white backdrop-blur-xl">
+                      <SelectItem value="whole_team" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Base Array (All)</SelectItem>
+                      <SelectItem value="Varsity 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">Varsity 8</SelectItem>
+                      <SelectItem value="JV 8" className="focus:bg-white/10 focus:text-white uppercase tracking-widest text-xs font-bold">JV 8</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={darkLabelClasses}>Coach Notes</Label>
+                  <Input placeholder="Secret params..." value={form.coach_notes} className={darkInputClasses}
+                    onChange={(e) => setForm({ ...form, coach_notes: e.target.value })} />
+                  <div className="flex items-center gap-2 mt-2 px-1">
+                    <input type="checkbox" id="notes-public" checked={form.is_notes_public}
+                      onChange={(e) => setForm({ ...form, is_notes_public: e.target.checked })}
+                      className="w-4 h-4 rounded border-gray-300 text-white focus:ring-slate-500 accent-white/20 bg-black/50"
+                    />
+                    <label htmlFor="notes-public" className="text-[10px] uppercase font-bold tracking-widest text-gray-500 cursor-pointer">Visible to Athletes</label>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-1 pb-2 border-t border-white/5">
+                  <Label className={darkLabelClasses}>Resource Links (Optional)</Label>
+                  <div className="flex gap-2">
+                    <Input placeholder="Paste URL (YouTube, image, article...)" value={linkUrl} className={cn(darkInputClasses, 'flex-1 text-xs')}
+                      onChange={(e) => setLinkUrl(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addLink())} />
+                    <Input placeholder="Title" value={linkTitle} className={cn(darkInputClasses, 'w-28 text-xs')}
+                      onChange={(e) => setLinkTitle(e.target.value)} />
+                    <Button type="button" onClick={addLink}
+                      className="bg-white/10 hover:bg-white/20 text-white rounded-xl h-11 px-3 border border-white/10">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  {mediaItems.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {mediaItems.map((m, i) => (
+                        <div key={i} className="flex items-center gap-1 bg-white/10 border border-white/10 rounded-lg px-2 py-1 text-xs">
+                          <span>{m.type === 'video' ? '▶' : m.type === 'image' ? '🖼' : '🔗'}</span>
+                          <span className="max-w-[120px] truncate text-gray-300">{m.title || m.url}</span>
+                          <button type="button" onClick={() => removeMedia(i)} className="text-gray-500 hover:text-white ml-1">
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {submitError && (
@@ -300,6 +420,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
               {submitError}
             </div>
           )}
+
           <DialogFooter className="pt-4 border-t border-white/5 mt-auto flex flex-row gap-3 sm:justify-between w-full">
             {step > 0 ? (
               <Button type="button" variant="outline" onClick={() => setStep(step - 1)}
@@ -320,7 +441,7 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
             {step < 2 ? (
               <Button type="button" onClick={() => setStep(step + 1)}
                 className="bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.2)] uppercase tracking-widest text-xs font-bold rounded-xl h-11 flex-1 sm:flex-none sm:w-2/3 transition-all"
-                disabled={!form.date || !form.type}>
+                disabled={selectedDates.size === 0 || !form.type}>
                 Next Step
               </Button>
             ) : (
@@ -330,7 +451,9 @@ export default function CreateSessionDialog({ open, onClose }: Props) {
                 disabled={createSession.isPending || saved}>
                 {saved
                   ? <><Check className="h-4 w-4 mr-2" /> Created!</>
-                  : createSession.isPending ? 'Saving…' : 'Create Session'}
+                  : createSession.isPending
+                  ? `Saving ${selectedDates.size > 1 ? `${selectedDates.size} sessions` : 'session'}…`
+                  : `Create ${selectedDates.size > 1 ? `${selectedDates.size} Sessions` : 'Session'}`}
               </Button>
             )}
           </DialogFooter>

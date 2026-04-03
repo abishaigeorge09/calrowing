@@ -163,3 +163,4 @@ supabase/
 - **Path aliases**: `@/` maps to `src/`
 - **PWA**: Service worker pre-caches all assets; Supabase API calls use NetworkFirst strategy
 - **RLS**: All tables have Row Level Security — athletes only see their own data; coaches see all team data
+by78uby7un

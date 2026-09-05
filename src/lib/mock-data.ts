@@ -3,10 +3,10 @@ import { localDateStr } from '@/lib/utils'
 
 export const MOCK_TEAM: Team = {
   id: 'team-cal-2026',
-  name: "UC Berkeley Men's Rowing",
+  name: "Demo Rowing Club",
   invite_code: 'CAL-ROW-2026',
   sport: 'Rowing',
-  division: 'NCAA D1',
+  division: 'Demo',
   season_start: '2026-01-15',
   season_end: '2026-06-01',
   coach_id: 'coach-1',
@@ -16,7 +16,7 @@ export const MOCK_TEAM: Team = {
 export const MOCK_COACH: Profile = {
   id: 'coach-1',
   email: 'coach@rowiq.demo',
-  name: 'Mike Teti',
+  name: 'Coach Demo',
   role: 'coach',
   status: 'active',
   team_id: 'team-cal-2026',

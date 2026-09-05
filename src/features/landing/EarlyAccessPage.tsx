@@ -184,7 +184,7 @@ export default function EarlyAccessPage() {
                     <input
                       id="school"
                       type="text"
-                      placeholder="e.g. UC Berkeley, Penn Rowing…"
+                      placeholder="e.g. Riverside Rowing Club…"
                       value={form.school_or_team}
                       onChange={set('school_or_team')}
                       className="w-full bg-black/40 border border-white/10 focus:border-white/40 focus:bg-white/5 text-white placeholder:text-gray-600 rounded-xl px-4 py-3 text-sm transition-all outline-none"

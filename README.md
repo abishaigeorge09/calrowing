@@ -1,6 +1,12 @@
-# RowIQ — Train Smarter
+# CalRowing — Train Smarter
 
-A PWA for rowing coaches and athletes to manage training, wellness, and team communication.
+A PWA for rowing coaches and athletes to manage training, wellness, and team communication —
+rosters, check-ins, session planning, and coach↔athlete messaging in one app.
+
+**How this differs from [rowIQ](https://github.com/abishaigeorge09/rowIQ):** rowIQ is a set of
+erg-performance dashboard prototypes (visualizing individual splits/trends). CalRowing is the
+full team-operations app — training plans, daily wellness check-ins, roster management, and
+messaging for a whole squad. Different scope, same sport.
 
 ## Demo Accounts
 
@@ -8,7 +14,7 @@ All passwords: `Demo1234!`
 
 | Role | Email | Notes |
 |------|-------|-------|
-| Coach | `coach@rowiq.demo` | Mike Teti — UC Berkeley Men's Rowing |
+| Coach | `coach@rowiq.demo` | Demo coach account for a fictional team |
 | Athlete | `alex@rowiq.demo` | Alex Chen — soreness streak alert |
 | Athlete | `jordan@rowiq.demo` | Jordan Rivera — low sleep alert |
 | Athlete | `sam@rowiq.demo` | Sam Park — exam week flag |

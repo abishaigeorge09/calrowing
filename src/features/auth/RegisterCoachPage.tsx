@@ -207,12 +207,12 @@ export default function RegisterCoachPage() {
                 <form onSubmit={handleAccountNext} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label className={darkLabelClasses}>Your Name</Label>
-                    <Input placeholder="Coach Mike Teti" value={form.name} className={darkInputClasses}
+                    <Input placeholder="Coach Jane Doe" value={form.name} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">
                     <Label className={darkLabelClasses}>Email</Label>
-                    <Input type="email" placeholder="coach@berkeley.edu" value={form.email} className={darkInputClasses}
+                    <Input type="email" placeholder="coach@example.edu" value={form.email} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, email: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">
@@ -234,7 +234,7 @@ export default function RegisterCoachPage() {
                 <form onSubmit={handleTeamSubmit} className="space-y-4">
                   <div className="space-y-1.5">
                     <Label className={darkLabelClasses}>Team Name</Label>
-                    <Input placeholder="UC Berkeley Men's Rowing" value={form.teamName} className={darkInputClasses}
+                    <Input placeholder="Riverside Rowing Club" value={form.teamName} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, teamName: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">

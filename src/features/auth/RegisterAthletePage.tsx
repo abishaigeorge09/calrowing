@@ -233,7 +233,7 @@ export default function RegisterAthletePage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className={darkLabelClasses}>Email</Label>
-                    <Input type="email" placeholder="alex@berkeley.edu" value={form.email} className={darkInputClasses}
+                    <Input type="email" placeholder="alex@example.edu" value={form.email} className={darkInputClasses}
                       onChange={(e) => setForm({ ...form, email: e.target.value })} required />
                   </div>
                   <div className="space-y-1.5">

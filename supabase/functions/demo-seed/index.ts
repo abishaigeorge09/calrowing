@@ -25,7 +25,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
 // ── Demo Account Definitions ──────────────────────────────────────────────────
 
 const DEMO_USERS = [
-  { email: 'coach@rowiq.demo',  name: 'Mike Teti',      role: 'coach'   },
+  { email: 'coach@rowiq.demo',  name: 'Coach Demo',     role: 'coach'   },
   { email: 'alex@rowiq.demo',   name: 'Alex Chen',      role: 'athlete' },
   { email: 'jordan@rowiq.demo', name: 'Jordan Rivera',  role: 'athlete' },
   { email: 'sam@rowiq.demo',    name: 'Sam Park',       role: 'athlete' },
@@ -150,10 +150,10 @@ Deno.serve(async (req: Request) => {
       const { data: newTeam, error: teamErr } = await supabase
         .from('teams')
         .insert({
-          name: "UC Berkeley Men's Rowing",
+          name: "Demo Rowing Club",
           invite_code: 'CAL-ROW-2026',
           sport: 'Rowing',
-          division: 'NCAA D1',
+          division: 'Demo',
           season_start: '2025-09-01',
           season_end: '2026-06-01',
           coach_id: coachId,

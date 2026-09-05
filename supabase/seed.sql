@@ -2,7 +2,7 @@
 -- Run AFTER: 001_initial_schema.sql AND after all 9 demo users are created in Auth
 --
 -- Demo Credentials (password: Demo1234! for all)
---   coach@rowiq.demo   → Mike Teti (Head Coach)
+--   coach@rowiq.demo   → Coach Demo (Head Coach)
 --   alex@rowiq.demo    → Alex Chen (soreness streak alert)
 --   jordan@rowiq.demo  → Jordan Rivera (low sleep alert)
 --   sam@rowiq.demo     → Sam Park (exam week)
@@ -38,7 +38,7 @@ begin
 -- ============================================================
 insert into teams (name, invite_code, sport, division, season_start, season_end, coach_id)
 values (
-  'UC Berkeley Men''s Rowing',
+  'Demo Rowing Club',
   'CAL-ROW-2026',
   'Rowing',
   'NCAA D1',
@@ -56,7 +56,7 @@ end if;
 -- ============================================================
 -- PROFILES (trigger created them; update names, roles, team)
 -- ============================================================
-update profiles set role = 'coach',   name = 'Mike Teti',     team_id = v_team_id where id = coach_id;
+update profiles set role = 'coach',   name = 'Coach Demo',     team_id = v_team_id where id = coach_id;
 update profiles set role = 'athlete', name = 'Alex Chen',     team_id = v_team_id where id = alex_id;
 update profiles set role = 'athlete', name = 'Jordan Rivera', team_id = v_team_id where id = jordan_id;
 update profiles set role = 'athlete', name = 'Sam Park',      team_id = v_team_id where id = sam_id;

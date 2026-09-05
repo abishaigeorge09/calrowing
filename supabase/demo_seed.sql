@@ -2,7 +2,7 @@
 -- Creates all demo auth users + full team data in one shot
 --
 -- Demo Credentials (password: Demo1234! for all)
---   coach@rowiq.demo   → Mike Teti (Head Coach)
+--   coach@rowiq.demo   → Coach Demo (Head Coach)
 --   alex@rowiq.demo    → Alex Chen
 --   jordan@rowiq.demo  → Jordan Rivera
 --   sam@rowiq.demo     → Sam Park
@@ -74,7 +74,7 @@ on conflict (provider, provider_id) do nothing;
 -- Ensure profiles exist (trigger may not fire for direct inserts)
 insert into profiles (id, role, name, email, status)
 values
-  (coach_id,  'coach',   'Mike Teti',     'coach@rowiq.demo',  'active'),
+  (coach_id,  'coach',   'Coach Demo',     'coach@rowiq.demo',  'active'),
   (alex_id,   'athlete', 'Alex Chen',     'alex@rowiq.demo',   'active'),
   (jordan_id, 'athlete', 'Jordan Rivera', 'jordan@rowiq.demo', 'active'),
   (sam_id,    'athlete', 'Sam Park',      'sam@rowiq.demo',    'active'),
@@ -94,7 +94,7 @@ on conflict (id) do update set
 -- ============================================================
 insert into teams (name, invite_code, sport, division, season_start, season_end, coach_id)
 values (
-  'UC Berkeley Men''s Rowing',
+  'Demo Rowing Club',
   'CAL-ROW-2026',
   'Rowing',
   'NCAA D1',
